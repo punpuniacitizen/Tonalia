@@ -212,6 +212,35 @@
   border-color: var(--line-strong);
 }
 
+.learn-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.learn-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.learn-button:hover {
+  color: var(--text-0);
+  border-color: var(--line-strong);
+}
+
+.learn-button.is-on {
+  color: var(--text-0);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px color-mix(in oklab, var(--accent) 40%, transparent);
+}
+
 .header-spacer {
   flex: 1;
 }
@@ -283,8 +312,36 @@
   background: var(--accent);
 }
 
-@media (max-width: 1280px) {
+.header {
+  white-space: nowrap;
+  gap: 14px;
+}
+
+.header > * {
+  flex-shrink: 0;
+}
+
+@media (max-width: 1700px) {
   .brand-tagline {
+    display: none;
+  }
+}
+
+@media (max-width: 1500px) {
+  .learn-button span,
+  .learn-button-label {
+    display: none;
+  }
+  .key-pill-label {
+    display: none;
+  }
+}
+
+@media (max-width: 1320px) {
+  .file-name {
+    max-width: 90px;
+  }
+  .bpm-label {
     display: none;
   }
 }

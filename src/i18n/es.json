@@ -99,6 +99,89 @@
     "preview": "Escuchar",
     "tension": "Tensión"
   },
+  "library": {
+    "title": "Biblioteca de progresiones",
+    "short": "Biblioteca",
+    "subtitle": "Escucha y añade progresiones famosas en {{key}}",
+    "listen": "Escuchar",
+    "add": "Añadir a la canción",
+    "relativeMinor": "Progresión menor: se toca en la relativa, {{key}} menor.",
+    "relativeMajor": "Progresión mayor: se toca en la relativa, {{key}} mayor."
+  },
+  "training": {
+    "title": "Entrenamiento auditivo",
+    "short": "Oído",
+    "mode": "Juego",
+    "intervals": "Intervalos",
+    "chords": "Acordes",
+    "functions": "Funciones",
+    "intervalsIntro": "Suenan dos notas, una tras otra. ¿Qué distancia hay entre ellas?",
+    "chordsIntro": "Suena un acorde (primero arpegiado). ¿De qué tipo es?",
+    "functionsIntro": "Suena la tónica y luego otro acorde. ¿Qué función cumple ese segundo acorde?",
+    "prompt": "Escucha y elige una respuesta (clic en el círculo para repetir)",
+    "replay": "Repetir",
+    "next": "Siguiente",
+    "accuracy": "Aciertos",
+    "right": "¡Correcto! Racha: {{streak}}",
+    "wrong": "Era: {{answer}}",
+    "interval": {
+      "1": "2ª menor",
+      "2": "2ª mayor",
+      "3": "3ª menor",
+      "4": "3ª mayor",
+      "5": "4ª justa",
+      "6": "Tritono",
+      "7": "5ª justa",
+      "8": "6ª menor",
+      "9": "6ª mayor",
+      "10": "7ª menor",
+      "11": "7ª mayor",
+      "12": "Octava"
+    },
+    "quality": {
+      "major": "Mayor",
+      "minor": "Menor",
+      "dim": "Disminuido",
+      "aug": "Aumentado",
+      "sus4": "Sus4",
+      "sus2": "Sus2",
+      "dom7": "Séptima (7)",
+      "maj7": "Séptima mayor",
+      "min7": "Menor séptima"
+    },
+    "explain": {
+      "intervals": {
+        "1": "Un semitono: el roce más tenso, como un tiburón que se acerca.",
+        "2": "Un tono: el paso de una escala, natural y en movimiento.",
+        "3": "Tercera menor: la esencia de lo menor, algo melancólica.",
+        "4": "Tercera mayor: luminosa, la esencia del acorde mayor.",
+        "5": "Cuarta justa: abierta, suena a llamada o a fanfarria.",
+        "6": "Tritono: tres tonos, inestable; el corazón de la dominante.",
+        "7": "Quinta justa: hueca y estable, la base de los acordes de quinta.",
+        "8": "Sexta menor: dramática y nostálgica.",
+        "9": "Sexta mayor: cálida y amplia.",
+        "10": "Séptima menor: bluesy, pide moverse.",
+        "11": "Séptima mayor: soñadora, a un semitono de la octava.",
+        "12": "Octava: la misma nota más aguda; se funden."
+      },
+      "chords": {
+        "major": "Tercera mayor + tercera menor: brillante y estable.",
+        "minor": "Tercera menor + tercera mayor: sombrío e íntimo.",
+        "dim": "Dos terceras menores: tenso, con un tritono dentro.",
+        "aug": "Dos terceras mayores: suspendido, como de sueño o misterio.",
+        "sus4": "Sin tercera, con la cuarta: queda «en el aire» esperando resolver.",
+        "sus2": "Sin tercera, con la segunda: abierto y moderno.",
+        "dom7": "Mayor + séptima menor: la dominante clásica, pide resolver.",
+        "maj7": "Mayor + séptima mayor: suave, jazzístico, sofisticado.",
+        "min7": "Menor + séptima menor: relajado y cálido."
+      },
+      "functions": {
+        "tonic": "Suena estable: podría terminar ahí la canción (vi o iii, parientes de la tónica).",
+        "subdominant": "Se aleja de casa con suavidad: movimiento sin urgencia (IV o ii).",
+        "dominant": "Crea tensión y pide volver a la tónica (V, V7 o vii°)."
+      }
+    }
+  },
   "sections": {
     "name": "Nombre de la sección",
     "key": "Tonalidad de la sección",

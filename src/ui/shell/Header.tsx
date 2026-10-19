@@ -117,6 +117,23 @@ export function Header() {
         </Popover>
       </div>
 
+      <div className="learn-buttons">
+        <button
+          className={`learn-button ${ui.panel === "library" ? "is-on" : ""}`}
+          onClick={() => ui.set({ panel: ui.panel === "library" ? null : "library" })}
+          title={t("library.title")}
+        >
+          <Icon name="book" size={16} /> <span className="learn-button-label">{t("library.short")}</span>
+        </button>
+        <button
+          className={`learn-button ${ui.panel === "training" ? "is-on" : ""}`}
+          onClick={() => ui.set({ panel: ui.panel === "training" ? null : "training" })}
+          title={t("training.title")}
+        >
+          <Icon name="ear" size={16} /> <span className="learn-button-label">{t("training.short")}</span>
+        </button>
+      </div>
+
       <div className="history">
         <button className="icon-button" title={`${t("edit.undo")} (Ctrl+Z)`} disabled={!view.canUndo} onClick={undo}>
           <Icon name="undo" />

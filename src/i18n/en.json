@@ -99,6 +99,89 @@
     "preview": "Listen",
     "tension": "Tension"
   },
+  "library": {
+    "title": "Progression library",
+    "short": "Library",
+    "subtitle": "Listen to and add famous progressions in {{key}}",
+    "listen": "Listen",
+    "add": "Add to song",
+    "relativeMinor": "Minor progression: played in the relative, {{key}} minor.",
+    "relativeMajor": "Major progression: played in the relative, {{key}} major."
+  },
+  "training": {
+    "title": "Ear training",
+    "short": "Ear",
+    "mode": "Game",
+    "intervals": "Intervals",
+    "chords": "Chords",
+    "functions": "Functions",
+    "intervalsIntro": "Two notes play one after the other. How far apart are they?",
+    "chordsIntro": "A chord plays (arpeggiated first). What kind is it?",
+    "functionsIntro": "The tonic plays, then another chord. What function does the second chord have?",
+    "prompt": "Listen and pick an answer (click the circle to replay)",
+    "replay": "Replay",
+    "next": "Next",
+    "accuracy": "Correct answers",
+    "right": "Correct! Streak: {{streak}}",
+    "wrong": "It was: {{answer}}",
+    "interval": {
+      "1": "Minor 2nd",
+      "2": "Major 2nd",
+      "3": "Minor 3rd",
+      "4": "Major 3rd",
+      "5": "Perfect 4th",
+      "6": "Tritone",
+      "7": "Perfect 5th",
+      "8": "Minor 6th",
+      "9": "Major 6th",
+      "10": "Minor 7th",
+      "11": "Major 7th",
+      "12": "Octave"
+    },
+    "quality": {
+      "major": "Major",
+      "minor": "Minor",
+      "dim": "Diminished",
+      "aug": "Augmented",
+      "sus4": "Sus4",
+      "sus2": "Sus2",
+      "dom7": "Dominant 7",
+      "maj7": "Major 7",
+      "min7": "Minor 7"
+    },
+    "explain": {
+      "intervals": {
+        "1": "One half step: the tensest rub, like a shark approaching.",
+        "2": "One whole step: a scale step, natural and moving.",
+        "3": "Minor third: the essence of minor, a little melancholic.",
+        "4": "Major third: bright, the essence of a major chord.",
+        "5": "Perfect fourth: open, sounds like a call or a fanfare.",
+        "6": "Tritone: three whole steps, unstable; the heart of the dominant.",
+        "7": "Perfect fifth: hollow and stable, the basis of power chords.",
+        "8": "Minor sixth: dramatic and nostalgic.",
+        "9": "Major sixth: warm and wide.",
+        "10": "Minor seventh: bluesy, wants to move.",
+        "11": "Major seventh: dreamy, a half step below the octave.",
+        "12": "Octave: the same note higher; they blend."
+      },
+      "chords": {
+        "major": "Major third + minor third: bright and stable.",
+        "minor": "Minor third + major third: dark and intimate.",
+        "dim": "Two minor thirds: tense, with a tritone inside.",
+        "aug": "Two major thirds: suspended, dreamy or mysterious.",
+        "sus4": "No third, a fourth instead: hangs 'in the air' waiting to resolve.",
+        "sus2": "No third, a second instead: open and modern.",
+        "dom7": "Major + minor seventh: the classic dominant, wants to resolve.",
+        "maj7": "Major + major seventh: soft, jazzy, sophisticated.",
+        "min7": "Minor + minor seventh: relaxed and warm."
+      },
+      "functions": {
+        "tonic": "It sounds stable: the song could end there (vi or iii, relatives of the tonic).",
+        "subdominant": "It gently leaves home: motion without urgency (IV or ii).",
+        "dominant": "It creates tension and wants to return to the tonic (V, V7 or vii°)."
+      }
+    }
+  },
   "sections": {
     "name": "Section name",
     "key": "Section key",

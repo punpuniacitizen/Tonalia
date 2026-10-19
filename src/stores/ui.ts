@@ -14,6 +14,8 @@ export type SymbolMode = "names" | "roman";
 export type Language = "es" | "en";
 /** De dónde salen los acordes del anillo medio de la rueda. */
 export type WheelSource = { kind: "mode"; scale: string } | { kind: "left" } | { kind: "right" };
+/** Panel lateral o ventana abierta (biblioteca, entrenamiento auditivo…). */
+export type Panel = "library" | "training" | null;
 
 interface UiState {
   notation: Notation;
@@ -24,6 +26,9 @@ interface UiState {
   grid: Grid;
   pxPerBar: number;
   wheelSource: WheelSource;
+  panel: Panel;
+  /** Mostrar las líneas de conducción de voces en la cinta. */
+  showVoices: boolean;
   selected: ChordRef | null;
   set: (patch: Partial<Omit<UiState, "set" | "select">>) => void;
   select: (ref: ChordRef | null) => void;
@@ -54,6 +59,8 @@ export const useUi = create<UiState>()(
       grid: "beat",
       pxPerBar: 180,
       wheelSource: { kind: "mode", scale: "aeolian" },
+      panel: null,
+      showVoices: false,
       selected: null,
       set: (patch) => set(patch),
       select: (selected) => set({ selected }),
@@ -61,7 +68,7 @@ export const useUi = create<UiState>()(
     {
       name: "tonalia-ui",
       storage: safeStorage,
-      partialize: ({ selected: _selected, set: _set, select: _select, ...rest }) => rest,
+      partialize: ({ selected: _selected, panel: _panel, set: _set, select: _select, ...rest }) => rest,
     },
   ),
 );
