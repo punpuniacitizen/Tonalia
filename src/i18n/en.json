@@ -1,0 +1,103 @@
+{
+  "app": { "tagline": "harmony you can see" },
+  "transport": {
+    "play": "Play",
+    "stop": "Stop",
+    "rewind": "Back to start",
+    "loop": "Loop",
+    "bpm": "BPM",
+    "bpmHint": "Drag up/down or use the mouse wheel"
+  },
+  "edit": { "undo": "Undo", "redo": "Redo", "delete": "Delete" },
+  "view": {
+    "notation": "Notation",
+    "letters": "C D E",
+    "solfege": "Do Re Mi",
+    "symbols": "Symbols",
+    "names": "Names",
+    "roman": "Roman",
+    "level": "Level",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "language": "Language"
+  },
+  "preview": {
+    "title": "How chords sound",
+    "octave": "Octave",
+    "strumming": "Strum",
+    "none": "None",
+    "velocity": "Velocity",
+    "size": "Chords",
+    "triads": "Triads",
+    "sevenths": "Sevenths"
+  },
+  "key": {
+    "title": "Key",
+    "home": "Song key",
+    "rotate": "Turn the outer ring to change key"
+  },
+  "scale": {
+    "major": "major",
+    "minor": "minor",
+    "ionian": "Ionian",
+    "dorian": "Dorian",
+    "phrygian": "Phrygian",
+    "lydian": "Lydian",
+    "mixolydian": "Mixolydian",
+    "aeolian": "Aeolian",
+    "locrian": "Locrian",
+    "harmonicMinor": "harmonic minor",
+    "melodicMinor": "melodic minor",
+    "chromatic": "chromatic"
+  },
+  "wheel": {
+    "title": "Harmony wheel",
+    "diatonic": "In key",
+    "borrowed": "Borrowed",
+    "borrowFrom": "Borrow from",
+    "neighborLeft": "Neighbor ◀",
+    "neighborRight": "▶ Neighbor",
+    "hint": "Hover to listen · click to add · drag onto the ribbon",
+    "from": "After {{chord}}",
+    "collapse": "Fold the wheel",
+    "expand": "Open the wheel"
+  },
+  "function": {
+    "tonic": "Tonic",
+    "subdominant": "Subdominant",
+    "dominant": "Dominant",
+    "tonicHint": "rest, stability",
+    "subdominantHint": "departure, motion",
+    "dominantHint": "tension that wants to resolve"
+  },
+  "reason": {
+    "noContext": "First chord: any start works.",
+    "sameRoot": "Same root: the color changes, not the function.",
+    "fromTonic": "From the tonic you can go anywhere.",
+    "fifthDown": "The root falls a fifth: the strongest move in harmony.",
+    "functionalPair": "A classic functional step ({{from}} → {{to}}).",
+    "strongRootMotion": "Strong root motion ({{interval}}).",
+    "susResolution": "The suspended note resolves by step.",
+    "preparedSus": "The suspended note was already sounding: a prepared suspension.",
+    "weak": "No tonal rule backs this step; it may sound surprising."
+  },
+  "ribbon": {
+    "empty": "Drag chords from the wheel or click one to start",
+    "resize": "Drag the edge to change the length",
+    "section": "Section"
+  },
+  "lens": {
+    "notes": "Notes",
+    "transition": "Arrival",
+    "preview": "Listen"
+  },
+  "intervals": {
+    "1": "minor 2nd",
+    "2": "major 2nd",
+    "5": "perfect 4th",
+    "6": "tritone",
+    "8": "minor 6th",
+    "9": "major 6th"
+  }
+}

@@ -1,0 +1,11 @@
+[package]
+name = "tonalia-core"
+version.workspace = true
+edition.workspace = true
+description = "Núcleo de teoría musical de Tonalia: notas, escalas, acordes, armonía, voicing y MIDI"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+midly.workspace = true

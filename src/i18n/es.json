@@ -1,0 +1,103 @@
+{
+  "app": { "tagline": "armonía que se ve" },
+  "transport": {
+    "play": "Reproducir",
+    "stop": "Detener",
+    "rewind": "Volver al inicio",
+    "loop": "Repetir en bucle",
+    "bpm": "BPM",
+    "bpmHint": "Arrastra arriba/abajo o usa la rueda del ratón"
+  },
+  "edit": { "undo": "Deshacer", "redo": "Rehacer", "delete": "Borrar" },
+  "view": {
+    "notation": "Notación",
+    "letters": "C D E",
+    "solfege": "Do Re Mi",
+    "symbols": "Símbolos",
+    "names": "Nombres",
+    "roman": "Romanos",
+    "level": "Nivel",
+    "beginner": "Inicial",
+    "intermediate": "Medio",
+    "advanced": "Avanzado",
+    "language": "Idioma"
+  },
+  "preview": {
+    "title": "Cómo suenan los acordes",
+    "octave": "Octava",
+    "strumming": "Rasgueo",
+    "none": "Ninguno",
+    "velocity": "Intensidad",
+    "size": "Acordes",
+    "triads": "Tríadas",
+    "sevenths": "Cuatríadas"
+  },
+  "key": {
+    "title": "Tonalidad",
+    "home": "Tonalidad de la canción",
+    "rotate": "Gira el anillo exterior para cambiar de tonalidad"
+  },
+  "scale": {
+    "major": "mayor",
+    "minor": "menor",
+    "ionian": "jónico",
+    "dorian": "dórico",
+    "phrygian": "frigio",
+    "lydian": "lidio",
+    "mixolydian": "mixolidio",
+    "aeolian": "eólico",
+    "locrian": "locrio",
+    "harmonicMinor": "menor armónica",
+    "melodicMinor": "menor melódica",
+    "chromatic": "cromática"
+  },
+  "wheel": {
+    "title": "Rueda armónica",
+    "diatonic": "De la tonalidad",
+    "borrowed": "Prestados",
+    "borrowFrom": "Tomar prestado de",
+    "neighborLeft": "Vecina ◀",
+    "neighborRight": "▶ Vecina",
+    "hint": "Pasa el ratón para escuchar · clic para añadir · arrastra a la cinta",
+    "from": "Después de {{chord}}",
+    "collapse": "Plegar la rueda",
+    "expand": "Abrir la rueda"
+  },
+  "function": {
+    "tonic": "Tónica",
+    "subdominant": "Subdominante",
+    "dominant": "Dominante",
+    "tonicHint": "reposo, estabilidad",
+    "subdominantHint": "alejamiento, movimiento",
+    "dominantHint": "tensión que pide resolver"
+  },
+  "reason": {
+    "noContext": "Primer acorde: cualquier comienzo vale.",
+    "sameRoot": "Misma fundamental: cambia el color, no la función.",
+    "fromTonic": "Desde la tónica se puede ir a cualquier parte.",
+    "fifthDown": "La fundamental baja una quinta: el movimiento más fuerte de la armonía.",
+    "functionalPair": "Un paso funcional clásico ({{from}} → {{to}}).",
+    "strongRootMotion": "Movimiento de fundamental fuerte ({{interval}}).",
+    "susResolution": "La nota suspendida resuelve por grado conjunto.",
+    "preparedSus": "La nota suspendida ya sonaba antes: suspensión preparada.",
+    "weak": "Ninguna regla tonal respalda este paso; puede sonar sorprendente."
+  },
+  "ribbon": {
+    "empty": "Arrastra acordes desde la rueda o haz clic en uno para empezar",
+    "resize": "Arrastra el borde para cambiar la duración",
+    "section": "Sección"
+  },
+  "lens": {
+    "notes": "Notas",
+    "transition": "Llegada",
+    "preview": "Escuchar"
+  },
+  "intervals": {
+    "1": "2ª menor",
+    "2": "2ª mayor",
+    "5": "4ª justa",
+    "6": "tritono",
+    "8": "6ª menor",
+    "9": "6ª mayor"
+  }
+}
