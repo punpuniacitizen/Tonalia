@@ -3,6 +3,11 @@
 Composición armónica visual y educativa. Aplicación de escritorio (Tauri 2) con el motor
 musical en Rust y la interfaz en React + TypeScript. Proyecto personal y educativo.
 
+Rueda armónica, cinta de acordes con tensión y transiciones, piano roll que se colorea
+según el acorde, conducción de voces, Tonnetz, mapa de funciones, rearmonización,
+biblioteca de progresiones, entrenamiento auditivo y tips con clic derecho. Instrumentos
+sampleados (GeneralUser GS). Detalle en [docs/CONTEXTO-PROXIMA-SESION.md](docs/CONTEXTO-PROXIMA-SESION.md).
+
 ## Estructura
 
 ```
@@ -11,6 +16,9 @@ crates/tonalia-core/   teoría musical pura en Rust (notas, escalas, acordes, ar
 src-tauri/             la app de escritorio: estado, comandos y motor de audio
 src/                   la interfaz (React): cinta de acordes, rueda armónica, lentes
 src/bindings/          tipos TypeScript generados desde Rust (no editar a mano)
+src/tips/, src/library/ contenido educativo (tips y progresiones)
+assets/soundfonts/     banco GeneralUser GS (licencia en el mismo directorio)
+docs/                  informe de ingeniería inversa y contexto de trabajo
 scripts/dev.ps1        arranque en modo desarrollo
 ```
 

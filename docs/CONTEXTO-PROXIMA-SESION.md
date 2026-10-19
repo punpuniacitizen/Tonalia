@@ -1,7 +1,7 @@
 # Contexto para la próxima sesión
 
 > Léelo al empezar (o pídele a Claude: "lee docs/CONTEXTO-PROXIMA-SESION.md y seguimos").
-> Estado al 19-10-2026, commit `ff0aa02` + este documento.
+> Estado al 19-10-2026. Repo: https://github.com/punpuniacitizen/Tonalia (rama `main`).
 
 ## Qué es Tonalia
 
@@ -17,72 +17,70 @@ assets del original, y no se toca nada de licencias.
   futuro plug-in VST3/CLAP con nih-plug.
 - La canción vive en Rust (única fuente de verdad). La UI envía `EditCommand` y recibe
   un `SongView` (canción + análisis: símbolos, romanos, función, tensión, puntuación).
-- Sonido: sintetizador FM propio (cpal) + exportar `.mid`. Sin MIDI en vivo por ahora.
+- Sonido: **banco SoundFont GeneralUser GS** (`assets/soundfonts/`, licencia permisiva v2.0,
+  incluida) reproducido con `rustysynth`; el sintetizador FM propio queda de respaldo.
 - Educación mixta con niveles (Inicial / Medio / Avanzado), interfaz español + inglés.
-- Estética "Estudio nocturno" (oscuro, acordes que brillan). Priorizar UI creativa y
-  visual sobre paneles monolíticos.
+- Estética "Estudio nocturno". Priorizar UI creativa y visual sobre paneles monolíticos.
 - Tipos TS generados con **ts-rs** (`npm run bindings` → `src/bindings/`).
 
-## Qué está hecho
+## Qué está hecho (todas las fases del plan)
 
 | Fase | Estado |
 |---|---|
-| 0. Entorno (Rust, Build Tools C++, Git, Tauri) | ✅ |
-| 1. Núcleo teórico `tonalia-core` (51 tests) | ✅ |
-| 2. Audio + Rueda armónica + Cinta de acordes + lente | ✅ verificado con capturas |
-| 3. Pistas y piano roll inteligente | 🟡 casi: carriles, piano roll con coloreado armónico, herramientas, teclado y "acorde desde notas" hechos; falta verificar en ventana los últimos ajustes (cinta compacta con piano roll abierto, notas fuera de escala en rojo), probar mover/estirar/lazo/intensidad y "acorde desde notas" |
-| 4. Secciones, guardar/abrir, export MIDI, SoundFont | pendiente |
-| 5+. Capa educativa | pendiente |
+| 0. Entorno | ✅ |
+| 1. Núcleo teórico `tonalia-core` | ✅ 92 tests |
+| 2. Audio + Rueda armónica + Cinta de acordes + lente | ✅ |
+| 3. Pistas y piano roll inteligente | ✅ verificado en ventana |
+| 4. Proyecto: secciones, guardar/abrir, autoguardado, exportar/arrastrar MIDI, SoundFont, bucle | ✅ |
+| 5. Capa educativa | ✅ (ver lista) |
 
-Detalles de la fase 2:
-- `src-tauri/src/audio/`: `synth.rs` (FM, 4 instrumentos: piano, bajo, pulsado, colchón),
-  `sequencer.rs` (compila la canción a eventos, motor muestra a muestra, colas `rtrb`),
-  `mod.rs` (hilo de audio con cpal 0.18).
-- `src-tauri/src/commands.rs`: `get_view`, `apply_edit`, `undo`, `redo`, `get_palette`,
-  `detect_chord`, `preview_chord`, `preview_notes`, `stop_preview`, `transport_*`,
-  `audio_status`. Evento `transport` ~30 Hz.
-- `src/ui/`: `shell/Header` (transporte, BPM, tonalidad, conmutadores), `timeline/`
-  (regla, secciones, Cinta de acordes, cursor), `wheel/` (Rueda armónica + muelle),
-  `lenses/` (lente del acorde, ajustes de previsualización).
-- Stores zustand en `src/stores/` (song, ui, transport, drag).
+### Funciones por zona
 
-**Sin verificar:** el sonido no se pudo escuchar (solo tests). Confirmar que suena bien
-y sin cortes.
+- **Cabecera:** menú Archivo (Nuevo/Abrir/Guardar/Guardar como/Exportar MIDI, Ctrl+N/O/S/E),
+  pastilla **MIDI** para arrastrar la canción a un DAW, transporte, BPM (arrastrar o rueda),
+  tonalidad, C-D-E/Do-Re-Mi, nombres/romanos, menú Vista (nivel e idioma),
+  **Biblioteca** y **Oído** (entrenamiento), deshacer/rehacer, ajustes de sonido
+  (motor sampleado/sintetizador, octava, rasgueo, intensidad, tríadas/cuatríadas).
+- **Línea de tiempo:** regla (clic = cursor, arrastrar = región de bucle; doble clic la
+  quita), secciones (clic = editor: nombre, color, tonalidad propia, añadir, subsección,
+  envolver, borrar; "+" añade al final), pista de acordes con botones **Voces** (líneas de
+  conducción de voces), **Suavizar** (voicing con mínimo movimiento) y **Restablecer**.
+- **Cinta de acordes:** color = función, altura = tensión, arcos = fuerza de la transición;
+  arrastrar para mover, borde para estirar.
+- **Pistas:** instrumento (piano de cola, piano eléctrico, guitarra, arpa, bajo, cuerdas,
+  colchón), M/S, volumen; se despliegan como **piano roll inteligente** (filas coloreadas
+  por el acorde que suena, voicing de fondo, notas fuera de escala en rojo, herramientas
+  dibujar/seleccionar/intensidad, teclado lateral, "Acorde desde notas").
+- **Muelle inferior:** selector **Rueda / Mapa T–S–D / Tonnetz**.
+  - Rueda armónica: diatónicos, prestados (modo elegible) o vecinas, arcos de puntuación.
+  - Mapa T–S–D: la progresión como recorrido entre zonas; luz que se mueve al reproducir.
+  - Tonnetz: triángulos = acordes, camino de la progresión, transformaciones **P/R/L**.
+- **Lente del acorde** (columna izquierda al seleccionar): anatomía en **teclado / reloj
+  cromático / mástil**, notas escritas, "por qué suena bien" con puntuación y
+  **Alternativas** para rearmonizar (relativo, préstamo, tritonal, V7 antes, sus, séptima).
+- **Tips con clic derecho** (`src/tips/tips.ts`): funciones tonales, todos los modos
+  (carácter, nota característica, medidor oscuro→brillante, cuándo usarlos, ejemplo
+  sonoro), mayor/menor, papeles de las notas, transiciones, círculo de quintas, préstamos,
+  tensión, conducción de voces y Tonnetz.
+- **Biblioteca:** 16 progresiones famosas (pop, jazz, blues, andaluza, canon, épica,
+  modales…), se escuchan y se añaden en tu tonalidad (o en su relativa).
+- **Entrenamiento auditivo:** intervalos, calidad de acordes y funciones, según el nivel.
 
-## Próximos pasos (fase 3: pistas y piano roll inteligente)
+## Verificado y sin verificar
 
-1. **Carriles de pistas** bajo la cinta: nombre, color, mute/solo/volumen, instrumento,
-   agregar/borrar (`AddTrack`, `RemoveTrack`, `UpdateTrack`, `UpdateChordTrack` ya existen).
-   Mostrar las notas de cada pista en miniatura (`SongView.trackNotes`).
-2. Un carril **se expande con animación a piano roll** (no ventana aparte). Canvas 2D.
-3. **Coloreado armónico de filas** según el acorde que suena en cada instante: notas del
-   acorde brillantes, de la escala tenues, fuera de escala oscuras/rayadas. Datos en
-   `ChordView.label.pitchClasses` y `ChordView.key` (escala por región).
-4. Voicing del acorde como sombra de fondo (`ChordView.voicing`).
-5. Herramientas: dibujar, mover, redimensionar inicio/fin, lazo, modo velocity, imán
-   (`Grid`). Al soltar se envía un único `SetTrackNotes` con todas las notas absolutas.
-6. Tira de teclado abajo que se ilumina al reproducir; clic en una tecla = `preview_notes`.
-7. "Fijar / Añadir como acorde" desde notas seleccionadas (`detect_chord`, con
-   alternativas de fundamental).
+- Verificado con capturas por CDP: todo lo anterior salvo el arrastre nativo del MIDI al
+  DAW (se comprobó que el archivo se prepara; falta probar soltarlo en un DAW real).
+- **El sonido no se pudo escuchar** (solo tests y estado del motor). Confirmar que el
+  banco sampleado suena bien y sin cortes.
 
-Después: fase 4 (secciones anidadas con escala propia, envolver, región de bucle,
-guardar/abrir `.tonalia` con autoguardado, exportar `.mid` por diálogo y arrastrando al
-DAW con `tauri-plugin-drag`, soporte `.sf2` con `rustysynth`). Fase 5: "¿por qué suena
-bien?" ampliado, anatomía del acorde + reloj cromático, escalas como formas, líneas de
-voces + voicing suave, mapa de gravedad T–S–D, biblioteca de progresiones, Tonnetz,
-entrenamiento auditivo, mástil de guitarra, rearmonización. El plan completo aprobado
-está en la sección "Fases" de abajo.
+## Ideas para seguir
 
-## Pendientes menores conocidos
-
-- La cabecera es justa a 1024 px de ancho: agrupar los conmutadores en un menú "Vista"
-  en ventanas estrechas.
-- Al cambiar el programa durante la reproducción se cortan las notas sostenidas
-  (se liberan las voces del secuenciador).
-- Diseño propio donde el original quedó abierto: nombrado completo de acordes, romanos,
-  `target_note` de las suspensiones (cualquier nota del acorde destino a 1–2 semitonos)
-  y umbral de registro (= tónica). Cromática con 12 notas y menor armónica con pasos
-  correctos (diferencias intencionales).
+- Suspensiones animadas (la 4ª que "cae" a la 3ª) en la lente.
+- "Escalas como formas": polígono de la escala en el reloj cromático junto a la rueda.
+- Exportar solo la región de bucle o una pista (el comando ya acepta `region` y `tracks`).
+- Salida MIDI en vivo (midir) y, más adelante, plug-in VST3/CLAP con nih-plug.
+- Importar proyectos del formato original (`.klp`, claves conocidas en el informe §8.2).
+- Al cambiar el programa durante la reproducción se cortan las notas sostenidas.
 
 ## Puesta en marcha en otra máquina (notebook)
 
@@ -101,8 +99,8 @@ Si Build Tools ya existe pero incompleto, hay que **modificarlo** como administr
 Luego:
 
 ```bash
-git clone <url-del-repo> tonalia
-cd tonalia
+git clone https://github.com/punpuniacitizen/Tonalia.git
+cd Tonalia
 npm install
 npm run test:rust
 npm run tauri dev
@@ -112,9 +110,3 @@ La primera compilación tarda ~6 min. En PowerShell recién instalado usar
 `scripts\dev.ps1` (añade `~\.cargo\bin` al PATH). `scripts\dev.ps1 -Inspect` abre el
 puerto 9222 de WebView2 (solo localhost) para que Claude haga capturas y simule clics por
 CDP sin mover el ratón.
-
-## Fases (plan aprobado, resumen)
-
-0. Entorno · 1. Núcleo con tests · 2. Primer sonido: cinta + rueda + audio ·
-3. Pistas y piano roll inteligente · 4. Proyecto completo (hito: recreación) ·
-5+. Capa educativa (se planifica en detalle al llegar).
