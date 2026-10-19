@@ -119,6 +119,19 @@
     "seventh": "con séptima",
     "seventhHint": "Añade la séptima de la escala: más rico y suave"
   },
+  "dock": {
+    "view": "Vista",
+    "wheel": "Rueda",
+    "map": "Mapa T–S–D",
+    "mapHint": "La progresión como un viaje entre reposo, movimiento y tensión",
+    "mapEmpty": "Añade acordes para ver su recorrido",
+    "tonnetzHint": "Red de notas: cada triángulo es un acorde; los vecinos comparten dos notas",
+    "plrHint": "Transformar el acorde:",
+    "plrSelect": "Selecciona un acorde mayor o menor:",
+    "plrP": "P (paralelo): mayor ↔ menor con la misma fundamental",
+    "plrR": "R (relativo): Do ↔ Lam — comparten dos notas",
+    "plrL": "L (sensible): Do ↔ Mim — comparten dos notas"
+  },
   "voices": {
     "show": "Voces",
     "showHint": "Mostrar cómo se mueve cada voz de un acorde al siguiente",

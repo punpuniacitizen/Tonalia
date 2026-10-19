@@ -27,7 +27,47 @@ export function TipVisualView({ visual, lang }: { visual: TipVisual; lang: "es" 
       return <Tension />;
     case "voices":
       return <Voices />;
+    case "tonnetz":
+      return <TonnetzMini />;
   }
+}
+
+/** Do mayor y sus tres vecinos P, R y L en la red. */
+function TonnetzMini() {
+  const W = 46;
+  const H = 40;
+  const p = (i: number, j: number): [number, number] => [160 + (i + j * 0.5 - 1.5) * W, 70 - j * H];
+  const tri = (a: [number, number], b: [number, number], c: [number, number]) => [a, b, c].map((q) => q.join(",")).join(" ");
+  const nodes: [number, number, string][] = [
+    [0, 0, "C"],
+    [1, 0, "G"],
+    [0, 1, "E"],
+    [1, 1, "B"],
+    [-1, 1, "A"],
+    [2, 0, "D"],
+    [-1, 0, "F"],
+  ];
+  return (
+    <svg viewBox="0 0 320 110" className="tip-svg">
+      <polygon points={tri(p(0, 0), p(1, 0), p(0, 1))} fill="var(--fn-tonic)" fillOpacity={0.45} stroke="white" />
+      <motion.polygon points={tri(p(1, 0), p(0, 1), p(1, 1))} fill="var(--fn-tonic)" fillOpacity={0.2} stroke="var(--fn-tonic)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} />
+      <motion.polygon points={tri(p(0, 0), p(0, 1), p(-1, 1))} fill="var(--fn-tonic)" fillOpacity={0.2} stroke="var(--fn-tonic)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} />
+      {nodes.map(([i, j, n]) => {
+        const [x, y] = p(i, j);
+        return (
+          <g key={n}>
+            <circle cx={x} cy={y} r={11} fill="#20253a" stroke="var(--line-strong)" />
+            <text x={x} y={y + 4} className="tip-small">
+              {n}
+            </text>
+          </g>
+        );
+      })}
+      <text x={160} y={104} className="tip-caption">
+        C · Em (L) · Am (R)
+      </text>
+    </svg>
+  );
 }
 
 /** Tres acordes como columnas de voces unidas por líneas (común, paso, salto). */

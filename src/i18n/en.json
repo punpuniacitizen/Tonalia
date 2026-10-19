@@ -119,6 +119,19 @@
     "seventh": "with 7th",
     "seventhHint": "Adds the scale's seventh: richer and softer"
   },
+  "dock": {
+    "view": "View",
+    "wheel": "Wheel",
+    "map": "T–S–D map",
+    "mapHint": "The progression as a journey between rest, motion and tension",
+    "mapEmpty": "Add chords to see their journey",
+    "tonnetzHint": "Note network: each triangle is a chord; neighbors share two notes",
+    "plrHint": "Transform the chord:",
+    "plrSelect": "Select a major or minor chord:",
+    "plrP": "P (parallel): major ↔ minor on the same root",
+    "plrR": "R (relative): C ↔ Am — they share two notes",
+    "plrL": "L (leading-tone): C ↔ Em — they share two notes"
+  },
   "voices": {
     "show": "Voices",
     "showHint": "Show how each voice moves from one chord to the next",

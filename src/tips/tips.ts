@@ -13,7 +13,8 @@ export type TipVisual =
   | { kind: "circle" }
   | { kind: "borrow" }
   | { kind: "tension" }
-  | { kind: "voices" };
+  | { kind: "voices" }
+  | { kind: "tonnetz" };
 
 type Text = { title: string; kicker: string; mood: string[]; body: string; useWhen: string[]; examples?: string };
 
@@ -404,6 +405,24 @@ export const TIPS: Record<string, Tip> = {
       mood: ["flowing", "connected", "polished"],
       body: "A chord is a group of voices (like a choir). If each voice moves as little as possible to the next chord—keeping common tones and moving by step—the progression sounds connected and smooth. That's why pianists use inversions instead of jumping with the whole hand. 'Smooth' picks the inversions for you.",
       useWhen: ["Piano or string accompaniments that sound polished", "Pads and choirs: leaps are very noticeable", "Seeing why a progression sounds 'jerky': look for orange lines (leaps)"],
+    },
+  },
+  "concept.tonnetz": {
+    visual: { kind: "tonnetz" },
+    sound: () => chordsSequence([C, [57, 60, 64], [53, 57, 60], [53, 56, 60], C], 0.85),
+    es: {
+      title: "Tonnetz",
+      kicker: "El mapa de los acordes vecinos",
+      mood: ["suave", "cinematográfico", "sorprendente pero lógico"],
+      body: "Una red donde hacia la derecha se sube una quinta y en diagonal una tercera. Cada triángulo es un acorde: los que miran arriba son mayores y los que miran abajo, menores. Dos triángulos que comparten un lado comparten dos notas, así que pasar de uno a otro mueve una sola voz. Las bandas sonoras usan mucho estos saltos «imposibles» que sin embargo suenan naturales.",
+      useWhen: ["Encadenar acordes lejanos en la tonalidad pero cercanos en sonido", "Bandas sonoras y momentos mágicos (P, L, R en cadena)", "Entender por qué Do → Lam o Do → Mim suenan tan suaves"],
+    },
+    en: {
+      title: "Tonnetz",
+      kicker: "The map of neighboring chords",
+      mood: ["smooth", "cinematic", "surprising yet logical"],
+      body: "A network where going right rises a fifth and diagonally a third. Each triangle is a chord: pointing up are major, pointing down are minor. Two triangles sharing an edge share two notes, so moving between them changes just one voice. Film scores love these 'impossible' moves that still sound natural.",
+      useWhen: ["Chaining chords far apart in key but close in sound", "Film music and magical moments (P, L, R in a row)", "Understanding why C → Am or C → Em sound so smooth"],
     },
   },
   "concept.tension": {

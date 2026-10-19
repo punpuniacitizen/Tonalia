@@ -16,6 +16,8 @@ export type Language = "es" | "en";
 export type WheelSource = { kind: "mode"; scale: string } | { kind: "left" } | { kind: "right" };
 /** Panel lateral o ventana abierta (biblioteca, entrenamiento auditivo…). */
 export type Panel = "library" | "training" | null;
+/** Qué se ve en el centro del muelle: rueda, mapa de funciones o Tonnetz. */
+export type DockView = "wheel" | "map" | "tonnetz";
 
 interface UiState {
   notation: Notation;
@@ -27,6 +29,7 @@ interface UiState {
   pxPerBar: number;
   wheelSource: WheelSource;
   panel: Panel;
+  dockView: DockView;
   /** Mostrar las líneas de conducción de voces en la cinta. */
   showVoices: boolean;
   selected: ChordRef | null;
@@ -60,6 +63,7 @@ export const useUi = create<UiState>()(
       pxPerBar: 180,
       wheelSource: { kind: "mode", scale: "aeolian" },
       panel: null,
+      dockView: "wheel",
       showVoices: false,
       selected: null,
       set: (patch) => set(patch),
