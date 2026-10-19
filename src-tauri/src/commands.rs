@@ -100,6 +100,27 @@ pub fn preview_notes(state: State<AppState>, pitches: Vec<u8>, velocity: Option<
     state.audio.send(AudioMsg::Preview(notes));
 }
 
+/// Una nota de un ejemplo sonoro (escala, cadencia…), con su retraso en segundos.
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SequenceNote {
+    pub pitch: u8,
+    pub delay: f32,
+    pub duration: f32,
+    pub velocity: Option<f32>,
+}
+
+/// Toca una secuencia corta de notas (los ejemplos de los tips).
+#[tauri::command]
+pub fn preview_sequence(state: State<AppState>, notes: Vec<SequenceNote>, instrument: Option<String>) {
+    let instrument = Instrument::from_name(instrument.as_deref().unwrap_or("piano"));
+    let notes = notes
+        .into_iter()
+        .map(|n| PreviewNote { pitch: n.pitch, velocity: n.velocity.unwrap_or(0.75), delay: n.delay, duration: n.duration, instrument })
+        .collect();
+    state.audio.send(AudioMsg::Preview(notes));
+}
+
 #[tauri::command]
 pub fn stop_preview(state: State<AppState>) {
     state.audio.send(AudioMsg::StopPreview);

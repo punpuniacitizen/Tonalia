@@ -139,7 +139,7 @@ export function ChordRibbon() {
 
   return (
     <div className="ribbon">
-      <svg className="ribbon-links" height="30" aria-hidden="true">
+      <svg className="ribbon-links" height="30" aria-hidden="true" data-tip="concept.transitions">
         {view.chords.map((c, i) => {
           if (i === 0 || c.transition.reason.kind === "noContext") return null;
           const a = geometry[i - 1];
@@ -155,7 +155,7 @@ export function ChordRibbon() {
         })}
       </svg>
 
-      <div className={`ribbon-lane ${payload ? "is-drop-zone" : ""}`} ref={laneRef}>
+      <div className={`ribbon-lane ${payload ? "is-drop-zone" : ""}`} ref={laneRef} data-tip="concept.tension">
         {view.chords.length === 0 && <EmptyRibbon />}
 
         {view.chords.map((c, i) => {
@@ -172,6 +172,7 @@ export function ChordRibbon() {
             <div
               key={`${c.section}-${c.index}`}
               className={classes}
+              data-tip={`function.${c.label.function}`}
               style={{
                 left: geometry[i].left,
                 width: geometry[i].width,

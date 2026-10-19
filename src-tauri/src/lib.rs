@@ -50,6 +50,7 @@ pub fn run() {
             commands::detect_chord,
             commands::preview_chord,
             commands::preview_notes,
+            commands::preview_sequence,
             commands::stop_preview,
             commands::transport_play,
             commands::transport_stop,

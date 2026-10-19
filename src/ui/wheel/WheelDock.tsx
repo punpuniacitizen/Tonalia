@@ -49,7 +49,7 @@ export function WheelDock() {
         <aside className="dock-side dock-legend">
           <h2>{t("wheel.title")}</h2>
           {(["tonic", "subdominant", "dominant"] as const).map((fn) => (
-            <div key={fn} className="legend-item" style={{ ["--fn" as string]: `var(--fn-${fn})` }}>
+            <div key={fn} className="legend-item" data-tip={`function.${fn}`} style={{ ["--fn" as string]: `var(--fn-${fn})` }}>
               <span className="dot" />
               <div>
                 <strong>{t(`function.${fn}`)}</strong>
@@ -58,22 +58,28 @@ export function WheelDock() {
             </div>
           ))}
           <p className="dock-hint">{t("wheel.hint")}</p>
+          <p className="dock-hint tip-hint">{t("tips.hint")}</p>
         </aside>
       )}
 
       <HarmonyWheel size={size} />
 
       <aside className="dock-side dock-sources">
-        <h3>{t("wheel.borrowFrom")}</h3>
+        <h3 data-tip="concept.borrow">{t("wheel.borrowFrom")}</h3>
         <div className="source-list">
           {modes.map((m) => (
-            <button key={m} className={isActive({ kind: "mode", scale: m }) ? "is-active" : ""} onClick={() => set({ wheelSource: { kind: "mode", scale: m } })}>
+            <button
+              key={m}
+              data-tip={`mode.${m}`}
+              className={isActive({ kind: "mode", scale: m }) ? "is-active" : ""}
+              onClick={() => set({ wheelSource: { kind: "mode", scale: m } })}
+            >
               {t(`scale.${m}`)}
             </button>
           ))}
         </div>
-        <h3>{t("wheel.neighbors")}</h3>
-        <div className="source-neighbors">
+        <h3 data-tip="concept.circle">{t("wheel.neighbors")}</h3>
+        <div className="source-neighbors" data-tip="concept.circle">
           <button className={isActive({ kind: "left" }) ? "is-active" : ""} onClick={() => set({ wheelSource: { kind: "left" } })}>
             ◀ {keyRootName((key.root + 5) % 12, key.scale.name, notation)}
           </button>

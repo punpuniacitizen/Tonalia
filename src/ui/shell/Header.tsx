@@ -175,7 +175,7 @@ function KeyPill() {
     <Popover
       className="key-popover"
       trigger={(open, toggle) => (
-        <button className={`key-pill ${open ? "is-open" : ""}`} onClick={toggle} title={t("key.home")}>
+        <button className={`key-pill ${open ? "is-open" : ""}`} onClick={toggle} title={t("key.home")} data-tip={`mode.${key.scale.name}`}>
           <span className="key-pill-label">{t("key.title")}</span>
           <span className="key-pill-name">{keyName(key, notation, scaleLabel)}</span>
           <Icon name="chevronDown" size={14} />
@@ -194,7 +194,7 @@ function KeyPill() {
           </div>
           <div className="key-scales">
             {SCALE_CHOICES.map((s) => (
-              <button key={s} className={s === key.scale.name ? "is-active" : ""} onClick={() => setKey(key.root, s)}>
+              <button key={s} data-tip={`mode.${s}`} className={s === key.scale.name ? "is-active" : ""} onClick={() => setKey(key.root, s)}>
                 {scaleLabel(s)}
               </button>
             ))}

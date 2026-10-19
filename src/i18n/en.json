@@ -95,6 +95,12 @@
     "preview": "Listen",
     "tension": "Tension"
   },
+  "tips": {
+    "useWhen": "Use it when…",
+    "listen": "Hear an example",
+    "close": "Close",
+    "hint": "💡 Right-click chords, functions, modes or the wheel to learn what they convey and when to use them."
+  },
   "tracks": {
     "chords": "Chords",
     "new": "Track",

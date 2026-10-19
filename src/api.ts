@@ -14,6 +14,17 @@ import type { PitchClass } from "./bindings/PitchClass";
 import type { SongView } from "./bindings/SongView";
 
 export type TransportState = { playing: boolean; position: number };
+export type SequenceNote = { pitch: number; delay: number; duration: number; velocity?: number };
+
+/** Acordes uno tras otro (cada uno es una lista de alturas MIDI). */
+export function chordsSequence(chords: number[][], seconds = 0.9): SequenceNote[] {
+  return chords.flatMap((pitches, i) => pitches.map((pitch) => ({ pitch, delay: i * seconds, duration: seconds * 0.95 })));
+}
+
+/** Notas una tras otra (melodía o escala). */
+export function melodySequence(pitches: number[], seconds = 0.28): SequenceNote[] {
+  return pitches.map((pitch, i) => ({ pitch, delay: i * seconds, duration: seconds * 1.4 }));
+}
 
 export const api = {
   getView: () => invoke<SongView>("get_view"),
@@ -27,6 +38,7 @@ export const api = {
     invoke<void>("preview_chord", { chord, keyRoot }),
   previewNotes: (pitches: number[], velocity?: number, instrument?: string, duration?: number) =>
     invoke<void>("preview_notes", { pitches, velocity, instrument, duration }),
+  previewSequence: (notes: SequenceNote[], instrument?: string) => invoke<void>("preview_sequence", { notes, instrument }),
   stopPreview: () => invoke<void>("stop_preview"),
   play: (from?: number) => invoke<void>("transport_play", { from }),
   stop: () => invoke<void>("transport_stop"),

@@ -95,6 +95,12 @@
     "preview": "Escuchar",
     "tension": "Tensión"
   },
+  "tips": {
+    "useWhen": "Úsalo cuando…",
+    "listen": "Escuchar ejemplo",
+    "close": "Cerrar",
+    "hint": "💡 Clic derecho sobre acordes, funciones, modos o la rueda para aprender qué transmiten y cuándo usarlos."
+  },
   "tracks": {
     "chords": "Acordes",
     "new": "Pista",

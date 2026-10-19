@@ -151,7 +151,12 @@ export function HarmonyWheel({ size }: { size: number }) {
             const isNeighbor = pc === (key.root + 7) % 12 || pc === (key.root + 5) % 12;
             const [x, y] = polar(a, (R.keys[0] + R.keys[1]) / 2);
             return (
-              <g key={`k${pc}`} className={`key-sector ${isHome ? "is-home" : ""} ${isNeighbor ? "is-neighbor" : ""}`} onClick={() => setKeyRoot(pc)}>
+              <g
+                key={`k${pc}`}
+                data-tip="concept.circle"
+                className={`key-sector ${isHome ? "is-home" : ""} ${isNeighbor ? "is-neighbor" : ""}`}
+                onClick={() => setKeyRoot(pc)}
+              >
                 <path d={sectorPath(a - HALF, a + HALF, R.keys[0], R.keys[1])} />
                 <g className="upright" style={{ transform: `translate(${x}px, ${y}px) rotate(${-rotation}deg)` }}>
                   <text y={5}>
@@ -228,7 +233,8 @@ export function HarmonyWheel({ size }: { size: number }) {
         </g>
 
         {/* Centro: la tonalidad, o el acorde bajo el ratón */}
-        <g className="wheel-center">
+        <g className="wheel-center" data-tip={`mode.${key.scale.name}`}>
+          <circle r={R.center} fill="transparent" />
           {hovered ? (
             <>
               <text y={-14} className="center-symbol" style={{ fill: functionColor(hovered.label.function) }}>
@@ -304,6 +310,7 @@ function ChordSector({
   return (
     <g
       className={classes}
+      data-tip={`function.${entry.label.function}`}
       style={{ ["--fn" as string]: functionColor(entry.label.function) }}
       onPointerDown={(ev) => onDown(ev, entry)}
       onPointerEnter={() => onEnter(entry)}

@@ -297,7 +297,7 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
 
   return (
     <div className="piano-roll" style={{ height }}>
-      <div className="piano-keys">
+      <div className="piano-keys" data-tip="concept.roles">
         <canvas ref={keysRef} style={{ width: KEYS_WIDTH, height }} onPointerDown={onKeysDown} />
       </div>
       <canvas

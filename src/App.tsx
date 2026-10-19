@@ -6,6 +6,7 @@ import { DragGhost } from "./ui/shell/DragGhost";
 import { Header } from "./ui/shell/Header";
 import { useShortcuts } from "./ui/shell/useShortcuts";
 import { Timeline } from "./ui/timeline/Timeline";
+import { TipLayer } from "./ui/tips/TipLayer";
 import { WheelDock } from "./ui/wheel/WheelDock";
 import "./App.css";
 
@@ -30,6 +31,7 @@ export default function App() {
         <WheelDock />
       </main>
       <DragGhost />
+      <TipLayer />
       {(error || audioError) && (
         <div className="toast" role="alert" onClick={clearError}>
           {error ?? `Audio: ${audioError}`}

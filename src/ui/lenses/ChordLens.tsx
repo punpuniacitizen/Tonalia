@@ -25,12 +25,12 @@ export function ChordLens({ chord }: { chord: ChordView }) {
       style={{ ["--lens-color" as string]: functionColor(label.function) }}
       aria-label={chordSymbol(label, notation)}
     >
-      <div className="lens-head">
+      <div className="lens-head" data-tip="concept.majorMinor">
         <span className="lens-symbol">{chordSymbol(label, notation)}</span>
         <span className="lens-roman">{romanSymbol(label)}</span>
       </div>
 
-      <div className="lens-function">
+      <div className="lens-function" data-tip={`function.${label.function}`}>
         <span className="dot" />
         {t(`function.${label.function}`)}
         <small>— {t(`function.${label.function}Hint`)}</small>
@@ -47,7 +47,7 @@ export function ChordLens({ chord }: { chord: ChordView }) {
       </div>
 
       {hasContext && (
-        <div className="lens-reason">
+        <div className="lens-reason" data-tip="concept.transitions">
           <div className="score-wrap" title={t("lens.transition")}>
             <div className="score-meter" style={{ ["--score" as string]: transition.score }} />
             <span>{Math.round(transition.score * 100)}</span>
