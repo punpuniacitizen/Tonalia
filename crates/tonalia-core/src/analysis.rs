@@ -16,6 +16,7 @@ use crate::time::Ticks;
 /// Todo lo que hace falta para mostrar un acorde en una tonalidad.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct ChordLabel {
     pub root: SpelledNote,
     pub suffix: String,
@@ -23,9 +24,15 @@ pub struct ChordLabel {
     pub function: Function,
     pub tension: f32,
     pub pitch_classes: Vec<u8>,
+    /// Notas del acorde escritas en la tonalidad, desde la fundamental hacia arriba.
+    pub notes: Vec<SpelledNote>,
 }
 
 pub fn describe(chord: &Chord, key: &Key) -> ChordLabel {
+    let notes = std::iter::once(0)
+        .chain(chord.intervals.iter().copied())
+        .map(|iv| key.spell(chord.root.transpose(iv as i32)))
+        .collect();
     ChordLabel {
         root: key.spell(chord.root),
         suffix: suffix(chord),
@@ -33,11 +40,13 @@ pub fn describe(chord: &Chord, key: &Key) -> ChordLabel {
         function: function_of(chord, key),
         tension: tension(chord, key),
         pitch_classes: chord.pitch_classes().into_iter().map(u8::from).collect(),
+        notes,
     }
 }
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct SectionView {
     pub id: SectionId,
     pub parent: Option<SectionId>,
@@ -54,6 +63,7 @@ pub struct SectionView {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct ChordView {
     pub section: SectionId,
     pub index: usize,
@@ -70,6 +80,7 @@ pub struct ChordView {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct TrackNotes {
     pub track: TrackId,
     pub notes: Vec<Note>,
@@ -77,6 +88,7 @@ pub struct TrackNotes {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct SongView {
     pub song: Song,
     pub length: Ticks,

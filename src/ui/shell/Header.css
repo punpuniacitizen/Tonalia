@@ -1,0 +1,207 @@
+.header {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 56px;
+  padding: 0 16px;
+  background: linear-gradient(180deg, rgba(14, 17, 28, 0.9), rgba(8, 10, 18, 0.6));
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.brand-orb {
+  align-self: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: conic-gradient(from 200deg, var(--fn-tonic), var(--fn-subdominant), var(--fn-dominant), var(--fn-tonic));
+  box-shadow: 0 0 16px rgba(139, 123, 255, 0.7);
+  animation: orb-spin 12s linear infinite;
+}
+
+@keyframes orb-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.brand-tagline {
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
+}
+
+.play-button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--bg-0);
+  background: var(--text-0);
+  box-shadow: 0 0 0 1px var(--line-strong), 0 0 18px rgba(238, 241, 255, 0.25);
+  transition: transform 0.15s var(--ease-spring), box-shadow 0.3s, background 0.3s;
+}
+
+.play-button:hover {
+  transform: scale(1.06);
+}
+
+.play-button.is-playing {
+  background: var(--accent-2);
+  box-shadow: 0 0 0 1px var(--accent-2), 0 0 26px color-mix(in oklab, var(--accent-2) 70%, transparent);
+}
+
+.bpm {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-m);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  cursor: ns-resize;
+}
+
+.bpm-value {
+  min-width: 30px;
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bpm-label {
+  color: var(--text-2);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.key-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.key-pill:hover,
+.key-pill.is-open {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+.key-pill-label {
+  color: var(--text-2);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.key-pill-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+.view-switches,
+.history {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popover-anchor {
+  position: relative;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  z-index: 50;
+  padding: 14px;
+  min-width: 240px;
+  animation: pop-in 0.18s var(--ease-out);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+
+.key-picker {
+  display: grid;
+  gap: 12px;
+  width: 320px;
+}
+
+.key-roots {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.key-scales {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.key-roots button,
+.key-scales button {
+  padding: 6px 4px;
+  border-radius: var(--radius-s);
+  background: var(--bg-3);
+  color: var(--text-1);
+  font-size: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.key-roots button:hover,
+.key-scales button:hover {
+  color: var(--text-0);
+  background: var(--bg-4);
+}
+
+.key-roots button.is-active,
+.key-scales button.is-active {
+  color: var(--bg-0);
+  background: var(--accent);
+}
+
+@media (max-width: 1280px) {
+  .brand-tagline {
+    display: none;
+  }
+}

@@ -56,6 +56,7 @@
     "diatonic": "De la tonalidad",
     "borrowed": "Prestados",
     "borrowFrom": "Tomar prestado de",
+    "neighbors": "Tonalidades vecinas",
     "neighborLeft": "Vecina ◀",
     "neighborRight": "▶ Vecina",
     "hint": "Pasa el ratón para escuchar · clic para añadir · arrastra a la cinta",
@@ -84,13 +85,15 @@
   },
   "ribbon": {
     "empty": "Arrastra acordes desde la rueda o haz clic en uno para empezar",
+    "example": "Probar una progresión de ejemplo",
     "resize": "Arrastra el borde para cambiar la duración",
     "section": "Sección"
   },
   "lens": {
     "notes": "Notas",
     "transition": "Llegada",
-    "preview": "Escuchar"
+    "preview": "Escuchar",
+    "tension": "Tensión"
   },
   "intervals": {
     "1": "2ª menor",

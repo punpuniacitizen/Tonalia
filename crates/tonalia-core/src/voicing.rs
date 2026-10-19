@@ -17,6 +17,7 @@ use crate::time::{MIN_STRUM_LENGTH, Ticks};
 /// Ajustes con los que se escuchan y se insertan los acordes.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct PreviewSettings {
     /// Octava de la fundamental (3 → entre Do3 = 48 y Si3 = 59, con Do4 = 60 como Do central).
     pub octave: u8,

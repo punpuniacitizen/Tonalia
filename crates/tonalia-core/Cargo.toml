@@ -9,3 +9,8 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 midly.workspace = true
+ts-rs = { version = "12.0.1", optional = true }
+
+[features]
+# Genera los tipos TypeScript de la interfaz: `cargo test -p tonalia-core --features ts`
+ts = ["dep:ts-rs"]

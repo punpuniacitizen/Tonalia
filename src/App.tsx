@@ -1,51 +1,40 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useState } from "react";
+
+import { api } from "./api";
+import { useSong } from "./stores/song";
+import { DragGhost } from "./ui/shell/DragGhost";
+import { Header } from "./ui/shell/Header";
+import { useShortcuts } from "./ui/shell/useShortcuts";
+import { Timeline } from "./ui/timeline/Timeline";
+import { WheelDock } from "./ui/wheel/WheelDock";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+export default function App() {
+  const load = useSong((s) => s.load);
+  const error = useSong((s) => s.error);
+  const clearError = useSong((s) => s.clearError);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  useShortcuts();
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  useEffect(() => {
+    void load();
+    void api.audioStatus().then(setAudioError);
+  }, [load]);
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    <div className="app">
+      <div className="ambient" aria-hidden="true" />
+      <Header />
+      <main className="stage">
+        <Timeline />
+        <WheelDock />
+      </main>
+      <DragGhost />
+      {(error || audioError) && (
+        <div className="toast" role="alert" onClick={clearError}>
+          {error ?? `Audio: ${audioError}`}
+        </div>
+      )}
+    </div>
   );
 }
-
-export default App;

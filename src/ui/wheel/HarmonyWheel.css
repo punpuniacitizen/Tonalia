@@ -1,0 +1,190 @@
+.wheel-wrap {
+  position: relative;
+  flex: none;
+}
+
+.wheel {
+  display: block;
+  overflow: visible;
+  font-family: var(--font-display);
+}
+
+.wheel text {
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.wheel-halo {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+/* Rotor y etiquetas giran a la vez con la misma curva: las etiquetas quedan derechas. */
+.wheel-rotor,
+.wheel-rotor .upright {
+  transition: transform 0.9s var(--ease-out);
+}
+
+/* ---------- Anillo de tonalidades ---------- */
+
+.key-sector {
+  cursor: pointer;
+}
+
+.key-sector path {
+  fill: var(--bg-2);
+  stroke: var(--line);
+  transition: fill 0.2s;
+}
+
+.key-sector text {
+  fill: var(--text-2);
+  font-size: 15px;
+  transition: fill 0.2s;
+}
+
+.key-sector:hover path {
+  fill: var(--bg-3);
+}
+
+.key-sector:hover text {
+  fill: var(--text-0);
+}
+
+.key-sector.is-neighbor text {
+  fill: var(--text-1);
+}
+
+.key-sector.is-home path {
+  fill: color-mix(in oklab, var(--accent) 30%, var(--bg-2));
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 10px color-mix(in oklab, var(--accent) 70%, transparent));
+}
+
+.key-sector.is-home text {
+  fill: var(--text-0);
+  font-weight: 600;
+}
+
+/* ---------- Casillas de acordes ---------- */
+
+.slot path {
+  fill: rgba(255, 255, 255, 0.012);
+  stroke: rgba(255, 255, 255, 0.035);
+  pointer-events: none;
+}
+
+.chord-sector {
+  cursor: grab;
+}
+
+.chord-sector path {
+  fill: color-mix(in oklab, var(--fn) 22%, var(--bg-1));
+  stroke: color-mix(in oklab, var(--fn) 65%, transparent);
+  stroke-width: 1.2;
+  transition: fill 0.2s, filter 0.25s, transform 0.25s var(--ease-spring);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.chord-sector .sector-label {
+  fill: var(--text-0);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.chord-sector .sector-sub {
+  fill: color-mix(in oklab, var(--fn) 50%, var(--text-1));
+  font-size: 12px;
+}
+
+.chord-sector.is-outer .sector-label {
+  font-size: 16px;
+}
+
+.chord-sector.is-outer path {
+  fill: color-mix(in oklab, var(--fn) 12%, var(--bg-1));
+  stroke-dasharray: 4 3;
+}
+
+.chord-sector.is-shared {
+  opacity: 0.35;
+}
+
+.chord-sector:hover path {
+  fill: color-mix(in oklab, var(--fn) 45%, var(--bg-1));
+  filter: drop-shadow(0 0 14px var(--fn));
+  transform: scale(1.04);
+}
+
+.chord-sector.is-strong path {
+  stroke: var(--accent-2);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 8px color-mix(in oklab, var(--accent-2) 70%, transparent));
+}
+
+.chord-sector.is-previous path {
+  stroke: var(--text-0);
+  stroke-width: 2.4;
+  stroke-dasharray: none;
+}
+
+.score-arc {
+  fill: none;
+  stroke: var(--accent-2);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.score-arc.is-strong {
+  stroke-width: 2.4;
+  filter: drop-shadow(0 0 5px var(--accent-2));
+}
+
+/* ---------- Centro ---------- */
+
+.center-key {
+  fill: var(--text-0);
+  font-size: 38px;
+  font-weight: 600;
+}
+
+.center-symbol {
+  font-size: 34px;
+  font-weight: 600;
+}
+
+.center-sub {
+  fill: var(--text-1);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
+.center-score {
+  fill: var(--accent-2);
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.wheel-reason {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: min(90%, 420px);
+  margin: 0;
+  transform: translateX(-50%);
+  text-align: center;
+  color: var(--text-1);
+  font-size: 12px;
+  animation: pop-in 0.2s var(--ease-out);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

@@ -14,6 +14,7 @@ use crate::scale::Key;
 /// Función tonal: reposo (tónica), alejamiento (subdominante) o tensión (dominante).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Function {
     Tonic,
     Subdominant,
@@ -66,6 +67,7 @@ pub fn tension(chord: &Chord, key: &Key) -> f32 {
 /// Por qué una transición suena bien (o no).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", rename_all_fields = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Reason {
     /// No hay acorde anterior.
     NoContext,
@@ -89,6 +91,7 @@ pub enum Reason {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Transition {
     pub score: f32,
     pub reason: Reason,

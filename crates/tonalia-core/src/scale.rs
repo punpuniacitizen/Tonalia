@@ -15,6 +15,7 @@ const MAJOR_STEPS: [u8; 7] = [2, 2, 1, 2, 2, 2, 1];
 
 /// Escala: nombre (identificador que la interfaz traduce) y pasos en semitonos.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Scale {
     pub name: String,
     pub steps: Vec<u8>,
@@ -106,6 +107,7 @@ impl Scale {
 
 /// Tonalidad: una fundamental y una escala (p. ej. "Re dórico").
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Key {
     pub root: PitchClass,
     pub scale: Scale,

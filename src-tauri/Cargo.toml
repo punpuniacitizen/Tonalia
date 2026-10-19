@@ -20,3 +20,5 @@ tauri-plugin-opener = "2"
 serde.workspace = true
 serde_json.workspace = true
 tonalia-core.workspace = true
+cpal = "0.18.2"
+rtrb = "0.4.0"

@@ -1,0 +1,124 @@
+.wheel-dock {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 32px;
+}
+
+.dock-side {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+  max-width: 300px;
+}
+
+.dock-legend {
+  justify-self: start;
+}
+
+.dock-sources {
+  justify-self: end;
+}
+
+.dock-side h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.dock-side h3 {
+  margin: 6px 0 0;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--fn);
+}
+
+.legend-item .dot {
+  margin-top: 5px;
+}
+
+.legend-item strong {
+  display: block;
+  font-weight: 600;
+}
+
+.legend-item small {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.dock-hint {
+  margin: 8px 0 0;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.source-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.source-list button,
+.source-neighbors button {
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: 1px dashed var(--line-strong);
+  font-size: 12px;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.source-list button:hover,
+.source-neighbors button:hover {
+  color: var(--text-0);
+  border-color: var(--text-2);
+}
+
+.source-list button.is-active,
+.source-neighbors button.is-active {
+  color: var(--text-0);
+  background: color-mix(in oklab, var(--accent) 25%, var(--bg-2));
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.source-neighbors {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* Fantasma del acorde que se arrastra */
+.drag-ghost {
+  position: fixed;
+  z-index: 200;
+  pointer-events: none;
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-0);
+  background: color-mix(in oklab, var(--fn) 35%, var(--bg-2));
+  border: 1px solid var(--fn);
+  box-shadow: 0 0 30px color-mix(in oklab, var(--fn) 60%, transparent), 0 12px 30px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -120%) rotate(-3deg);
+}

@@ -11,6 +11,7 @@ pub fn mod12(v: i32) -> u8 {
 /// Clase de altura: una nota sin octava. 0 = Do, 1 = Do#/Reb, … 11 = Si.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct PitchClass(u8);
 
 impl From<u8> for PitchClass {
@@ -95,6 +96,7 @@ pub fn parse_note_name(text: &str) -> Result<PitchClass, NoteParseError> {
 /// Preferencia para escribir las teclas negras.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Accidentals {
     Sharps,
     Flats,
@@ -103,6 +105,7 @@ pub enum Accidentals {
 /// Sistema de nombres: C-D-E o Do-Re-Mi.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Notation {
     Letters,
     Solfege,
@@ -117,6 +120,7 @@ const SOLFEGE_NAMES: [&str; 7] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
 /// La misma clase de altura puede escribirse de varias formas (Do# = Reb). La ortografía
 /// correcta depende de la escala: en Mi mayor el tercer grado es Sol#, no Lab.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct SpelledNote {
     pub letter: u8,
     pub accidental: i8,

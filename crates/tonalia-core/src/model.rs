@@ -35,6 +35,7 @@ pub fn palette_color(i: usize) -> String {
 /// Una nota con posición, duración, altura MIDI e intensidad (0..=1).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Note {
     pub position: Ticks,
     pub length: Ticks,
@@ -56,6 +57,7 @@ impl Note {
 /// Las posiciones del voicing son relativas al inicio del acorde.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct ChordEntry {
     pub chord: Chord,
     pub length: Ticks,
@@ -64,6 +66,7 @@ pub struct ChordEntry {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Track {
     pub id: TrackId,
     pub name: String,
@@ -82,6 +85,7 @@ impl Track {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct ChordTrackSettings {
     pub instrument: String,
     pub volume: f32,
@@ -98,6 +102,7 @@ impl Default for ChordTrackSettings {
 /// Las notas de una pista dentro de una sección (posiciones relativas a la sección).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Clip {
     pub track: TrackId,
     pub notes: Vec<Note>,
@@ -105,6 +110,7 @@ pub struct Clip {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum SectionContent {
     Sections { children: Vec<Section> },
     Leaf { chords: Vec<ChordEntry>, clips: Vec<Clip> },
@@ -112,6 +118,7 @@ pub enum SectionContent {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Section {
     pub id: SectionId,
     pub name: String,
@@ -150,6 +157,7 @@ impl Section {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct LoopRegion {
     pub start: Ticks,
     pub end: Ticks,
@@ -157,6 +165,7 @@ pub struct LoopRegion {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Song {
     pub version: u32,
     pub bpm: f64,

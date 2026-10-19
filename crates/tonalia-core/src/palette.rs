@@ -17,6 +17,7 @@ use crate::scale::{Key, Scale};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum ChordSize {
     Triads,
     Sevenths,
@@ -50,6 +51,7 @@ pub fn parallel_scales() -> Vec<Scale> {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct PaletteEntry {
     pub chord: Chord,
     pub label: ChordLabel,
@@ -60,6 +62,7 @@ pub struct PaletteEntry {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct BorrowedGroup {
     /// Identificador de la escala de origen (`"dorian"`, `"harmonicMinor"`…).
     pub scale: String,
@@ -68,6 +71,7 @@ pub struct BorrowedGroup {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Palette {
     pub key: Key,
     pub diatonic: Vec<PaletteEntry>,

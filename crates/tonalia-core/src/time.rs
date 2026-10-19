@@ -25,6 +25,7 @@ pub const MIN_STRUM_LENGTH: Ticks = SIXTY_FOURTH;
 /// Cuadrícula de imán para notas, acordes y secciones.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Grid {
     Off,
     Bar,

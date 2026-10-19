@@ -56,6 +56,7 @@
     "diatonic": "In key",
     "borrowed": "Borrowed",
     "borrowFrom": "Borrow from",
+    "neighbors": "Neighbor keys",
     "neighborLeft": "Neighbor ◀",
     "neighborRight": "▶ Neighbor",
     "hint": "Hover to listen · click to add · drag onto the ribbon",
@@ -84,13 +85,15 @@
   },
   "ribbon": {
     "empty": "Drag chords from the wheel or click one to start",
+    "example": "Try an example progression",
     "resize": "Drag the edge to change the length",
     "section": "Section"
   },
   "lens": {
     "notes": "Notes",
     "transition": "Arrival",
-    "preview": "Listen"
+    "preview": "Listen",
+    "tension": "Tension"
   },
   "intervals": {
     "1": "minor 2nd",

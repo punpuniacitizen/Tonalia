@@ -12,6 +12,7 @@ use crate::interval::*;
 use crate::pitch::PitchClass;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Chord {
     pub root: PitchClass,
     pub intervals: BTreeSet<u8>,

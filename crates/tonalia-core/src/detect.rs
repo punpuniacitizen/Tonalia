@@ -14,6 +14,7 @@ use crate::pitch::PitchClass;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct DetectedChord {
     pub chord: Chord,
     pub score: f32,

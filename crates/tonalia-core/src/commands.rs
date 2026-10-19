@@ -20,6 +20,7 @@ pub const MIN_CHORD_LENGTH: Ticks = SIXTY_FOURTH;
 /// Referencia a un acorde: sección hoja + posición dentro de ella.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct ChordRef {
     pub section: SectionId,
     pub index: usize,
@@ -27,6 +28,7 @@ pub struct ChordRef {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase", rename_all_fields = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum EditCommand {
     SetBpm { bpm: f64 },
     SetHomeKey { key: Key },
