@@ -70,6 +70,14 @@ assets del original, y no se toca nada de licencias.
 - **Suspensiones animadas:** en la lente de un acorde sus, la nota suspendida se desliza
   hasta la tercera y se puede escuchar la resolución.
 - **Bienvenida y ayuda** (primera vez, botón "?" o tecla `?`): pasos básicos y atajos.
+- **Constructor de acordes** (lente → "Extensiones (7, 9, 11, 13)"): base, séptima/sexta y
+  tensiones (♭9 9 ♯9 11 ♯11 ♭13 13) con torre de terceras, nombre en vivo, escucha
+  instantánea, "Aplicar" o "Añadir después". Las tensiones se guardan como intervalos
+  compuestos (9 = 14, 11 = 17, 13 = 21).
+- **Disposición del voicing** (ajustes de sonido): Auto (abierta solo con extensiones),
+  Cerrada o Abierta. La abierta pone el bajo una octava abajo y la "mano derecha" en el
+  registro central, omite la 5ª con 5+ notas y la 3ª mayor si hay 11ª natural
+  (`voicing::open_notes`).
 - Exportar solo la **región de bucle** (menú Archivo) y editar durante la reproducción sin
   cortes (las notas que suenan se retoman).
 

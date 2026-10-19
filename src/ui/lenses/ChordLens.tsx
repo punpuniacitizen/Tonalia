@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { api, chordsSequence } from "../../api";
@@ -12,6 +13,7 @@ import { useSong } from "../../stores/song";
 import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
 import { ChromaticClock, Fretboard, MiniKeys, SusResolution } from "./Anatomy";
+import { ChordBuilder } from "./ChordBuilder";
 import "./lenses.css";
 
 type AnatomyView = "keys" | "clock" | "guitar";
@@ -25,6 +27,7 @@ export function ChordLens({ chord }: { chord: ChordView }) {
   const view = useSong((s) => s.view);
   const edit = useSong((s) => s.edit);
   const [anatomy, setAnatomy] = useState<AnatomyView>("keys");
+  const [building, setBuilding] = useState(false);
   const [subs, setSubs] = useState<SubstituteView[]>([]);
   const { label, transition } = chord;
   const hasContext = transition.reason.kind !== "noContext";
@@ -68,6 +71,26 @@ export function ChordLens({ chord }: { chord: ChordView }) {
         {t(`function.${label.function}`)}
         <small>— {t(`function.${label.function}Hint`)}</small>
       </div>
+
+      <button className={`builder-toggle ${building ? "is-open" : ""}`} onClick={() => setBuilding((b) => !b)}>
+        <Icon name="wand" size={14} /> {t("builder.title")}
+        <Icon name="chevronDown" size={14} />
+      </button>
+      {building &&
+        createPortal(
+          <div className="builder-float glass" style={{ ["--lens-color" as string]: functionColor(label.function) }}>
+            <header className="builder-float-head">
+              <span>
+                <Icon name="wand" size={15} /> {t("builder.title")}
+              </span>
+              <button className="icon-button" onClick={() => setBuilding(false)} title={t("tips.close")}>
+                <Icon name="chevronDown" size={16} />
+              </button>
+            </header>
+            <ChordBuilder chord={chord} />
+          </div>,
+          document.body,
+        )}
 
       <Segmented<AnatomyView>
         label={t("lens.anatomy")}

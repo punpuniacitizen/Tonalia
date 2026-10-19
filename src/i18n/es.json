@@ -34,7 +34,59 @@
     "velocity": "Intensidad",
     "size": "Acordes",
     "triads": "Tríadas",
-    "sevenths": "Cuatríadas"
+    "sevenths": "Cuatríadas",
+    "voicing": "Disposición (voicing)",
+    "voicingAuto": "Auto",
+    "voicingClosed": "Cerrada",
+    "voicingOpen": "Abierta",
+    "voicingHint": "Auto abre los acordes con 9ª, 11ª o 13ª. Se aplica a los acordes nuevos; usa «Restablecer» en la pista de acordes para todos."
+  },
+  "builder": {
+    "title": "Extensiones (7, 9, 11, 13)",
+    "base": "Base",
+    "seventh": "Séptima",
+    "tensions": "Tensiones",
+    "apply": "Aplicar",
+    "addAfter": "Añadir después",
+    "resetHint": "Volver al acorde original",
+    "bases": {
+      "major": "Mayor",
+      "minor": "Menor",
+      "dim": "Dism.",
+      "aug": "Aum.",
+      "sus2": "Sus2",
+      "sus4": "Sus4"
+    },
+    "baseHint": {
+      "major": "Tercera mayor: luminoso",
+      "minor": "Tercera menor: sombrío",
+      "dim": "Tercera menor y quinta disminuida: tenso",
+      "aug": "Tercera mayor y quinta aumentada: suspenso, misterio",
+      "sus2": "Segunda en lugar de tercera: abierto y moderno",
+      "sus4": "Cuarta en lugar de tercera: en el aire, pide resolver"
+    },
+    "sevenths": {
+      "none": "—",
+      "b7": "7",
+      "maj7": "maj7",
+      "dim7": "°7"
+    },
+    "seventhHint": {
+      "none": "Sin séptima: tríada",
+      "b7": "Séptima menor: bluesy; con tercera mayor es la dominante clásica",
+      "maj7": "Séptima mayor: suave, soñadora, jazz y bossa",
+      "dim7": "Séptima disminuida: muy tenso, simétrico, de película de suspense"
+    },
+    "sixthHint": "Sexta (sin séptima): cálida, retro, de swing",
+    "extHint": {
+      "b9": "♭9: tensión oscura y dramática; típica en dominantes (G7♭9 → C)",
+      "9": "9: el color más amable: suaviza y moderniza cualquier acorde",
+      "#9": "♯9: el acorde «Hendrix»: mayor y menor a la vez, blues y rock",
+      "11": "11: abierto y suspendido; en acordes menores es precioso (m11)",
+      "#11": "♯11: el brillo del lidio; perfecto sobre maj7 (Cmaj7♯11)",
+      "b13": "♭13: melancólico; da un aire oscuro a las dominantes",
+      "13": "13: rico y soulero; sobre un 7 suena a jazz y R&B"
+    }
   },
   "key": {
     "title": "Tonalidad",

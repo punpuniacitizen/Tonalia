@@ -14,7 +14,8 @@ export type TipVisual =
   | { kind: "borrow" }
   | { kind: "tension" }
   | { kind: "voices" }
-  | { kind: "tonnetz" };
+  | { kind: "tonnetz" }
+  | { kind: "extensions" };
 
 type Text = { title: string; kicker: string; mood: string[]; body: string; useWhen: string[]; examples?: string };
 
@@ -405,6 +406,24 @@ export const TIPS: Record<string, Tip> = {
       mood: ["flowing", "connected", "polished"],
       body: "A chord is a group of voices (like a choir). If each voice moves as little as possible to the next chord—keeping common tones and moving by step—the progression sounds connected and smooth. That's why pianists use inversions instead of jumping with the whole hand. 'Smooth' picks the inversions for you.",
       useWhen: ["Piano or string accompaniments that sound polished", "Pads and choirs: leaps are very noticeable", "Seeing why a progression sounds 'jerky': look for orange lines (leaps)"],
+    },
+  },
+  "concept.extensions": {
+    visual: { kind: "extensions" },
+    sound: () => chordsSequence([C, [48, 64, 67, 71], [48, 64, 71, 74], [48, 63, 70, 74, 77], [48, 64, 70, 74, 81]], 1.1),
+    es: {
+      title: "Séptimas y extensiones",
+      kicker: "Terceras apiladas = más color",
+      mood: ["sofisticado", "cálido", "jazz", "moderno"],
+      body: "Un acorde básico son tres notas apiladas por terceras (1-3-5). Si sigues apilando terceras aparecen la 7ª, la 9ª, la 11ª y la 13ª: cada una añade color sin cambiar la función del acorde. Para que suenen claras se tocan abiertas: el bajo abajo y las tensiones arriba, omitiendo la quinta (y la tercera si choca con la 11ª).",
+      useWhen: ["maj7 y 9: baladas, bossa, lo-fi; suavizan todo", "m7, m9, m11: menores cálidos y relajados (neo-soul)", "7 con ♭9, ♯9, ♭13: dominantes con mucha tensión antes de resolver", "13 y ♯11: jazz, R&B y bandas sonoras luminosas"],
+    },
+    en: {
+      title: "Sevenths and extensions",
+      kicker: "Stacked thirds = more color",
+      mood: ["sophisticated", "warm", "jazzy", "modern"],
+      body: "A basic chord is three notes stacked in thirds (1-3-5). Keep stacking thirds and you get the 7th, 9th, 11th and 13th: each adds color without changing the chord's function. To sound clear they're played open: bass at the bottom and tensions on top, leaving out the fifth (and the third if it clashes with the 11th).",
+      useWhen: ["maj7 and 9: ballads, bossa, lo-fi; they soften everything", "m7, m9, m11: warm, relaxed minors (neo-soul)", "7 with ♭9, ♯9, ♭13: high-tension dominants before resolving", "13 and ♯11: jazz, R&B and luminous film scores"],
     },
   },
   "concept.tonnetz": {

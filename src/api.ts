@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
 import type { Chord } from "./bindings/Chord";
+import type { ChordLabel } from "./bindings/ChordLabel";
 import type { ChordSize } from "./bindings/ChordSize";
 import type { DetectedView } from "./bindings/DetectedView";
 import type { EditCommand } from "./bindings/EditCommand";
@@ -35,6 +36,7 @@ export const api = {
   palette: (key: Key, size: ChordSize, previous: Chord | null) =>
     invoke<Palette>("get_palette", { key, size, previous }),
   detectChord: (pitches: number[], key: Key) => invoke<DetectedView[]>("detect_chord", { pitches, key }),
+  describeChord: (chord: Chord, key: Key) => invoke<ChordLabel>("describe_chord", { chord, key }),
   substitutes: (chord: Chord, key: Key, previous: Chord | null) =>
     invoke<SubstituteView[]>("substitutes", { chord, key, previous }),
   previewChord: (chord: Chord, keyRoot: PitchClass | null) =>

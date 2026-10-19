@@ -6,6 +6,10 @@
 //! 3. [`register_fix`]: las fundamentales por debajo de la tónica suben una octava,
 //!    así los acordes quedan agrupados cerca de la tónica.
 //! 4. [`transpose`]: se lleva todo a la octava elegida.
+//!
+//! Hay dos disposiciones: **cerrada** (todas las notas lo más juntas posible) y **abierta**
+//! ([`open_notes`]: bajo, quinta, y el resto una octava arriba, con las tensiones encima),
+//! que es la que hace sonar bien a los acordes con novenas, oncenas o trecenas.
 
 use serde::{Deserialize, Serialize};
 
@@ -13,6 +17,18 @@ use crate::chord::Chord;
 use crate::model::Note;
 use crate::pitch::PitchClass;
 use crate::time::{MIN_STRUM_LENGTH, Ticks};
+
+/// Cómo se reparten las notas de los acordes nuevos.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub enum VoicingStyle {
+    /// Abierta solo si el acorde tiene extensiones (9, 11, 13…); cerrada si no.
+    #[default]
+    Auto,
+    Closed,
+    Open,
+}
 
 /// Ajustes con los que se escuchan y se insertan los acordes.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -25,12 +41,65 @@ pub struct PreviewSettings {
     pub strumming: Ticks,
     /// Intensidad 0..=1.
     pub velocity: f32,
+    /// Disposición de las notas. Los proyectos antiguos no la tienen: se usa `Auto`.
+    #[serde(default)]
+    pub style: VoicingStyle,
 }
 
 impl Default for PreviewSettings {
     fn default() -> Self {
-        Self { octave: 3, strumming: 0, velocity: 0.8 }
+        Self { octave: 3, strumming: 0, velocity: 0.8, style: VoicingStyle::Auto }
     }
+}
+
+/// El acorde tiene tensiones por encima de la octava (9, 11, 13 y sus alteraciones).
+pub fn has_extensions(chord: &Chord) -> bool {
+    chord.intervals.iter().any(|&i| i > 12)
+}
+
+fn uses_open(chord: &Chord, style: VoicingStyle) -> bool {
+    match style {
+        VoicingStyle::Auto => has_extensions(chord),
+        VoicingStyle::Closed => false,
+        VoicingStyle::Open => true,
+    }
+}
+
+/// Disposición abierta, como la tocaría un pianista:
+/// - la fundamental en el bajo y, si cabe, la quinta justo encima;
+/// - tercera, séptima (y sexta, sus…) una octava más arriba;
+/// - las tensiones por encima de todo lo anterior.
+///
+/// Con cinco notas o más se omite la quinta justa (no aporta color) y, si hay una oncena
+/// natural junto a una tercera mayor, se omite la tercera (chocan a distancia de 9ª menor).
+pub fn open_notes(chord: &Chord, length: Ticks, velocity: f32) -> Vec<Note> {
+    let has = |i: u8| chord.intervals.contains(&i);
+    let root = chord.root.value() as i32;
+    let tone_count = 1 + chord.intervals.iter().filter(|&&i| i != 12).count();
+    let omit_fifth = tone_count >= 5 && has(7);
+    let omit_third = has(4) && (has(17) || has(5));
+
+    let mut pitches: Vec<i32> = vec![root];
+    if has(7) && !omit_fifth {
+        pitches.push(root + 7);
+    }
+    for &iv in chord.intervals.iter().filter(|&&i| i < 12 && i != 7) {
+        if iv == 4 && omit_third {
+            continue;
+        }
+        pitches.push(root + iv as i32 + 12);
+    }
+    for &iv in chord.intervals.iter().filter(|&&i| i > 12) {
+        let top = *pitches.iter().max().unwrap();
+        let mut p = root + iv as i32;
+        while p <= top {
+            p += 12;
+        }
+        pitches.push(p);
+    }
+    pitches.sort_unstable();
+    pitches.dedup();
+    pitches.into_iter().map(|p| Note::new(0, length, p.clamp(0, 127) as u8, velocity)).collect()
 }
 
 /// Notas del acorde en posición cerrada. Las alturas son relativas al Do más grave (0);
@@ -72,10 +141,14 @@ pub fn transpose(mut notes: Vec<Note>, semitones: i32) -> Vec<Note> {
 
 /// Voicing por defecto de un acorde nuevo (el mismo que se oye al previsualizarlo).
 pub fn default_voicing(chord: &Chord, length: Ticks, settings: &PreviewSettings, key_root: PitchClass) -> Vec<Note> {
-    let notes = chord_to_notes(chord, length, settings.velocity);
+    let open = uses_open(chord, settings.style);
+    let notes = if open { open_notes(chord, length, settings.velocity) } else { chord_to_notes(chord, length, settings.velocity) };
     let notes = strum(notes, settings.strumming);
     let notes = register_fix(notes, key_root);
-    transpose(notes, (settings.octave as i32 + 1) * 12)
+    // En disposición abierta el bajo baja una octava (mano izquierda) y el resto queda en
+    // el registro central (mano derecha), como lo tocaría un pianista.
+    let octave_shift = if open { -12 } else { 0 };
+    transpose(notes, (settings.octave as i32 + 1) * 12 + octave_shift)
 }
 
 /// Coste de ir de un voicing a otro: cuánto se mueve cada voz nueva hasta la voz anterior
@@ -92,6 +165,19 @@ pub fn smooth_voicing(previous: &[Note], chord: &Chord, length: Ticks, settings:
     let prev: Vec<u8> = previous.iter().map(|n| n.pitch).collect();
     if prev.is_empty() {
         return default_voicing(chord, length, settings, chord.root);
+    }
+    // Disposición abierta: se conserva la forma y solo se elige la octava que menos se mueve.
+    if uses_open(chord, settings.style) {
+        let base = default_voicing(chord, length, settings, chord.root);
+        return [-12, 0, 12]
+            .into_iter()
+            .map(|shift| transpose(base.clone(), shift))
+            .min_by(|a, b| {
+                let pa: Vec<u8> = a.iter().map(|n| n.pitch).collect();
+                let pb: Vec<u8> = b.iter().map(|n| n.pitch).collect();
+                movement_cost(&prev, &pa).total_cmp(&movement_cost(&prev, &pb))
+            })
+            .unwrap_or(base);
     }
     // Clases de altura del acorde en orden (fundamental, luego intervalos), sin repetir.
     let mut tones: Vec<u8> = Vec::new();
@@ -177,6 +263,46 @@ mod tests {
         assert_eq!(c[0].pitch, 60);
         assert_eq!(c.iter().map(|n| n.pitch).collect::<Vec<_>>(), vec![60, 64, 67]);
         assert!((c[0].velocity - 0.8).abs() < 1e-6);
+    }
+
+    fn pitches(notes: &[Note]) -> Vec<u8> {
+        notes.iter().map(|n| n.pitch).collect()
+    }
+
+    #[test]
+    fn disposicion_abierta() {
+        let s = PreviewSettings::default(); // estilo Auto, octava 3
+        let c = PitchClass::C;
+        // C9 = Do Mi Sol Si♭ Re: sin quinta (5 notas), bajo Do2 y mano derecha Mi3 Si♭3 Re4.
+        let c9 = Chord::new(c, [4, 7, 10, 14]);
+        assert_eq!(pitches(&default_voicing(&c9, WHOLE, &s, c)), vec![36, 52, 58, 62]);
+        // C11 dominante: la 11ª choca con la 3ª mayor → se omite la tercera.
+        let c11 = Chord::new(c, [4, 7, 10, 14, 17]);
+        assert_eq!(pitches(&default_voicing(&c11, WHOLE, &s, c)), vec![36, 58, 62, 65]);
+        // Cm11 conserva la tercera menor.
+        let cm11 = Chord::new(c, [3, 7, 10, 14, 17]);
+        assert_eq!(pitches(&default_voicing(&cm11, WHOLE, &s, c)), vec![36, 51, 58, 62, 65]);
+        // Cadd9 (4 notas) conserva la quinta: Do2 Sol2 Mi3 Re4.
+        let cadd9 = Chord::new(c, [4, 7, 14]);
+        assert_eq!(pitches(&default_voicing(&cadd9, WHOLE, &s, c)), vec![36, 43, 52, 62]);
+        // G13 en Do: Sol2 | Si3 Fa4 La4 Mi5.
+        let g13 = Chord::new(PitchClass::G, [4, 7, 10, 14, 21]);
+        assert_eq!(pitches(&default_voicing(&g13, WHOLE, &s, c)), vec![43, 59, 65, 69, 76]);
+    }
+
+    #[test]
+    fn estilos_de_voicing() {
+        let triad = Chord::major(PitchClass::C);
+        let auto = PreviewSettings::default();
+        let open = PreviewSettings { style: VoicingStyle::Open, ..auto };
+        let closed = PreviewSettings { style: VoicingStyle::Closed, ..auto };
+        assert_eq!(pitches(&default_voicing(&triad, WHOLE, &auto, PitchClass::C)), vec![48, 52, 55]);
+        assert_eq!(pitches(&default_voicing(&triad, WHOLE, &open, PitchClass::C)), vec![36, 43, 52]);
+        let c9 = Chord::new(PitchClass::C, [4, 7, 10, 14]);
+        assert_eq!(pitches(&default_voicing(&c9, WHOLE, &closed, PitchClass::C)), vec![48, 52, 55, 58, 62]);
+        // Los proyectos sin `style` se leen con el valor por defecto.
+        let old: PreviewSettings = serde_json::from_str(r#"{"octave":3,"strumming":0,"velocity":0.8}"#).unwrap();
+        assert_eq!(old.style, VoicingStyle::Auto);
     }
 
     #[test]

@@ -29,7 +29,40 @@ export function TipVisualView({ visual, lang }: { visual: TipVisual; lang: "es" 
       return <Voices />;
     case "tonnetz":
       return <TonnetzMini />;
+    case "extensions":
+      return <ThirdsTower />;
   }
+}
+
+/** Torre de terceras: C E G B D F A, de la fundamental a la trecena. */
+function ThirdsTower() {
+  const steps = [
+    { n: "C", d: "1", core: true },
+    { n: "E", d: "3", core: true },
+    { n: "G", d: "5", core: true },
+    { n: "B", d: "7", core: true },
+    { n: "D", d: "9", core: false },
+    { n: "F", d: "11", core: false },
+    { n: "A", d: "13", core: false },
+  ];
+  return (
+    <svg viewBox="0 0 320 120" className="tip-svg">
+      {steps.map((s, i) => (
+        <motion.g key={s.d} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.09 }}>
+          <rect x={18 + i * 42} y={100 - i * 13 - 16} width={38} height={16} rx={5} fill={s.core ? "var(--fn-tonic)" : "var(--accent-2)"} fillOpacity={0.35} stroke={s.core ? "var(--fn-tonic)" : "var(--accent-2)"} />
+          <text x={37 + i * 42} y={100 - i * 13 - 4} className="tip-small">
+            {s.n} · {s.d}
+          </text>
+        </motion.g>
+      ))}
+      <text x={60} y={116} className="tip-caption">
+        tríada + 7ª
+      </text>
+      <text x={230} y={20} className="tip-caption" fill="var(--accent-2)">
+        9 · 11 · 13
+      </text>
+    </svg>
+  );
 }
 
 /** Do mayor y sus tres vecinos P, R y L en la red. */

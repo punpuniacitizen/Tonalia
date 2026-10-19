@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { api } from "../../api";
 import type { ChordSize } from "../../bindings/ChordSize";
+import type { VoicingStyle } from "../../bindings/VoicingStyle";
 import { useSong } from "../../stores/song";
 import { useUi } from "../../stores/ui";
 import { Segmented } from "../common/Segmented";
@@ -71,6 +72,21 @@ export function PreviewSettingsPanel() {
             { value: "sevenths", label: t("preview.sevenths") },
           ]}
         />
+      </label>
+
+      <label className="setting" title={t("preview.voicingHint")}>
+        <span>{t("preview.voicing")}</span>
+        <Segmented<VoicingStyle>
+          label={t("preview.voicing")}
+          value={p.style}
+          onChange={(style) => update({ style })}
+          options={[
+            { value: "auto", label: t("preview.voicingAuto") },
+            { value: "closed", label: t("preview.voicingClosed") },
+            { value: "open", label: t("preview.voicingOpen") },
+          ]}
+        />
+        <small>{t("preview.voicingHint")}</small>
       </label>
 
       <label className="setting">

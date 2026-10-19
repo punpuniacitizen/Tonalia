@@ -34,7 +34,59 @@
     "velocity": "Velocity",
     "size": "Chords",
     "triads": "Triads",
-    "sevenths": "Sevenths"
+    "sevenths": "Sevenths",
+    "voicing": "Voicing",
+    "voicingAuto": "Auto",
+    "voicingClosed": "Closed",
+    "voicingOpen": "Open",
+    "voicingHint": "Auto opens chords with 9ths, 11ths or 13ths. Applies to new chords; use 'Reset' on the chord track for all of them."
+  },
+  "builder": {
+    "title": "Extensions (7, 9, 11, 13)",
+    "base": "Base",
+    "seventh": "Seventh",
+    "tensions": "Tensions",
+    "apply": "Apply",
+    "addAfter": "Add after",
+    "resetHint": "Back to the original chord",
+    "bases": {
+      "major": "Major",
+      "minor": "Minor",
+      "dim": "Dim.",
+      "aug": "Aug.",
+      "sus2": "Sus2",
+      "sus4": "Sus4"
+    },
+    "baseHint": {
+      "major": "Major third: bright",
+      "minor": "Minor third: dark",
+      "dim": "Minor third and diminished fifth: tense",
+      "aug": "Major third and augmented fifth: suspense, mystery",
+      "sus2": "Second instead of third: open and modern",
+      "sus4": "Fourth instead of third: hanging, wants to resolve"
+    },
+    "sevenths": {
+      "none": "—",
+      "b7": "7",
+      "maj7": "maj7",
+      "dim7": "°7"
+    },
+    "seventhHint": {
+      "none": "No seventh: triad",
+      "b7": "Minor seventh: bluesy; with a major third it's the classic dominant",
+      "maj7": "Major seventh: soft, dreamy, jazz and bossa",
+      "dim7": "Diminished seventh: very tense, symmetric, thriller-movie sound"
+    },
+    "sixthHint": "Sixth (no seventh): warm, retro, swing",
+    "extHint": {
+      "b9": "♭9: dark, dramatic tension; typical on dominants (G7♭9 → C)",
+      "9": "9: the friendliest color: softens and modernizes any chord",
+      "#9": "♯9: the 'Hendrix' chord: major and minor at once, blues and rock",
+      "11": "11: open and suspended; gorgeous on minor chords (m11)",
+      "#11": "♯11: Lydian sparkle; perfect on maj7 (Cmaj7♯11)",
+      "b13": "♭13: melancholic; gives dominants a dark air",
+      "13": "13: rich and soulful; on a 7 chord it sounds like jazz and R&B"
+    }
   },
   "key": {
     "title": "Key",

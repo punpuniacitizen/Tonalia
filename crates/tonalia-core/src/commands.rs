@@ -136,6 +136,7 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
                 octave: settings.octave.min(8),
                 strumming: settings.strumming.max(0),
                 velocity: settings.velocity.clamp(0.0, 1.0),
+                style: settings.style,
             }
         }
 
