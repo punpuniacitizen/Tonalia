@@ -20,7 +20,11 @@
     "beginner": "Beginner",
     "intermediate": "Intermediate",
     "advanced": "Advanced",
-    "language": "Language"
+    "language": "Language",
+    "title": "View: level and language",
+    "beginnerHint": "Explains functions in words and labels every note.",
+    "intermediateHint": "Shows names and Roman numerals together.",
+    "advancedHint": "Compact interface; adds each chord's numeric tension."
   },
   "preview": {
     "title": "How chords sound",
@@ -94,6 +98,17 @@
     "transition": "Arrival",
     "preview": "Listen",
     "tension": "Tension"
+  },
+  "file": {
+    "untitled": "Untitled",
+    "unsaved": "Unsaved changes",
+    "new": "New project",
+    "open": "Open…",
+    "save": "Save",
+    "saveAs": "Save as…",
+    "exportMidi": "Export MIDI…",
+    "discardQuestion": "There are unsaved changes. Discard them?",
+    "autosaveNote": "Tonalia keeps an automatic copy: if you close the app, your song waits for you."
   },
   "tips": {
     "useWhen": "Use it when…",

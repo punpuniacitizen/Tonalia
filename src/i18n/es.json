@@ -20,7 +20,11 @@
     "beginner": "Inicial",
     "intermediate": "Medio",
     "advanced": "Avanzado",
-    "language": "Idioma"
+    "language": "Idioma",
+    "title": "Vista: nivel e idioma",
+    "beginnerHint": "Explica las funciones con palabras y muestra el nombre de cada nota.",
+    "intermediateHint": "Muestra a la vez nombres y números romanos.",
+    "advancedHint": "Interfaz compacta; añade la tensión numérica de cada acorde."
   },
   "preview": {
     "title": "Cómo suenan los acordes",
@@ -94,6 +98,17 @@
     "transition": "Llegada",
     "preview": "Escuchar",
     "tension": "Tensión"
+  },
+  "file": {
+    "untitled": "Sin título",
+    "unsaved": "Cambios sin guardar",
+    "new": "Nuevo proyecto",
+    "open": "Abrir…",
+    "save": "Guardar",
+    "saveAs": "Guardar como…",
+    "exportMidi": "Exportar MIDI…",
+    "discardQuestion": "Hay cambios sin guardar. ¿Descartarlos?",
+    "autosaveNote": "Tonalia guarda una copia automática: si cierras la app, tu canción te espera al volver."
   },
   "tips": {
     "useWhen": "Úsalo cuando…",

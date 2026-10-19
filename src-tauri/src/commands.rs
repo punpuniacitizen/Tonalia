@@ -10,9 +10,14 @@ use tonalia_core::time::{BAR, QUARTER};
 use tonalia_core::voicing::default_voicing;
 use tonalia_core::{Chord, Key};
 
+use std::path::PathBuf;
+
+use tonalia_core::midi_export::{ExportOptions, export_smf};
+
 use crate::audio::synth::Instrument;
 use crate::audio::{AudioMsg, PreviewNote};
-use crate::state::AppState;
+use crate::project;
+use crate::state::{AppState, new_song};
 
 type CmdResult<T> = Result<T, String>;
 
@@ -36,7 +41,7 @@ pub fn apply_edit(state: State<AppState>, cmd: EditCommand) -> CmdResult<SongVie
     let mut doc = state.doc();
     let changed = doc.apply(&cmd).map_err(|e| e.to_string())?;
     if changed {
-        state.sync_audio(doc.song());
+        state.after_change(doc.song());
     }
     Ok(AppState::view_of(&doc))
 }
@@ -45,7 +50,7 @@ pub fn apply_edit(state: State<AppState>, cmd: EditCommand) -> CmdResult<SongVie
 pub fn undo(state: State<AppState>) -> SongView {
     let mut doc = state.doc();
     if doc.undo() {
-        state.sync_audio(doc.song());
+        state.after_change(doc.song());
     }
     AppState::view_of(&doc)
 }
@@ -54,9 +59,88 @@ pub fn undo(state: State<AppState>) -> SongView {
 pub fn redo(state: State<AppState>) -> SongView {
     let mut doc = state.doc();
     if doc.redo() {
-        state.sync_audio(doc.song());
+        state.after_change(doc.song());
     }
     AppState::view_of(&doc)
+}
+
+// ---------- Proyecto ----------
+
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ProjectInfo {
+    pub path: Option<String>,
+    pub name: Option<String>,
+    pub dirty: bool,
+}
+
+fn project_info_of(state: &AppState) -> ProjectInfo {
+    let path = state.project_path.lock().unwrap_or_else(|p| p.into_inner()).clone();
+    ProjectInfo {
+        name: project::display_name(path.as_deref()),
+        path: path.map(|p| p.to_string_lossy().into_owned()),
+        dirty: *state.dirty.lock().unwrap_or_else(|p| p.into_inner()),
+    }
+}
+
+#[tauri::command]
+pub fn project_info(state: State<AppState>) -> ProjectInfo {
+    project_info_of(&state)
+}
+
+#[tauri::command]
+pub fn new_project(state: State<AppState>) -> SongView {
+    let mut doc = state.doc();
+    doc.replace(new_song());
+    *state.project_path.lock().unwrap_or_else(|p| p.into_inner()) = None;
+    state.sync_audio(doc.song());
+    state.write_autosave(doc.song());
+    *state.dirty.lock().unwrap_or_else(|p| p.into_inner()) = false;
+    AppState::view_of(&doc)
+}
+
+#[tauri::command]
+pub fn open_project(state: State<AppState>, path: String) -> CmdResult<SongView> {
+    let path = PathBuf::from(path);
+    let song = project::read_song(&path)?;
+    let mut doc = state.doc();
+    doc.replace(song);
+    *state.project_path.lock().unwrap_or_else(|p| p.into_inner()) = Some(path);
+    state.sync_audio(doc.song());
+    state.write_autosave(doc.song());
+    *state.dirty.lock().unwrap_or_else(|p| p.into_inner()) = false;
+    Ok(AppState::view_of(&doc))
+}
+
+/// Guarda en `path` o, si no se indica, en el archivo actual.
+#[tauri::command]
+pub fn save_project(state: State<AppState>, path: Option<String>) -> CmdResult<ProjectInfo> {
+    let target = match path {
+        Some(p) => {
+            let mut p = PathBuf::from(p);
+            if p.extension().is_none() {
+                p.set_extension(project::EXTENSION);
+            }
+            p
+        }
+        None => state.project_path.lock().unwrap_or_else(|p| p.into_inner()).clone().ok_or("el proyecto no tiene archivo todavía")?,
+    };
+    project::write_song(&target, state.doc().song())?;
+    *state.project_path.lock().unwrap_or_else(|p| p.into_inner()) = Some(target);
+    *state.dirty.lock().unwrap_or_else(|p| p.into_inner()) = false;
+    Ok(project_info_of(&state))
+}
+
+/// Exporta a MIDI estándar. `region` = [inicio, fin) en ticks; `tracks` = pistas elegidas.
+#[tauri::command]
+pub fn export_midi(state: State<AppState>, path: String, include_chords: bool, tracks: Option<Vec<u32>>, region: Option<(i64, i64)>) -> CmdResult<()> {
+    let options = ExportOptions { include_chords, tracks, region };
+    let bytes = export_smf(state.doc().song(), &options).map_err(|e| e.to_string())?;
+    let mut path = PathBuf::from(path);
+    if path.extension().is_none() {
+        path.set_extension("mid");
+    }
+    std::fs::write(&path, bytes).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

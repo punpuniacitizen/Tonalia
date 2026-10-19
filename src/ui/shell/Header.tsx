@@ -10,6 +10,7 @@ import { Icon } from "../common/Icon";
 import { Popover } from "../common/Popover";
 import { Segmented } from "../common/Segmented";
 import { PreviewSettingsPanel } from "../lenses/PreviewSettingsPanel";
+import { FileMenu } from "./FileMenu";
 import "./Header.css";
 
 export function Header() {
@@ -30,6 +31,8 @@ export function Header() {
         <span className="brand-name">Tonalia</span>
         <span className="brand-tagline">{t("app.tagline")}</span>
       </div>
+
+      <FileMenu />
 
       <div className="transport">
         <button className="icon-button" title={t("transport.rewind")} onClick={rewind}>
@@ -72,25 +75,46 @@ export function Header() {
             { value: "roman", label: t("view.roman") },
           ]}
         />
-        <Segmented<Level>
-          label={t("view.level")}
-          value={ui.level}
-          onChange={(level) => ui.set({ level })}
-          options={[
-            { value: "beginner", label: t("view.beginner") },
-            { value: "intermediate", label: t("view.intermediate") },
-            { value: "advanced", label: t("view.advanced") },
-          ]}
-        />
-        <Segmented<Language>
-          label={t("view.language")}
-          value={ui.language}
-          onChange={(language) => ui.set({ language })}
-          options={[
-            { value: "es", label: "ES" },
-            { value: "en", label: "EN" },
-          ]}
-        />
+        <Popover
+          align="right"
+          trigger={(open, toggleOpen) => (
+            <button className={`view-button ${open ? "is-open" : ""}`} onClick={toggleOpen} title={t("view.title")}>
+              {t(`view.${ui.level}`)} · {ui.language.toUpperCase()}
+              <Icon name="chevronDown" size={14} />
+            </button>
+          )}
+        >
+          {() => (
+            <div className="settings-panel">
+              <label className="setting">
+                <span>{t("view.level")}</span>
+                <Segmented<Level>
+                  label={t("view.level")}
+                  value={ui.level}
+                  onChange={(level) => ui.set({ level })}
+                  options={[
+                    { value: "beginner", label: t("view.beginner") },
+                    { value: "intermediate", label: t("view.intermediate") },
+                    { value: "advanced", label: t("view.advanced") },
+                  ]}
+                />
+                <small>{t(`view.${ui.level}Hint`)}</small>
+              </label>
+              <label className="setting">
+                <span>{t("view.language")}</span>
+                <Segmented<Language>
+                  label={t("view.language")}
+                  value={ui.language}
+                  onChange={(language) => ui.set({ language })}
+                  options={[
+                    { value: "es", label: "Español" },
+                    { value: "en", label: "English" },
+                  ]}
+                />
+              </label>
+            </div>
+          )}
+        </Popover>
       </div>
 
       <div className="history">

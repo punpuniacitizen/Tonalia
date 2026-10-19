@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { api } from "../../api";
 import type { Note } from "../../bindings/Note";
 import { noteKey, useNotes } from "../../stores/notes";
+import { useProject } from "../../stores/project";
 import { useSong } from "../../stores/song";
 import { useTransport } from "../../stores/transport";
 import { sameRef, useUi } from "../../stores/ui";
@@ -26,7 +27,21 @@ export function useShortcuts() {
       const trackNotes: Note[] = view?.trackNotes.find((t) => t.track === noteTrack)?.notes ?? [];
       const selectedNotes = trackNotes.filter((n) => notesState.selection.has(noteKey(n)));
 
-      if (e.code === "Space") {
+      const k = e.key.toLowerCase();
+      const project = useProject.getState();
+      if (ctrl && k === "s") {
+        e.preventDefault();
+        void (e.shiftKey ? project.saveProjectAs() : project.saveProject());
+      } else if (ctrl && k === "o") {
+        e.preventDefault();
+        void project.openProject();
+      } else if (ctrl && k === "n") {
+        e.preventDefault();
+        void project.newProject();
+      } else if (ctrl && k === "e") {
+        e.preventDefault();
+        void project.exportMidi();
+      } else if (e.code === "Space") {
         e.preventDefault();
         useTransport.getState().toggle();
       } else if (ctrl && e.key.toLowerCase() === "z" && !e.shiftKey) {

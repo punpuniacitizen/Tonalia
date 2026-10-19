@@ -19,6 +19,16 @@ interface SongState {
   clearError: () => void;
 }
 
+/** Avisos de cambio (el proyecto se suscribe para marcar "sin guardar"). */
+const changeListeners = new Set<() => void>();
+export function onSongChanged(cb: () => void): () => void {
+  changeListeners.add(cb);
+  return () => changeListeners.delete(cb);
+}
+function onChanged() {
+  changeListeners.forEach((cb) => cb());
+}
+
 /** Si el acorde seleccionado ya no existe tras un cambio, se quita la selección. */
 function keepSelectionValid(view: SongView) {
   const { selected, select } = useUi.getState();
@@ -37,6 +47,7 @@ export const useSong = create<SongState>()((set) => ({
       const view = await api.edit(cmd);
       set({ view, error: null });
       keepSelectionValid(view);
+      onChanged();
       return view;
     } catch (e) {
       set({ error: String(e) });
@@ -47,11 +58,13 @@ export const useSong = create<SongState>()((set) => ({
     const view = await api.undo();
     set({ view });
     keepSelectionValid(view);
+    onChanged();
   },
   redo: async () => {
     const view = await api.redo();
     set({ view });
     keepSelectionValid(view);
+    onChanged();
   },
   clearError: () => set({ error: null }),
 }));

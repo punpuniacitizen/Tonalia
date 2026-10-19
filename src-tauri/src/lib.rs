@@ -1,5 +1,6 @@
 mod audio;
 mod commands;
+mod project;
 mod state;
 
 use std::path::PathBuf;
@@ -63,8 +64,9 @@ fn spawn_soundfont_loader(app: AppHandle) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            let state = AppState::new();
+            let state = AppState::new(app.path().app_data_dir().ok());
             spawn_transport_emitter(app.handle().clone(), state.audio.shared.clone());
             app.manage(state);
             spawn_soundfont_loader(app.handle().clone());
@@ -88,6 +90,11 @@ pub fn run() {
             commands::audio_status,
             commands::sound_engine,
             commands::set_sound_engine,
+            commands::project_info,
+            commands::new_project,
+            commands::open_project,
+            commands::save_project,
+            commands::export_midi,
         ])
         .run(tauri::generate_context!())
         .expect("error al iniciar Tonalia");
