@@ -82,6 +82,7 @@ pub fn run() {
             commands::detect_chord,
             commands::substitutes,
             commands::describe_chord,
+            commands::tensions,
             commands::preview_chord,
             commands::preview_notes,
             commands::preview_sequence,

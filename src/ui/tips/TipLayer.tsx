@@ -1,24 +1,33 @@
 // Capa de tips: clic derecho sobre cualquier elemento con `data-tip="…"` abre una tarjeta
 // con una ilustración, el carácter/emoción, cuándo usarlo y un ejemplo sonoro.
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { api } from "../../api";
-import { TIPS } from "../../tips/tips";
+import { useTips } from "../../stores/tips";
 import { useUi } from "../../stores/ui";
+import { TIPS } from "../../tips/tips";
 import { Icon } from "../common/Icon";
 import { TipVisualView } from "./TipVisuals";
 import "./tips.css";
 
 const CARD_WIDTH = 380;
 
-type Open = { id: string; x: number; y: number };
-
 export function TipLayer() {
   const { t } = useTranslation();
   const language = useUi((s) => s.language);
-  const [open, setOpen] = useState<Open | null>(null);
+  const open = useTips((s) => s.open);
+  const setOpen = useTips((s) => s.set);
+  const cardRef = useRef<HTMLElement>(null);
+
+  // Tras pintarse, la tarjeta mide su altura real y sube si se saldría por abajo.
+  useLayoutEffect(() => {
+    const el = cardRef.current;
+    if (!el || !open) return;
+    const top = Math.max(12, Math.min(open.y - 40, window.innerHeight - el.offsetHeight - 12));
+    el.style.top = `${top}px`;
+  }, [open]);
 
   useEffect(() => {
     const onContext = (e: MouseEvent) => {
@@ -37,19 +46,19 @@ export function TipLayer() {
       window.removeEventListener("contextmenu", onContext);
       window.removeEventListener("keydown", onKey);
     };
-  }, []);
+  }, [setOpen]);
 
   if (!open) return null;
   const tip = TIPS[open.id];
   const text = tip[language];
   const left = Math.min(Math.max(12, open.x + 12), window.innerWidth - CARD_WIDTH - 12);
-  const top = Math.min(Math.max(12, open.y - 40), window.innerHeight - 560);
 
   return (
     <div className="tip-backdrop" onPointerDown={() => setOpen(null)}>
       <article
+        ref={cardRef}
         className="tip-card glass"
-        style={{ left, top: Math.max(12, top), width: CARD_WIDTH }}
+        style={{ left, top: Math.max(12, open.y - 40), width: CARD_WIDTH }}
         onPointerDown={(e) => e.stopPropagation()}
         role="dialog"
         aria-label={text.title}

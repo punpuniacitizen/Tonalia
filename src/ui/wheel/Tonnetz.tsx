@@ -6,12 +6,15 @@
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 
+import { api } from "../../api";
 import type { Chord } from "../../bindings/Chord";
 import type { ChordView } from "../../bindings/ChordView";
-import { functionColor } from "../../lib/music";
+import type { TensionView } from "../../bindings/TensionView";
+import { chordSymbol, functionColor } from "../../lib/music";
 import { pitchName } from "../../lib/pitch";
 import { useSelectedChord, useSong } from "../../stores/song";
 import { sameRef, useUi } from "../../stores/ui";
+import { applyTension, tensionLabel, useTensions, visibleTensions } from "./useTensions";
 
 const COLS = 7;
 const ROWS = 5;
@@ -34,6 +37,8 @@ export function Tonnetz({ size }: { size: number }) {
   const edit = useSong((s) => s.edit);
   const selected = useSelectedChord();
   const notation = useUi((s) => s.notation);
+  const showTensions = useUi((s) => s.showTensions);
+  const tensions = useTensions(selected?.chord ?? null, selected?.key ?? null, showTensions);
   if (!view) return null;
   const keyRoot = (selected?.key ?? view.song.homeKey).root;
 
@@ -69,6 +74,20 @@ export function Tonnetz({ size }: { size: number }) {
   }
   const used = new Map(path.map((p) => [p.tri, p.chord]));
   const selTri = selected ? path.find((p) => sameRef(p.chord, selected))?.tri : undefined;
+
+  // Tensiones del acorde seleccionado: el nodo más cercano a su triángulo con cada nota.
+  const nodes = Array.from({ length: COLS }, (_, i) => Array.from({ length: ROWS }, (_, j) => ({ pc: pc(i, j), xy: pos(i, j) }))).flat();
+  const nearest = (target: number, from: [number, number]) =>
+    nodes.filter((n) => n.pc === target).reduce((a, b) => (Math.hypot(b.xy[0] - from[0], b.xy[1] - from[1]) < Math.hypot(a.xy[0] - from[0], a.xy[1] - from[1]) ? b : a));
+  const seventhIv = selected ? [10, 11, 9].find((i) => selected.chord.intervals.includes(i) && !(i === 9 && !selected.chord.intervals.includes(6))) : undefined;
+  const ext: { label: string; xy: [number, number]; present: boolean; avoid: boolean; ten?: TensionView }[] = [];
+  if (showTensions && selected && selTri) {
+    const c: [number, number] = [selTri.cx, selTri.cy];
+    if (seventhIv !== undefined) ext.push({ label: seventhIv === 11 ? "maj7" : "7", xy: nearest((selected.chord.root + seventhIv) % 12, c).xy, present: true, avoid: false });
+    for (const ten of visibleTensions(tensions)) {
+      ext.push({ label: tensionLabel(ten.token), xy: nearest((selected.chord.root + ten.interval) % 12, c).xy, present: ten.present, avoid: ten.avoid, ten });
+    }
+  }
 
   const transform = (kind: "P" | "R" | "L") => {
     if (!selected) return;
@@ -106,6 +125,20 @@ export function Tonnetz({ size }: { size: number }) {
         {path.map((p, i) => (
           <motion.circle key={i} cx={p.tri.cx} cy={p.tri.cy} r={3} className="tonnetz-step" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.08 }} />
         ))}
+        {selTri &&
+          ext.map((e, k) => (
+            <motion.line
+              key={`l${k}`}
+              x1={selTri.cx}
+              y1={selTri.cy}
+              x2={e.xy[0]}
+              y2={e.xy[1]}
+              className={`tn-ext-line ${e.present ? "is-present" : ""} ${e.avoid ? "is-avoid" : ""}`}
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.4, delay: k * 0.05 }}
+            />
+          ))}
         {Array.from({ length: COLS }, (_, i) =>
           Array.from({ length: ROWS }, (_, j) => {
             const [x, y] = pos(i, j);
@@ -120,7 +153,28 @@ export function Tonnetz({ size }: { size: number }) {
             );
           }),
         )}
+        {ext.map((e, k) => (
+          <g
+            key={`n${k}`}
+            className={`tn-ext ${e.present ? "is-present" : ""} ${e.avoid ? "is-avoid" : ""} ${e.ten ? "is-clickable" : ""}`}
+            data-tip="concept.extensions"
+            onPointerEnter={() => e.ten && selected && api.previewChord(e.ten.chord, selected.key.root)}
+            onClick={() => e.ten && selected && applyTension(selected, e.ten)}
+          >
+            <circle cx={e.xy[0]} cy={e.xy[1]} r={13} />
+            <text x={e.xy[0]} y={e.xy[1] - 17} className="tn-ext-label">
+              {e.label}
+            </text>
+            {e.ten && (
+              <title>
+                {chordSymbol(e.ten.label, notation)}
+                {e.avoid ? ` — ${t("tensions.avoid")}` : ""}
+              </title>
+            )}
+          </g>
+        ))}
       </svg>
+      {showTensions && !selected && <p className="tn-hint">{t("tensions.selectHint")}</p>}
       <div className="plr">
         <span>{selected && triadOf(selected.chord) ? t("dock.plrHint") : t("dock.plrSelect")}</span>
         {(["P", "R", "L"] as const).map((k) => (

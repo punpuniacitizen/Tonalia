@@ -5,11 +5,13 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { api } from "../../api";
 import type { ChordView } from "../../bindings/ChordView";
 import { chordSymbol, romanSymbol } from "../../lib/music";
 import { useSelectedChord, useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";
 import { useUi } from "../../stores/ui";
+import { applyTension, tensionLabel, useTensions, visibleTensions } from "./useTensions";
 
 const ZONES = {
   tonic: { x: 0, y: 70, r: 62 },
@@ -19,11 +21,49 @@ const ZONES = {
 
 const GOLDEN = 137.508;
 
+/** Tensiones de un acorde como pequeños satélites en arco por encima de su punto. */
+function TensionSatellites({ x, y, target }: { x: number; y: number; target: ChordView }) {
+  const { t } = useTranslation();
+  const notation = useUi((s) => s.notation);
+  const tensions = visibleTensions(useTensions(target.chord, target.key, true));
+  const n = tensions.length;
+  return (
+    <g className="satellites">
+      {tensions.map((ten, i) => {
+        const a = ((-160 + (n === 1 ? 70 : (i * 140) / (n - 1))) * Math.PI) / 180;
+        const sx = x + Math.cos(a) * 24;
+        const sy = y + Math.sin(a) * 24;
+        const cls = ten.present ? "is-present" : ten.avoid ? "is-avoid" : "";
+        return (
+          <g
+            key={ten.token}
+            className={`satellite ${cls}`}
+            data-tip="concept.extensions"
+            onPointerEnter={() => api.previewChord(ten.chord, target.key.root)}
+            onClick={() => applyTension(target, ten)}
+          >
+            <line x1={x} y1={y} x2={sx} y2={sy} />
+            <circle cx={sx} cy={sy} r={8} />
+            <text x={sx} y={sy + 3}>
+              {tensionLabel(ten.token)}
+            </text>
+            <title>
+              {chordSymbol(ten.label, notation)}
+              {ten.avoid ? ` — ${t("tensions.avoid")}` : ""}
+              {ten.present ? ` — ${t("tensions.remove")}` : ""}
+            </title>
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 export function GravityMap({ size }: { size: number }) {
   const { t } = useTranslation();
   const view = useSong((s) => s.view);
   const selected = useSelectedChord();
-  const { notation, symbols, select } = useUi();
+  const { notation, symbols, select, showTensions } = useUi();
   const playing = useTransport((s) => s.playing);
   const [current, setCurrent] = useState(-1);
 
@@ -54,7 +94,8 @@ export function GravityMap({ size }: { size: number }) {
     const z = ZONES[c.label.function];
     const n = perZone[c.label.function]++;
     const a = ((n * GOLDEN - 90) * Math.PI) / 180;
-    const r = n === 0 ? 0 : Math.min(z.r - 12, 26 + n * 4);
+    // Con las tensiones visibles, los puntos se separan más para que sus satélites no se pisen.
+    const r = n === 0 ? 0 : showTensions ? Math.min(z.r - 4, 44 + n * 4) : Math.min(z.r - 12, 26 + n * 4);
     points.set(id, { x: z.x + Math.cos(a) * r, y: z.y + Math.sin(a) * r, chord: c });
   }
   const path = view.chords.map((c) => points.get(JSON.stringify(c.chord))!);
@@ -79,16 +120,18 @@ export function GravityMap({ size }: { size: number }) {
       {[...points.values()].map((p) => {
         const isSel = selected && JSON.stringify(selected.chord) === JSON.stringify(p.chord.chord);
         return (
-          <g
-            key={JSON.stringify(p.chord.chord)}
-            className={`map-point ${isSel ? "is-selected" : ""}`}
-            style={{ ["--fn" as string]: `var(--fn-${p.chord.label.function})` }}
-            onClick={() => select({ section: p.chord.section, index: p.chord.index })}
-          >
-            <circle cx={p.x} cy={p.y} r={isSel ? 9 : 7} />
-            <text x={p.x} y={p.y - 12}>
-              {label(p.chord)}
-            </text>
+          <g key={JSON.stringify(p.chord.chord)}>
+            <g
+              className={`map-point ${isSel ? "is-selected" : ""}`}
+              style={{ ["--fn" as string]: `var(--fn-${p.chord.label.function})` }}
+              onClick={() => select({ section: p.chord.section, index: p.chord.index })}
+            >
+              <circle cx={p.x} cy={p.y} r={isSel ? 9 : 7} />
+              <text x={p.x} y={showTensions ? p.y + 20 : p.y - 12}>
+                {label(p.chord)}
+              </text>
+            </g>
+            {showTensions && <TensionSatellites x={p.x} y={p.y} target={isSel && selected ? selected : p.chord} />}
           </g>
         );
       })}

@@ -2,7 +2,9 @@
 
 use serde::Serialize;
 use tauri::State;
-use tonalia_core::analysis::{ChordLabel, DetectedView, SongView, SubstituteView, describe, detect_labeled, substitutes_labeled};
+use tonalia_core::analysis::{
+    ChordLabel, DetectedView, SongView, SubstituteView, TensionView, describe, detect_labeled, substitutes_labeled, tensions_labeled,
+};
 use tonalia_core::commands::EditCommand;
 use tonalia_core::palette::{ChordSize, Palette, build_palette};
 use tonalia_core::pitch::PitchClass;
@@ -165,6 +167,12 @@ pub fn get_palette(key: Key, size: ChordSize, previous: Option<Chord>) -> Palett
 #[tauri::command]
 pub fn describe_chord(chord: Chord, key: Key) -> ChordLabel {
     describe(&chord, &key)
+}
+
+/// Tensiones (9, 11, 13 y alteraciones) que se le pueden añadir o quitar a un acorde.
+#[tauri::command]
+pub fn tensions(chord: Chord, key: Key) -> Vec<TensionView> {
+    tensions_labeled(&chord, &key)
 }
 
 /// Acordes que pueden sustituir (o preparar) a `chord` en `key`.

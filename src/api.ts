@@ -14,6 +14,7 @@ import type { Palette } from "./bindings/Palette";
 import type { PitchClass } from "./bindings/PitchClass";
 import type { SongView } from "./bindings/SongView";
 import type { SubstituteView } from "./bindings/SubstituteView";
+import type { TensionView } from "./bindings/TensionView";
 
 export type TransportState = { playing: boolean; position: number };
 export type SequenceNote = { pitch: number; delay: number; duration: number; velocity?: number };
@@ -37,6 +38,7 @@ export const api = {
     invoke<Palette>("get_palette", { key, size, previous }),
   detectChord: (pitches: number[], key: Key) => invoke<DetectedView[]>("detect_chord", { pitches, key }),
   describeChord: (chord: Chord, key: Key) => invoke<ChordLabel>("describe_chord", { chord, key }),
+  tensions: (chord: Chord, key: Key) => invoke<TensionView[]>("tensions", { chord, key }),
   substitutes: (chord: Chord, key: Key, previous: Chord | null) =>
     invoke<SubstituteView[]>("substitutes", { chord, key, previous }),
   previewChord: (chord: Chord, keyRoot: PitchClass | null) =>

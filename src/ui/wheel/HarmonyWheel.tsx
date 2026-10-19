@@ -318,7 +318,7 @@ function ChordSector({
     >
       <path d={sectorPath(a - HALF, a + HALF, r0, r1)} />
       <g className="upright" style={{ transform: `translate(${x}px, ${y}px) rotate(${-rotation}deg)` }}>
-        <text y={sub ? -4 : 6} className="sector-label">
+        <text y={sub ? -4 : 6} className="sector-label" style={text.length > 3 ? { fontSize: Math.max(11, (small ? 16 : 21) - (text.length - 3) * 2.2) } : undefined}>
           {text}
         </text>
         {sub && (

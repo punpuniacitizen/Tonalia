@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { keyRootName, scaleSteps } from "../../lib/music";
 import { useSelectedChord, useSong } from "../../stores/song";
 import { useUi, type DockView, type WheelSource } from "../../stores/ui";
+import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
 import { ChordLens } from "../lenses/ChordLens";
 import { GravityMap } from "./GravityMap";
@@ -20,7 +21,7 @@ export function WheelDock() {
   const { t } = useTranslation();
   const view = useSong((s) => s.view);
   const selected = useSelectedChord();
-  const { level, notation, wheelSource, dockView, set } = useUi();
+  const { level, notation, wheelSource, dockView, showTensions, set } = useUi();
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState(520);
   const ready = view !== null;
@@ -68,16 +69,29 @@ export function WheelDock() {
       )}
 
       <div className="dock-center">
-        <Segmented<DockView>
-          label={t("dock.view")}
-          value={dockView}
-          onChange={(v) => set({ dockView: v })}
-          options={[
-            { value: "wheel", label: t("dock.wheel") },
-            { value: "map", label: t("dock.map"), title: t("dock.mapHint") },
-            { value: "tonnetz", label: "Tonnetz", title: t("dock.tonnetzHint") },
-          ]}
-        />
+        <div className="dock-view-row">
+          <Segmented<DockView>
+            label={t("dock.view")}
+            value={dockView}
+            onChange={(v) => set({ dockView: v })}
+            options={[
+              { value: "wheel", label: t("dock.wheel") },
+              { value: "map", label: t("dock.map"), title: t("dock.mapHint") },
+              { value: "tonnetz", label: "Tonnetz", title: t("dock.tonnetzHint") },
+            ]}
+          />
+          {dockView !== "wheel" && (
+            <button
+              className={`tension-toggle ${showTensions ? "is-on" : ""}`}
+              onClick={() => set({ showTensions: !showTensions })}
+              title={t("tensions.toggleHint")}
+              data-tip="concept.extensions"
+              aria-pressed={showTensions}
+            >
+              <Icon name="sparkle" size={13} /> {t("tensions.toggle")}
+            </button>
+          )}
+        </div>
         {dockView === "wheel" && <HarmonyWheel size={size - 34} />}
         {dockView === "map" && <GravityMap size={Math.min(size * 1.25, 560)} />}
         {dockView === "tonnetz" && <Tonnetz size={Math.min(size * 1.6, 640)} />}

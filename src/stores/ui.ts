@@ -32,6 +32,8 @@ interface UiState {
   dockView: DockView;
   /** Ya se mostró la bienvenida. */
   welcomed: boolean;
+  /** Mostrar las tensiones (9, 11, 13) en el mapa T–S–D y el Tonnetz. */
+  showTensions: boolean;
   /** Mostrar las líneas de conducción de voces en la cinta. */
   showVoices: boolean;
   selected: ChordRef | null;
@@ -67,6 +69,7 @@ export const useUi = create<UiState>()(
       panel: null,
       dockView: "wheel",
       welcomed: false,
+      showTensions: false,
       showVoices: false,
       selected: null,
       set: (patch) => set(patch),

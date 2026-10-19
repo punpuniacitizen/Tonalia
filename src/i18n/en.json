@@ -35,6 +35,9 @@
     "size": "Chords",
     "triads": "Triads",
     "sevenths": "Sevenths",
+    "ninths": "9th",
+    "elevenths": "11th",
+    "ninthsHint": "Key chords with a ninth or eleventh (stacked thirds). On the wheel the labels get smaller.",
     "voicing": "Voicing",
     "voicingAuto": "Auto",
     "voicingClosed": "Closed",
@@ -156,6 +159,7 @@
     "clockHint": "The 12 notes in a circle: the chord is a polygon; all major chords share the same rotated shape",
     "guitar": "Fretboard",
     "alternatives": "Alternatives (reharmonize)",
+    "alternativesHint": "What is reharmonizing? Click to see the tip",
     "susHint": "Suspended chord: it lacks the third, so it hangs 'in the air'. The suspended note wants to move by step to the third.",
     "susListen": "Hear the resolution"
   },
@@ -216,6 +220,13 @@
     "plrP": "P (parallel): major ↔ minor on the same root",
     "plrR": "R (relative): C ↔ Am — they share two notes",
     "plrL": "L (leading-tone): C ↔ Em — they share two notes"
+  },
+  "tensions": {
+    "toggle": "Tensions",
+    "toggleHint": "Show the 9ths, 11ths and 13ths each chord can take (click to add or remove)",
+    "avoid": "avoid note (clashes with a chord tone)",
+    "remove": "click to remove it",
+    "selectHint": "Select a chord to see its tensions on the network"
   },
   "voices": {
     "show": "Voices",

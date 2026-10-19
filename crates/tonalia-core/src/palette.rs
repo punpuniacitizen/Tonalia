@@ -21,9 +21,26 @@ use crate::scale::{Key, Scale};
 pub enum ChordSize {
     Triads,
     Sevenths,
+    /// Cuatríada + novena (cinco terceras apiladas).
+    Ninths,
+    /// Cuatríada + novena + oncena (seis terceras apiladas).
+    Elevenths,
 }
 
-/// Acordes por terceras sobre cada grado (solo escalas de siete notas).
+impl ChordSize {
+    /// Cuántas terceras se apilan sobre la fundamental.
+    fn thirds(self) -> usize {
+        match self {
+            ChordSize::Triads => 2,
+            ChordSize::Sevenths => 3,
+            ChordSize::Ninths => 4,
+            ChordSize::Elevenths => 5,
+        }
+    }
+}
+
+/// Acordes por terceras sobre cada grado (solo escalas de siete notas). Las tensiones
+/// (9ª, 11ª) se guardan como intervalos compuestos para que suenen por encima del acorde.
 pub fn diatonic_chords(key: &Key, size: ChordSize) -> Vec<Chord> {
     if !key.scale.is_heptatonic() {
         return Vec::new();
@@ -32,10 +49,10 @@ pub fn diatonic_chords(key: &Key, size: ChordSize) -> Vec<Chord> {
     (0..7)
         .map(|i| {
             let root = d[i];
-            let mut intervals = vec![root.up_to(d[(i + 2) % 7]), root.up_to(d[(i + 4) % 7])];
-            if size == ChordSize::Sevenths {
-                intervals.push(root.up_to(d[(i + 6) % 7]));
-            }
+            let intervals = (1..=size.thirds()).map(|k| {
+                let iv = root.up_to(d[(i + 2 * k) % 7]);
+                if k >= 4 { iv + 12 } else { iv }
+            });
             Chord::new(root, intervals)
         })
         .collect()
@@ -126,6 +143,16 @@ mod tests {
         assert_eq!(triads, ["", "m", "m", "", "", "m", "°"]);
         let sevenths: Vec<String> = diatonic_chords(&key, ChordSize::Sevenths).iter().map(suffix).collect();
         assert_eq!(sevenths, ["maj7", "m7", "m7", "maj7", "7", "m7", "ø7"]);
+    }
+
+    #[test]
+    fn novenas_y_oncenas_diatonicas() {
+        let key = Key::major(PitchClass::C);
+        let ninths: Vec<String> = diatonic_chords(&key, ChordSize::Ninths).iter().map(suffix).collect();
+        assert_eq!(ninths, ["maj9", "m9", "m7b9", "maj9", "9", "m9", "ø7b9"]);
+        let elevenths = diatonic_chords(&key, ChordSize::Elevenths);
+        assert_eq!(elevenths[1].intervals.iter().copied().collect::<Vec<_>>(), vec![3, 7, 10, 14, 17]); // Dm11
+        assert_eq!(suffix(&elevenths[1]), "m11");
     }
 
     #[test]

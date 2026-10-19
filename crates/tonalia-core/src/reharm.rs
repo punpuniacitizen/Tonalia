@@ -79,10 +79,100 @@ pub fn substitutes(chord: &Chord, key: &Key) -> Vec<Substitute> {
     out
 }
 
+/// Una tensión que se le puede añadir (o quitar) a un acorde.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TensionOption {
+    /// Intervalo compuesto (13 = ♭9 … 21 = 13).
+    pub interval: u8,
+    /// Nombre corto: "b9", "9", "#9", "11", "#11", "b13", "13".
+    pub token: String,
+    /// La nota pertenece a la escala de la tonalidad.
+    pub in_key: bool,
+    /// "Nota a evitar": queda un semitono por encima de una nota del acorde y choca
+    /// (salvo las tensiones alteradas en acordes de dominante, que se usan a propósito).
+    pub avoid: bool,
+    /// El acorde ya la tiene.
+    pub present: bool,
+    /// El acorde con esta tensión añadida (o quitada, si ya estaba).
+    pub chord: Chord,
+}
+
+const TENSIONS: [(u8, &str); 7] = [(13, "b9"), (14, "9"), (15, "#9"), (17, "11"), (18, "#11"), (20, "b13"), (21, "13")];
+
+pub fn tension_options(chord: &Chord, key: &Key) -> Vec<TensionOption> {
+    let shape = analyze(chord);
+    let tones = chord.pitch_classes();
+    let dominant = shape.third == Third::Major && shape.seventh == Seventh::Minor;
+    TENSIONS
+        .iter()
+        .filter_map(|&(iv, token)| {
+            let pc = chord.root.transpose(iv as i32);
+            let present = chord.has(iv);
+            // Si la nota ya está en el acorde como otra cosa (sexta, sus…), no es una tensión.
+            if !present && tones.contains(&pc) {
+                return None;
+            }
+            let altered = matches!(token, "b9" | "#9" | "#11" | "b13");
+            let clashes = tones.contains(&pc.transpose(-1));
+            let avoid = clashes && !(dominant && altered);
+            let mut with = chord.clone();
+            if present {
+                with.intervals.remove(&iv);
+            } else {
+                // 11 y #11, b13 y 13: la misma nota alterada de dos formas, solo una.
+                let rival = match iv {
+                    17 => Some(18),
+                    18 => Some(17),
+                    20 => Some(21),
+                    21 => Some(20),
+                    _ => None,
+                };
+                if let Some(r) = rival {
+                    with.intervals.remove(&r);
+                }
+                with.intervals.insert(iv);
+            }
+            Some(TensionOption { interval: iv, token: token.to_string(), in_key: key.contains(pc), avoid, present, chord: with })
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::pitch::PitchClass;
+
+    fn option<'a>(opts: &'a [TensionOption], token: &str) -> &'a TensionOption {
+        opts.iter().find(|o| o.token == token).unwrap()
+    }
+
+    #[test]
+    fn tensiones_y_notas_a_evitar() {
+        let key = Key::major(PitchClass::C);
+        let cmaj7 = substitutes_base_cmaj7();
+        let opts = tension_options(&cmaj7, &key);
+        assert!(option(&opts, "9").in_key && !option(&opts, "9").avoid);
+        assert!(option(&opts, "11").in_key && option(&opts, "11").avoid); // Fa sobre Mi: choca
+        assert!(!option(&opts, "#11").in_key && !option(&opts, "#11").avoid);
+        assert!(option(&opts, "13").in_key && !option(&opts, "13").avoid);
+        // En un dominante, las alteradas no son "a evitar".
+        let g7 = Chord::dominant7(PitchClass::G);
+        let opts = tension_options(&g7, &key);
+        assert!(!option(&opts, "b9").avoid);
+        assert!(option(&opts, "11").avoid); // Do sobre Si
+        // Añadir 13 quita b13 y viceversa; una tensión presente se puede quitar.
+        let with13 = option(&opts, "13").chord.clone();
+        assert!(with13.has(21));
+        let opts13 = tension_options(&with13, &key);
+        assert!(option(&opts13, "13").present);
+        assert!(!option(&opts13, "13").chord.has(21));
+        assert!(option(&opts13, "b13").chord.has(20) && !option(&opts13, "b13").chord.has(21));
+    }
+
+    fn substitutes_base_cmaj7() -> Chord {
+        Chord::major7(PitchClass::C)
+    }
 
     fn has(subs: &[Substitute], c: &Chord, kind: SubKind) -> bool {
         subs.iter().any(|s| &s.chord == c && s.kind == kind)

@@ -31,7 +31,42 @@ export function TipVisualView({ visual, lang }: { visual: TipVisual; lang: "es" 
       return <TonnetzMini />;
     case "extensions":
       return <ThirdsTower />;
+    case "reharm":
+      return <Reharm lang={lang} />;
   }
+}
+
+/** Un acorde en el centro y sus sustitutos alrededor, unidos por lo que comparten. */
+function Reharm({ lang }: { lang: string }) {
+  const es = lang === "es";
+  const subs = [
+    { x: 60, y: 28, chord: "Am", kind: es ? "relativo" : "relative", fn: FN.tonic },
+    { x: 260, y: 28, chord: "Fm", kind: es ? "préstamo" : "borrowed", fn: FN.subdominant },
+    { x: 60, y: 92, chord: "D♭7", kind: es ? "tritonal" : "tritone", fn: FN.dominant },
+    { x: 260, y: 92, chord: "C7", kind: es ? "V7 antes" : "V7 before", fn: FN.dominant },
+  ];
+  return (
+    <svg viewBox="0 0 320 120" className="tip-svg">
+      {subs.map((s, i) => (
+        <motion.line key={`l${s.chord}`} x1={160} y1={60} x2={s.x} y2={s.y} stroke={s.fn} strokeWidth={1.5} strokeDasharray="4 3" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 0.15 * i }} />
+      ))}
+      <rect x={128} y={44} width={64} height={32} rx={10} fill="var(--fn-subdominant)" fillOpacity={0.35} stroke="var(--fn-subdominant)" />
+      <text x={160} y={65} className="tip-node">
+        F
+      </text>
+      {subs.map((s, i) => (
+        <motion.g key={s.chord} initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 + 0.15 * i }}>
+          <rect x={s.x - 34} y={s.y - 16} width={68} height={30} rx={8} fill={s.fn} fillOpacity={0.22} stroke={s.fn} />
+          <text x={s.x} y={s.y - 1} className="tip-small">
+            {s.chord}
+          </text>
+          <text x={s.x} y={s.y + 10} className="tip-caption" style={{ fontSize: 8 }}>
+            {s.kind}
+          </text>
+        </motion.g>
+      ))}
+    </svg>
+  );
 }
 
 /** Torre de terceras: C E G B D F A, de la fundamental a la trecena. */

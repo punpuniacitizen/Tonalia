@@ -35,6 +35,9 @@
     "size": "Acordes",
     "triads": "Tríadas",
     "sevenths": "Cuatríadas",
+    "ninths": "9ª",
+    "elevenths": "11ª",
+    "ninthsHint": "Acordes de la tonalidad con novena u oncena (terceras apiladas). En la rueda las etiquetas se hacen más pequeñas.",
     "voicing": "Disposición (voicing)",
     "voicingAuto": "Auto",
     "voicingClosed": "Cerrada",
@@ -156,6 +159,7 @@
     "clockHint": "Las 12 notas en círculo: el acorde es un polígono; todos los mayores tienen la misma forma girada",
     "guitar": "Mástil",
     "alternatives": "Alternativas (rearmonizar)",
+    "alternativesHint": "¿Qué es rearmonizar? Clic para ver el tip",
     "susHint": "Acorde suspendido: le falta la tercera, así que queda «en el aire». La nota suspendida quiere moverse por grado conjunto hasta la tercera.",
     "susListen": "Escuchar la resolución"
   },
@@ -216,6 +220,13 @@
     "plrP": "P (paralelo): mayor ↔ menor con la misma fundamental",
     "plrR": "R (relativo): Do ↔ Lam — comparten dos notas",
     "plrL": "L (sensible): Do ↔ Mim — comparten dos notas"
+  },
+  "tensions": {
+    "toggle": "Tensiones",
+    "toggleHint": "Mostrar las 9ª, 11ª y 13ª que puede llevar cada acorde (clic para añadirlas o quitarlas)",
+    "avoid": "nota a evitar (choca con una nota del acorde)",
+    "remove": "clic para quitarla",
+    "selectHint": "Selecciona un acorde para ver sus tensiones en la red"
   },
   "voices": {
     "show": "Voces",

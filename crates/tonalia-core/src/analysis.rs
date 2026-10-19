@@ -73,6 +73,35 @@ pub struct SubstituteView {
     pub transition: Transition,
 }
 
+/// Una tensión con la etiqueta del acorde resultante.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct TensionView {
+    pub interval: u8,
+    pub token: String,
+    pub in_key: bool,
+    pub avoid: bool,
+    pub present: bool,
+    pub chord: Chord,
+    pub label: ChordLabel,
+}
+
+pub fn tensions_labeled(chord: &Chord, key: &Key) -> Vec<TensionView> {
+    crate::reharm::tension_options(chord, key)
+        .into_iter()
+        .map(|t| TensionView {
+            label: describe(&t.chord, key),
+            interval: t.interval,
+            token: t.token,
+            in_key: t.in_key,
+            avoid: t.avoid,
+            present: t.present,
+            chord: t.chord,
+        })
+        .collect()
+}
+
 pub fn substitutes_labeled(chord: &Chord, key: &Key, previous: Option<&Chord>) -> Vec<SubstituteView> {
     crate::reharm::substitutes(chord, key)
         .into_iter()

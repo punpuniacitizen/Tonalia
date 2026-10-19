@@ -13,6 +13,7 @@ import { useSong } from "../../stores/song";
 import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
 import { ChromaticClock, Fretboard, MiniKeys, SusResolution } from "./Anatomy";
+import { showTip } from "../../stores/tips";
 import { ChordBuilder } from "./ChordBuilder";
 import "./lenses.css";
 
@@ -142,8 +143,13 @@ export function ChordLens({ chord }: { chord: ChordView }) {
       )}
 
       {subs.length > 0 && (
-        <div className="lens-subs">
-          <h4>{t("lens.alternatives")}</h4>
+        <div className="lens-subs" data-tip="concept.reharm">
+          <h4>
+            {t("lens.alternatives")}{" "}
+            <button className="info-dot" title={t("lens.alternativesHint")} onClick={(e) => showTip("concept.reharm", e.clientX, e.clientY)}>
+              ?
+            </button>
+          </h4>
           <div className="sub-chips">
             {subs.map((s) => (
               <button

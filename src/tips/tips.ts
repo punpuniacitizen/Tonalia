@@ -15,7 +15,8 @@ export type TipVisual =
   | { kind: "tension" }
   | { kind: "voices" }
   | { kind: "tonnetz" }
-  | { kind: "extensions" };
+  | { kind: "extensions" }
+  | { kind: "reharm" };
 
 type Text = { title: string; kicker: string; mood: string[]; body: string; useWhen: string[]; examples?: string };
 
@@ -415,15 +416,33 @@ export const TIPS: Record<string, Tip> = {
       title: "Séptimas y extensiones",
       kicker: "Terceras apiladas = más color",
       mood: ["sofisticado", "cálido", "jazz", "moderno"],
-      body: "Un acorde básico son tres notas apiladas por terceras (1-3-5). Si sigues apilando terceras aparecen la 7ª, la 9ª, la 11ª y la 13ª: cada una añade color sin cambiar la función del acorde. Para que suenen claras se tocan abiertas: el bajo abajo y las tensiones arriba, omitiendo la quinta (y la tercera si choca con la 11ª).",
+      body: "Un acorde básico son tres notas apiladas por terceras (1-3-5). Si sigues apilando terceras aparecen la 7ª, la 9ª, la 11ª y la 13ª: cada una añade color sin cambiar la función del acorde. Para que suenen claras se tocan abiertas: el bajo abajo y las tensiones arriba, omitiendo la quinta (y la tercera si choca con la 11ª). Ojo con las «notas a evitar» (en rojo punteado): una tensión que queda un semitono por encima de una nota del acorde choca, como la 11ª sobre un acorde mayor. En los acordes de dominante, en cambio, ♭9, ♯9 y ♭13 se usan a propósito para crear tensión.",
       useWhen: ["maj7 y 9: baladas, bossa, lo-fi; suavizan todo", "m7, m9, m11: menores cálidos y relajados (neo-soul)", "7 con ♭9, ♯9, ♭13: dominantes con mucha tensión antes de resolver", "13 y ♯11: jazz, R&B y bandas sonoras luminosas"],
     },
     en: {
       title: "Sevenths and extensions",
       kicker: "Stacked thirds = more color",
       mood: ["sophisticated", "warm", "jazzy", "modern"],
-      body: "A basic chord is three notes stacked in thirds (1-3-5). Keep stacking thirds and you get the 7th, 9th, 11th and 13th: each adds color without changing the chord's function. To sound clear they're played open: bass at the bottom and tensions on top, leaving out the fifth (and the third if it clashes with the 11th).",
+      body: "A basic chord is three notes stacked in thirds (1-3-5). Keep stacking thirds and you get the 7th, 9th, 11th and 13th: each adds color without changing the chord's function. To sound clear they're played open: bass at the bottom and tensions on top, leaving out the fifth (and the third if it clashes with the 11th). Watch out for 'avoid notes' (dotted red): a tension a half step above a chord tone clashes, like the 11th over a major chord. On dominant chords, however, ♭9, ♯9 and ♭13 are used on purpose to build tension.",
       useWhen: ["maj7 and 9: ballads, bossa, lo-fi; they soften everything", "m7, m9, m11: warm, relaxed minors (neo-soul)", "7 with ♭9, ♯9, ♭13: high-tension dominants before resolving", "13 and ♯11: jazz, R&B and luminous film scores"],
+    },
+  },
+  "concept.reharm": {
+    visual: { kind: "reharm" },
+    sound: () => chordsSequence([C, [57, 60, 64], [48, 52, 55], [52, 55, 59], [48, 52, 55, 58], [53, 57, 60]], 0.85),
+    es: {
+      title: "Rearmonizar",
+      kicker: "Misma melodía, otro color",
+      mood: ["sorpresa", "riqueza", "sofisticación", "frescura"],
+      body: "Rearmonizar es cambiar los acordes de una canción (o de un tramo) sin cambiar la melodía, para darle otro color o más interés. Funciona porque muchos acordes comparten notas o función. Las alternativas de la lente son las técnicas clásicas: el relativo comparte dos notas (C ↔ Am ↔ Em); el préstamo trae el acorde del modo paralelo (F → Fm, nostálgico); el tritonal cambia un dominante por el que está a un tritono (G7 → D♭7, el bajo baja por semitonos); «V7 antes» inserta la dominante de un acorde para empujar hacia él; sus y séptima cambian el color sin cambiar el camino.",
+      useWhen: ["Una progresión suena demasiado obvia o repetida", "La segunda vez que vuelve un estribillo: mismo acorde, otro color", "Quieres un final más emotivo (préstamo iv o ♭VI) o más jazzístico (tritonal)", "Pasa el ratón sobre cada alternativa para oírla antes de elegir"],
+    },
+    en: {
+      title: "Reharmonizing",
+      kicker: "Same melody, new color",
+      mood: ["surprise", "richness", "sophistication", "freshness"],
+      body: "Reharmonizing means changing a song's chords (or a passage's) without changing the melody, to give it another color or more interest. It works because many chords share notes or function. The lens alternatives are the classic techniques: the relative shares two notes (C ↔ Am ↔ Em); borrowing brings the chord from the parallel mode (F → Fm, nostalgic); the tritone sub swaps a dominant for the one a tritone away (G7 → D♭7, the bass moves by half steps); 'V7 before' inserts a chord's dominant to push into it; sus and seventh change the color without changing the path.",
+      useWhen: ["A progression sounds too obvious or repetitive", "The second time a chorus comes back: same chord, new color", "You want a more emotional ending (borrowed iv or ♭VI) or a jazzier one (tritone sub)", "Hover each alternative to hear it before choosing"],
     },
   },
   "concept.tonnetz": {

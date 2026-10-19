@@ -70,6 +70,8 @@ export function PreviewSettingsPanel() {
           options={[
             { value: "triads", label: t("preview.triads") },
             { value: "sevenths", label: t("preview.sevenths") },
+            { value: "ninths", label: t("preview.ninths"), title: t("preview.ninthsHint") },
+            { value: "elevenths", label: t("preview.elevenths"), title: t("preview.ninthsHint") },
           ]}
         />
       </label>
