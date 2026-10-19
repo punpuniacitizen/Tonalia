@@ -22,6 +22,8 @@ pub const PREVIEW_BIT: u64 = 1 << 63;
 #[derive(Clone, Copy, Debug)]
 pub struct SeqEvent {
     pub tick: f64,
+    /// Fin de la nota (en los note-on), para retomar las que suenan al editar en marcha.
+    pub end: f64,
     pub on: bool,
     pub id: u64,
     pub pitch: u8,
@@ -49,8 +51,9 @@ pub fn compile(song: &Song) -> Schedule {
             let id = next_id;
             next_id += 1;
             let velocity = n.velocity * volume;
-            events.push(SeqEvent { tick: n.position as f64, on: true, id, pitch: n.pitch, velocity, instrument });
-            events.push(SeqEvent { tick: n.end() as f64, on: false, id, pitch: n.pitch, velocity: 0.0, instrument });
+            let (start, end) = (n.position as f64, n.end() as f64);
+            events.push(SeqEvent { tick: start, end, on: true, id, pitch: n.pitch, velocity, instrument });
+            events.push(SeqEvent { tick: end, end, on: false, id, pitch: n.pitch, velocity: 0.0, instrument });
         }
     };
 
@@ -225,6 +228,9 @@ impl Engine {
                     }
                 }
                 self.next_event = self.first_event_from(self.position);
+                if self.playing {
+                    self.resume_sounding_notes();
+                }
             }
             AudioMsg::Play { from } => {
                 self.release_sequencer_voices();
@@ -267,6 +273,17 @@ impl Engine {
                 self.release_all_voices();
                 self.use_sf2 = on;
                 self.publish_engine();
+            }
+        }
+    }
+
+    /// Tras cambiar el programa en plena reproducción, vuelve a atacar las notas que deberían
+    /// estar sonando ahora (en lugar de dejar silencio hasta la siguiente nota).
+    fn resume_sounding_notes(&mut self) {
+        for i in 0..self.next_event {
+            let e = self.schedule.events[i];
+            if e.on && e.end > self.position {
+                self.voice_on(e.id, e.pitch, e.velocity, e.instrument);
             }
         }
     }
@@ -385,6 +402,26 @@ mod tests {
         s.chord_track.muted = false;
         s.tracks[0].solo = true;
         assert!(compile(&s).events.is_empty(), "con una pista en solo, los acordes callan");
+    }
+
+    #[test]
+    fn editar_en_marcha_no_deja_silencio() {
+        let (producer, _consumer) = rtrb::RingBuffer::new(8);
+        let mut engine = Engine::new(48_000.0, Arc::new(Shared::default()), producer);
+        engine.handle(AudioMsg::Schedule(Box::new(compile(&song()))));
+        engine.handle(AudioMsg::Play { from: 0.0 });
+        for _ in 0..4800 {
+            engine.next_sample();
+        }
+        // Llega un programa nuevo a mitad del acorde: debe seguir sonando.
+        engine.handle(AudioMsg::Schedule(Box::new(compile(&song()))));
+        // Medio segundo después la cola de las notas soltadas ya se apagó: lo que suene
+        // es el acorde retomado.
+        for _ in 0..24_000 {
+            engine.next_sample();
+        }
+        let peak = (0..4800).map(|_| engine.next_sample().0.abs()).fold(0.0f32, f32::max);
+        assert!(peak > 0.02, "pico tras editar: {peak}");
     }
 
     #[test]
