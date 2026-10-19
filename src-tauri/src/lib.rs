@@ -79,6 +79,7 @@ pub fn run() {
             commands::redo,
             commands::get_palette,
             commands::detect_chord,
+            commands::substitutes,
             commands::preview_chord,
             commands::preview_notes,
             commands::preview_sequence,

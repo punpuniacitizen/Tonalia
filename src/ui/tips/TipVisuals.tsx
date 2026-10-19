@@ -25,7 +25,40 @@ export function TipVisualView({ visual, lang }: { visual: TipVisual; lang: "es" 
       return <Borrow />;
     case "tension":
       return <Tension />;
+    case "voices":
+      return <Voices />;
   }
+}
+
+/** Tres acordes como columnas de voces unidas por líneas (común, paso, salto). */
+function Voices() {
+  const chords = [
+    [60, 64, 67],
+    [60, 65, 69],
+    [59, 62, 67],
+  ];
+  const y = (p: number) => 100 - (p - 57) * 7;
+  const x = [50, 160, 270];
+  const color = (a: number, b: number) => (a === b ? "var(--fn-tonic)" : Math.abs(a - b) <= 2 ? "#7ce36b" : "#ff9a4d");
+  return (
+    <svg viewBox="0 0 320 110" className="tip-svg">
+      {chords.slice(0, -1).flatMap((c, i) =>
+        c.map((p, k) => (
+          <motion.path
+            key={`${i}-${k}`}
+            d={`M${x[i] + 16},${y(p)} C${x[i] + 60},${y(p)} ${x[i + 1] - 60},${y(chords[i + 1][k])} ${x[i + 1] - 16},${y(chords[i + 1][k])}`}
+            fill="none"
+            stroke={color(p, chords[i + 1][k])}
+            strokeWidth={2.5}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.6, delay: i * 0.4 + k * 0.1 }}
+          />
+        )),
+      )}
+      {chords.flatMap((c, i) => c.map((p) => <rect key={`${i}-${p}`} x={x[i] - 16} y={y(p) - 3} width={32} height={6} rx={3} fill="white" />))}
+    </svg>
+  );
 }
 
 /** Tónica abajo (casa), subdominante y dominante arriba; flechas T → S → D → T. */

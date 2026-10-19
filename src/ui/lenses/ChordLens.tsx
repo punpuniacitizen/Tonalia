@@ -1,22 +1,52 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { api } from "../../api";
 import type { ChordView } from "../../bindings/ChordView";
+import type { SubstituteView } from "../../bindings/SubstituteView";
 import { chordSymbol, functionColor, romanSymbol, spelledName } from "../../lib/music";
 import { reasonText } from "../../lib/reason";
+import { sameRef, useUi } from "../../stores/ui";
 import { useSong } from "../../stores/song";
-import { useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
+import { Segmented } from "../common/Segmented";
+import { ChromaticClock, Fretboard, MiniKeys } from "./Anatomy";
 import "./lenses.css";
 
-/** Tarjeta del acorde seleccionado: anatomía básica y "por qué" de su llegada. */
+type AnatomyView = "keys" | "clock" | "guitar";
+
+/** Tarjeta del acorde seleccionado: anatomía, el porqué de su llegada y alternativas. */
 export function ChordLens({ chord }: { chord: ChordView }) {
   const { t } = useTranslation();
   const notation = useUi((s) => s.notation);
   const level = useUi((s) => s.level);
+  const select = useUi((s) => s.select);
+  const view = useSong((s) => s.view);
   const edit = useSong((s) => s.edit);
+  const [anatomy, setAnatomy] = useState<AnatomyView>("keys");
+  const [subs, setSubs] = useState<SubstituteView[]>([]);
   const { label, transition } = chord;
   const hasContext = transition.reason.kind !== "noContext";
+  const position = view?.chords.findIndex((c) => sameRef(c, chord)) ?? -1;
+  const previous = position > 0 ? view!.chords[position - 1].chord : null;
+
+  useEffect(() => {
+    let alive = true;
+    void api.substitutes(chord.chord, chord.key, previous).then((s) => alive && setSubs(s));
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(chord.chord), JSON.stringify(chord.key), JSON.stringify(previous)]);
+
+  const at = { section: chord.section, index: chord.index };
+  const applySub = (s: SubstituteView) => {
+    if (s.kind === "secondaryDominant") {
+      void edit({ type: "insertChord", section: at.section, index: at.index, chord: s.chord, length: null }).then((v) => v && select(at));
+    } else {
+      void edit({ type: "replaceChord", at, chord: s.chord });
+    }
+  };
 
   return (
     <aside
@@ -36,7 +66,19 @@ export function ChordLens({ chord }: { chord: ChordView }) {
         <small>— {t(`function.${label.function}Hint`)}</small>
       </div>
 
-      <MiniKeys pitchClasses={label.pitchClasses} root={chord.chord.root} />
+      <Segmented<AnatomyView>
+        label={t("lens.anatomy")}
+        value={anatomy}
+        onChange={setAnatomy}
+        options={[
+          { value: "keys", label: t("lens.keys") },
+          { value: "clock", label: t("lens.clock"), title: t("lens.clockHint") },
+          { value: "guitar", label: t("lens.guitar") },
+        ]}
+      />
+      {anatomy === "keys" && <MiniKeys pitchClasses={label.pitchClasses} root={chord.chord.root} />}
+      {anatomy === "clock" && <ChromaticClock chord={chord.chord} notes={label.notes} notation={notation} />}
+      {anatomy === "guitar" && <Fretboard pitchClasses={label.pitchClasses} root={chord.chord.root} />}
 
       <div className="lens-notes" aria-label={t("lens.notes")}>
         {label.notes.map((n, i) => (
@@ -56,15 +98,32 @@ export function ChordLens({ chord }: { chord: ChordView }) {
         </div>
       )}
 
+      {subs.length > 0 && (
+        <div className="lens-subs">
+          <h4>{t("lens.alternatives")}</h4>
+          <div className="sub-chips">
+            {subs.map((s) => (
+              <button
+                key={JSON.stringify(s.chord) + s.kind}
+                className="sub-chip"
+                style={{ ["--fn" as string]: functionColor(s.label.function) }}
+                title={t(`subs.${s.kind}Hint`)}
+                onPointerEnter={() => api.previewChord(s.chord, chord.key.root)}
+                onClick={() => applySub(s)}
+              >
+                <strong>{chordSymbol(s.label, notation)}</strong>
+                <small>{t(`subs.${s.kind}`)}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="lens-actions">
         <button className="icon-button" title={t("lens.preview")} onClick={() => api.previewChord(chord.chord, chord.key.root)}>
           <Icon name="speaker" />
         </button>
-        <button
-          className="icon-button"
-          title={`${t("edit.delete")} (Supr)`}
-          onClick={() => edit({ type: "removeChords", chords: [{ section: chord.section, index: chord.index }] })}
-        >
+        <button className="icon-button" title={`${t("edit.delete")} (Supr)`} onClick={() => edit({ type: "removeChords", chords: [at] })}>
           <Icon name="trash" />
         </button>
       </div>
@@ -74,29 +133,5 @@ export function ChordLens({ chord }: { chord: ChordView }) {
         </small>
       )}
     </aside>
-  );
-}
-
-// Teclas blancas (clase de altura) y negras (clase de altura, posición en % del ancho).
-const WHITES = [0, 2, 4, 5, 7, 9, 11];
-const BLACKS: [number, number][] = [
-  [1, 9.5],
-  [3, 23.8],
-  [6, 52.4],
-  [8, 66.7],
-  [10, 81],
-];
-
-function MiniKeys({ pitchClasses, root }: { pitchClasses: number[]; root: number }) {
-  const on = new Set(pitchClasses);
-  return (
-    <div className="mini-keys" aria-hidden="true">
-      {WHITES.map((pc) => (
-        <div key={pc} className={`white ${on.has(pc) ? "is-on" : ""} ${pc === root ? "is-root" : ""}`} />
-      ))}
-      {BLACKS.map(([pc, x]) => (
-        <div key={pc} className={`black ${on.has(pc) ? "is-on" : ""}`} style={{ left: `${x}%` }} />
-      ))}
-    </div>
   );
 }

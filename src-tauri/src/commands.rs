@@ -2,7 +2,7 @@
 
 use serde::Serialize;
 use tauri::State;
-use tonalia_core::analysis::{DetectedView, SongView, detect_labeled};
+use tonalia_core::analysis::{DetectedView, SongView, SubstituteView, detect_labeled, substitutes_labeled};
 use tonalia_core::commands::EditCommand;
 use tonalia_core::palette::{ChordSize, Palette, build_palette};
 use tonalia_core::pitch::PitchClass;
@@ -146,6 +146,12 @@ pub fn export_midi(state: State<AppState>, path: String, include_chords: bool, t
 #[tauri::command]
 pub fn get_palette(key: Key, size: ChordSize, previous: Option<Chord>) -> Palette {
     build_palette(&key, size, previous.as_ref())
+}
+
+/// Acordes que pueden sustituir (o preparar) a `chord` en `key`.
+#[tauri::command]
+pub fn substitutes(chord: Chord, key: Key, previous: Option<Chord>) -> Vec<SubstituteView> {
+    substitutes_labeled(&chord, &key, previous.as_ref())
 }
 
 /// Reconoce el acorde formado por unas notas (el más probable primero).

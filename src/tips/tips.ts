@@ -12,7 +12,8 @@ export type TipVisual =
   | { kind: "arcs" }
   | { kind: "circle" }
   | { kind: "borrow" }
-  | { kind: "tension" };
+  | { kind: "tension" }
+  | { kind: "voices" };
 
 type Text = { title: string; kicker: string; mood: string[]; body: string; useWhen: string[]; examples?: string };
 
@@ -385,6 +386,24 @@ export const TIPS: Record<string, Tip> = {
       mood: ["bittersweet", "epic", "emotional surprise"],
       body: "Modal borrowing takes chords from a parallel mode (same tonic, another scale). In C major, chords borrowed from C minor (Fm, A♭, B♭, E♭) add shadow and emotion without changing key. The wheel's middle ring shows them.",
       useWhen: ["♭VI → ♭VII → I: epic ending", "Minor iv (Fm in C): an emotional, almost nostalgic moment", "Pick the source mode in 'Borrow from' to explore colors"],
+    },
+  },
+  "concept.voices": {
+    visual: { kind: "voices" },
+    sound: () => chordsSequence([C, [60, 65, 69], [59, 62, 67], C], 0.9),
+    es: {
+      title: "Conducción de voces",
+      kicker: "Que cada nota camine poco",
+      mood: ["fluido", "conectado", "profesional"],
+      body: "Un acorde es un grupo de voces (como un coro). Si cada voz se mueve lo menos posible al siguiente acorde —manteniendo las notas comunes y avanzando por pasos—, la progresión suena unida y suave. Por eso los pianistas usan inversiones en vez de saltar con la mano entera. «Suavizar» elige las inversiones por ti.",
+      useWhen: ["Acompañamientos de piano o cuerdas que suenen profesionales", "Pads y coros: los saltos se notan mucho", "Ver por qué una progresión suena «a tirones»: busca líneas naranjas (saltos)"],
+    },
+    en: {
+      title: "Voice leading",
+      kicker: "Let every note walk a little",
+      mood: ["flowing", "connected", "polished"],
+      body: "A chord is a group of voices (like a choir). If each voice moves as little as possible to the next chord—keeping common tones and moving by step—the progression sounds connected and smooth. That's why pianists use inversions instead of jumping with the whole hand. 'Smooth' picks the inversions for you.",
+      useWhen: ["Piano or string accompaniments that sound polished", "Pads and choirs: leaps are very noticeable", "Seeing why a progression sounds 'jerky': look for orange lines (leaps)"],
     },
   },
   "concept.tension": {

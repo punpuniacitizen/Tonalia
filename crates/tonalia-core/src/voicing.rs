@@ -78,6 +78,58 @@ pub fn default_voicing(chord: &Chord, length: Ticks, settings: &PreviewSettings,
     transpose(notes, (settings.octave as i32 + 1) * 12)
 }
 
+/// Coste de ir de un voicing a otro: cuánto se mueve cada voz nueva hasta la voz anterior
+/// más cercana, más un poco por desplazar el centro del acorde.
+fn movement_cost(prev: &[u8], next: &[u8]) -> f32 {
+    let nearest: f32 = next.iter().map(|&p| prev.iter().map(|&q| (p as i32 - q as i32).abs()).min().unwrap_or(0) as f32).sum();
+    let center = |v: &[u8]| v.iter().map(|&p| p as f32).sum::<f32>() / v.len().max(1) as f32;
+    nearest + 0.5 * (center(prev) - center(next)).abs()
+}
+
+/// Voicing con la mínima conducción de voces desde `previous`: prueba todas las inversiones
+/// en varias octavas y se queda con la que menos mueve las voces.
+pub fn smooth_voicing(previous: &[Note], chord: &Chord, length: Ticks, settings: &PreviewSettings) -> Vec<Note> {
+    let prev: Vec<u8> = previous.iter().map(|n| n.pitch).collect();
+    if prev.is_empty() {
+        return default_voicing(chord, length, settings, chord.root);
+    }
+    // Clases de altura del acorde en orden (fundamental, luego intervalos), sin repetir.
+    let mut tones: Vec<u8> = Vec::new();
+    for iv in std::iter::once(0).chain(chord.intervals.iter().copied()) {
+        let pc = (chord.root.value() + iv) % 12;
+        if !tones.contains(&pc) {
+            tones.push(pc);
+        }
+    }
+    let low = *prev.iter().min().unwrap() as i32;
+    let mut best: Option<(f32, Vec<u8>)> = None;
+    for inversion in 0..tones.len() {
+        let rotated: Vec<u8> = tones[inversion..].iter().chain(&tones[..inversion]).copied().collect();
+        for base in (low - 12)..=(low + 12) {
+            if (base.rem_euclid(12)) as u8 != rotated[0] || !(24..=96).contains(&base) {
+                continue;
+            }
+            // Apilar hacia arriba en posición cerrada.
+            let mut pitches = vec![base as u8];
+            for &pc in &rotated[1..] {
+                let last = *pitches.last().unwrap() as i32;
+                let mut p = last + 1;
+                while (p.rem_euclid(12)) as u8 != pc {
+                    p += 1;
+                }
+                pitches.push(p as u8);
+            }
+            let cost = movement_cost(&prev, &pitches);
+            if best.as_ref().is_none_or(|(c, _)| cost < *c) {
+                best = Some((cost, pitches));
+            }
+        }
+    }
+    let pitches = best.map(|(_, p)| p).unwrap_or_default();
+    let notes = pitches.into_iter().map(|p| Note::new(0, length, p, settings.velocity)).collect();
+    strum(notes, settings.strumming)
+}
+
 /// Adapta un voicing a una nueva duración: las notas que sostenían hasta el final siguen
 /// haciéndolo; las que empiezan después del nuevo final desaparecen.
 pub fn fit_voicing(voicing: &[Note], old_length: Ticks, new_length: Ticks) -> Vec<Note> {
@@ -125,6 +177,19 @@ mod tests {
         assert_eq!(c[0].pitch, 60);
         assert_eq!(c.iter().map(|n| n.pitch).collect::<Vec<_>>(), vec![60, 64, 67]);
         assert!((c[0].velocity - 0.8).abs() < 1e-6);
+    }
+
+    #[test]
+    fn voicing_suave_mueve_poco() {
+        let settings = PreviewSettings::default();
+        let c = default_voicing(&Chord::major(PitchClass::C), WHOLE, &settings, PitchClass::C); // 48 52 55
+        let f = smooth_voicing(&c, &Chord::major(PitchClass::F), WHOLE, &settings);
+        let pitches: Vec<u8> = f.iter().map(|n| n.pitch).collect();
+        // Do mayor → Fa mayor en segunda inversión (Do-Fa-La): Do se queda, las otras suben poco.
+        assert_eq!(pitches, vec![48, 53, 57]);
+        let g = smooth_voicing(&f, &Chord::major(PitchClass::G), WHOLE, &settings);
+        let moved: i32 = g.iter().zip(&f).map(|(a, b)| (a.pitch as i32 - b.pitch as i32).abs()).sum();
+        assert!(moved <= 6, "movimiento {moved}: {:?}", g.iter().map(|n| n.pitch).collect::<Vec<_>>());
     }
 
     #[test]

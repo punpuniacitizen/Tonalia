@@ -372,6 +372,42 @@
   opacity: 0.6;
 }
 
+.voice-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.voice-hold {
+  stroke: rgba(255, 255, 255, 0.75);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.voice-move {
+  fill: none;
+  stroke-width: 2;
+}
+
+.voice-move.common {
+  stroke: var(--fn-tonic);
+}
+
+.voice-move.step {
+  stroke: #7ce36b;
+}
+
+.voice-move.leap {
+  stroke: #ff9a4d;
+  stroke-dasharray: 4 3;
+}
+
+.timeline.has-voices .block-body {
+  filter: saturate(0.6) brightness(0.75);
+}
+
 .drop-indicator {
   position: absolute;
   top: 0;

@@ -97,7 +97,35 @@
     "notes": "Notas",
     "transition": "Llegada",
     "preview": "Escuchar",
-    "tension": "Tensión"
+    "tension": "Tensión",
+    "anatomy": "Anatomía del acorde",
+    "keys": "Teclado",
+    "clock": "Reloj",
+    "clockHint": "Las 12 notas en círculo: el acorde es un polígono; todos los mayores tienen la misma forma girada",
+    "guitar": "Mástil",
+    "alternatives": "Alternativas (rearmonizar)"
+  },
+  "subs": {
+    "relative": "relativo",
+    "relativeHint": "Comparte dos notas y la función: cambia el color sin romper el camino",
+    "modalInterchange": "préstamo",
+    "modalInterchangeHint": "El mismo acorde en el modo paralelo (mayor ↔ menor)",
+    "tritoneSub": "tritonal",
+    "tritoneSubHint": "Dominante a un tritono: misma tensión, bajo cromático (jazz)",
+    "secondaryDominant": "V7 antes",
+    "secondaryDominantHint": "Inserta antes la dominante de este acorde para «empujarlo»",
+    "sus": "suspendido",
+    "susHint": "Quita la tercera: queda en el aire, ambiguo y moderno",
+    "seventh": "con séptima",
+    "seventhHint": "Añade la séptima de la escala: más rico y suave"
+  },
+  "voices": {
+    "show": "Voces",
+    "showHint": "Mostrar cómo se mueve cada voz de un acorde al siguiente",
+    "smooth": "Suavizar",
+    "smoothHint": "Elegir la inversión de cada acorde para que las voces se muevan lo mínimo",
+    "reset": "Restablecer",
+    "resetHint": "Volver todos los acordes a la posición cerrada (fundamental abajo)"
   },
   "library": {
     "title": "Biblioteca de progresiones",

@@ -177,6 +177,131 @@ input[type="range"] {
   gap: 4px;
 }
 
+/* Reloj cromático */
+.clock {
+  width: 100%;
+  height: 150px;
+  font-family: var(--font-display);
+}
+
+.clock text {
+  text-anchor: middle;
+}
+
+.clock-ring {
+  fill: none;
+  stroke: var(--line-strong);
+}
+
+.clock-shape {
+  fill: color-mix(in oklab, var(--lens-color) 25%, transparent);
+  stroke: var(--lens-color);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px var(--lens-color));
+  transform-origin: 0 0;
+}
+
+.clock-on {
+  fill: var(--lens-color);
+}
+
+.clock-root {
+  fill: var(--text-0);
+  stroke: var(--lens-color);
+  stroke-width: 2;
+}
+
+.clock-off {
+  fill: var(--text-3);
+}
+
+.clock-label {
+  fill: var(--text-0);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.clock-interval {
+  fill: var(--text-2);
+  font-size: 8px;
+}
+
+/* Mástil */
+.fretboard {
+  width: 100%;
+  height: auto;
+}
+
+.fretboard .fret {
+  stroke: rgba(255, 255, 255, 0.18);
+}
+
+.fretboard .nut {
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 3;
+}
+
+.fretboard .string {
+  stroke: rgba(220, 225, 240, 0.45);
+}
+
+.fret-marker {
+  fill: rgba(255, 255, 255, 0.08);
+}
+
+.fret-on {
+  fill: var(--lens-color);
+}
+
+.fret-root {
+  fill: var(--text-0);
+  stroke: var(--lens-color);
+  stroke-width: 2;
+}
+
+/* Alternativas */
+.lens-subs h4 {
+  margin: 0 0 6px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sub-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.sub-chip {
+  display: grid;
+  gap: 1px;
+  padding: 4px 8px;
+  border-radius: var(--radius-s);
+  text-align: left;
+  background: color-mix(in oklab, var(--fn) 16%, var(--bg-2));
+  border: 1px solid color-mix(in oklab, var(--fn) 45%, transparent);
+  transition: background 0.15s, transform 0.15s var(--ease-spring);
+}
+
+.sub-chip:hover {
+  background: color-mix(in oklab, var(--fn) 32%, var(--bg-2));
+  transform: translateY(-1px);
+}
+
+.sub-chip strong {
+  font-family: var(--font-display);
+  font-size: 13px;
+}
+
+.sub-chip small {
+  color: var(--text-2);
+  font-size: 9.5px;
+}
+
 /* Mini teclado de una octava */
 .mini-keys {
   position: relative;

@@ -101,6 +101,12 @@
   width: 72px;
 }
 
+.head-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--line-strong);
+}
+
 .lane-delete {
   width: 26px;
   height: 26px;

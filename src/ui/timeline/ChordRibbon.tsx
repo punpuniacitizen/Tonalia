@@ -13,6 +13,7 @@ import { currentPosition, useTransport } from "../../stores/transport";
 import { sameRef, useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
 import { gridStep, pxPerTick, snap, tickToX, xToTick } from "./geometry";
+import { VoiceLines } from "./VoiceLines";
 
 type Resize = { section: number; index: number; length: number };
 
@@ -55,7 +56,7 @@ export function ChordRibbon() {
   const { t } = useTranslation();
   const view = useSong((s) => s.view) as SongView;
   const edit = useSong((s) => s.edit);
-  const { pxPerBar, notation, symbols, level, grid, selected, select } = useUi();
+  const { pxPerBar, notation, symbols, level, grid, selected, select, showVoices } = useUi();
   const payload = useDrag((s) => s.payload);
   const dragX = useDrag((s) => s.x);
   const dragY = useDrag((s) => s.y);
@@ -191,6 +192,10 @@ export function ChordRibbon() {
             </div>
           );
         })}
+
+        {showVoices && view.chords.length > 0 && (
+          <VoiceLines chords={view.chords} geometry={geometry} height={laneRef.current?.clientHeight ?? 168} />
+        )}
 
         {payload && target && <div className="drop-indicator" style={{ left: target.x - 3 }} />}
       </div>

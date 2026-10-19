@@ -28,6 +28,7 @@ pub mod naming;
 pub mod palette;
 pub mod pitch;
 pub mod queries;
+pub mod reharm;
 pub mod scale;
 pub mod time;
 pub mod voicing;

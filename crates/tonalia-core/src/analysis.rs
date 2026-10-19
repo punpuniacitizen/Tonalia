@@ -62,6 +62,24 @@ pub fn detect_labeled(pitches: &[u8], key: &Key) -> Vec<DetectedView> {
         .collect()
 }
 
+/// Un sustituto con su etiqueta y cómo sonaría tras el acorde anterior.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct SubstituteView {
+    pub chord: Chord,
+    pub label: ChordLabel,
+    pub kind: crate::reharm::SubKind,
+    pub transition: Transition,
+}
+
+pub fn substitutes_labeled(chord: &Chord, key: &Key, previous: Option<&Chord>) -> Vec<SubstituteView> {
+    crate::reharm::substitutes(chord, key)
+        .into_iter()
+        .map(|s| SubstituteView { label: describe(&s.chord, key), transition: score(previous, &s.chord, key.root), kind: s.kind, chord: s.chord })
+        .collect()
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]

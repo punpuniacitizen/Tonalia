@@ -97,7 +97,35 @@
     "notes": "Notes",
     "transition": "Arrival",
     "preview": "Listen",
-    "tension": "Tension"
+    "tension": "Tension",
+    "anatomy": "Chord anatomy",
+    "keys": "Keys",
+    "clock": "Clock",
+    "clockHint": "The 12 notes in a circle: the chord is a polygon; all major chords share the same rotated shape",
+    "guitar": "Fretboard",
+    "alternatives": "Alternatives (reharmonize)"
+  },
+  "subs": {
+    "relative": "relative",
+    "relativeHint": "Shares two notes and the function: new color, same path",
+    "modalInterchange": "borrowed",
+    "modalInterchangeHint": "The same chord in the parallel mode (major ↔ minor)",
+    "tritoneSub": "tritone sub",
+    "tritoneSubHint": "Dominant a tritone away: same tension, chromatic bass (jazz)",
+    "secondaryDominant": "V7 before",
+    "secondaryDominantHint": "Inserts this chord's dominant before it to 'push' into it",
+    "sus": "suspended",
+    "susHint": "Removes the third: hangs in the air, ambiguous and modern",
+    "seventh": "with 7th",
+    "seventhHint": "Adds the scale's seventh: richer and softer"
+  },
+  "voices": {
+    "show": "Voices",
+    "showHint": "Show how each voice moves from one chord to the next",
+    "smooth": "Smooth",
+    "smoothHint": "Pick each chord's inversion so voices move as little as possible",
+    "reset": "Reset",
+    "resetHint": "Put every chord back in close position (root at the bottom)"
   },
   "library": {
     "title": "Progression library",

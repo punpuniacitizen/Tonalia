@@ -21,6 +21,7 @@ export function Timeline() {
   const hasRoll = useNotes((s) => s.expandedTrack !== null);
   const edit = useSong((s) => s.edit);
   const notation = useUi((s) => s.notation);
+  const showVoices = useUi((s) => s.showVoices);
   const { t } = useTranslation();
   const [loopDraft, setLoopDraft] = useState<{ start: number; end: number } | null>(null);
   const [editing, setEditing] = useState<{ id: number; x: number; y: number } | null>(null);
@@ -92,7 +93,7 @@ export function Timeline() {
   const loop = loopDraft ?? view.song.loopRegion;
 
   return (
-    <section className={`timeline ${hasRoll ? "has-roll" : ""}`}>
+    <section className={`timeline ${hasRoll ? "has-roll" : ""} ${showVoices ? "has-voices" : ""}`}>
       <div className="timeline-scroll" ref={scrollRef}>
         <div className="timeline-content" style={{ width, ["--bar" as string]: `${pxPerBar}px`, ["--pad" as string]: `${PAD}px` }}>
           <div className="ruler" onPointerDown={onRulerDown} title={t("timeline.rulerHint")}>
@@ -160,6 +161,8 @@ function ChordTrackHead() {
   const { t } = useTranslation();
   const view = useSong((s) => s.view);
   const edit = useSong((s) => s.edit);
+  const showVoices = useUi((s) => s.showVoices);
+  const setUi = useUi((s) => s.set);
   if (!view) return null;
   const ct = view.song.chordTrack;
   const update = (patch: { instrument?: string; volume?: number; muted?: boolean; solo?: boolean }) =>
@@ -199,6 +202,21 @@ function ChordTrackHead() {
           title={`${t("tracks.volume")} ${Math.round(ct.volume * 100)}%`}
           onPointerUp={(e) => update({ volume: Number((e.target as HTMLInputElement).value) })}
         />
+        <span className="head-sep" />
+        <button
+          className={`ghost-button small ${showVoices ? "is-on" : ""}`}
+          onClick={() => setUi({ showVoices: !showVoices })}
+          title={t("voices.showHint")}
+          data-tip="concept.voices"
+        >
+          <Icon name="lines" size={14} /> {t("voices.show")}
+        </button>
+        <button className="ghost-button small" onClick={() => edit({ type: "smoothVoicings" })} title={t("voices.smoothHint")} data-tip="concept.voices">
+          <Icon name="wand" size={14} /> {t("voices.smooth")}
+        </button>
+        <button className="ghost-button small" onClick={() => edit({ type: "resetVoicings" })} title={t("voices.resetHint")}>
+          {t("voices.reset")}
+        </button>
       </div>
     </div>
   );

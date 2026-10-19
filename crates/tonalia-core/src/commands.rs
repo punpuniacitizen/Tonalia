@@ -12,7 +12,7 @@ use crate::model::{ChordEntry, Clip, LoopRegion, Note, Section, SectionContent, 
 use crate::queries::layout;
 use crate::scale::Key;
 use crate::time::{BAR, SIXTY_FOURTH, Ticks};
-use crate::voicing::{PreviewSettings, default_voicing, fit_voicing};
+use crate::voicing::{PreviewSettings, default_voicing, fit_voicing, smooth_voicing};
 
 /// Duración mínima de un acorde (1/64).
 pub const MIN_CHORD_LENGTH: Ticks = SIXTY_FOURTH;
@@ -45,6 +45,10 @@ pub enum EditCommand {
     /// Mueve un acorde; `to.index` es la posición de inserción antes de quitarlo.
     MoveChord { from: ChordRef, to: ChordRef },
     SetVoicing { at: ChordRef, voicing: Vec<Note> },
+    /// Recalcula todos los voicings para que las voces se muevan lo mínimo.
+    SmoothVoicings,
+    /// Vuelve todos los voicings a la posición cerrada por defecto.
+    ResetVoicings,
 
     AddTrack { name: String, instrument: String },
     RemoveTrack { track: TrackId },
@@ -188,6 +192,25 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
         SetVoicing { at, voicing } => {
             let entry = chord_mut(song, *at)?;
             entry.voicing = voicing.iter().map(sanitize_note).collect();
+        }
+        SmoothVoicings | ResetVoicings => {
+            let smooth = matches!(cmd, SmoothVoicings);
+            let preview = song.preview;
+            let plan: Vec<(ChordRef, Chord, Ticks, crate::pitch::PitchClass)> = layout(song)
+                .chords
+                .iter()
+                .map(|c| (ChordRef { section: c.section, index: c.index }, c.entry.chord.clone(), c.entry.length, c.key.root))
+                .collect();
+            let mut previous: Vec<Note> = Vec::new();
+            for (at, chord, length, key_root) in plan {
+                let voicing = if smooth && !previous.is_empty() {
+                    smooth_voicing(&previous, &chord, length, &preview)
+                } else {
+                    default_voicing(&chord, length, &preview, key_root)
+                };
+                previous = voicing.clone();
+                chord_mut(song, at)?.voicing = voicing;
+            }
         }
 
         AddTrack { name, instrument } => {
@@ -442,6 +465,27 @@ mod tests {
         apply(&mut song, &EditCommand::RemoveSection { section: ids[1] }).unwrap();
         assert!(song.sections[0].children()[0].is_leaf());
         assert_eq!(apply(&mut Song::default(), &EditCommand::RemoveSection { section: 1 }), Err(EditError::CannotRemoveLastSection));
+    }
+
+    #[test]
+    fn voicings_suaves_y_por_defecto() {
+        let mut song = Song::default();
+        for r in [0, 5, 7, 0] {
+            insert(&mut song, r);
+        }
+        let total_motion = |song: &Song| -> i32 {
+            let l = layout(song);
+            l.chords
+                .windows(2)
+                .map(|w| w[0].entry.voicing.iter().zip(&w[1].entry.voicing).map(|(a, b)| (a.pitch as i32 - b.pitch as i32).abs()).sum::<i32>())
+                .sum()
+        };
+        let before = total_motion(&song);
+        apply(&mut song, &EditCommand::SmoothVoicings).unwrap();
+        let smooth = total_motion(&song);
+        assert!(smooth < before, "suave {smooth} vs antes {before}");
+        apply(&mut song, &EditCommand::ResetVoicings).unwrap();
+        assert_eq!(total_motion(&song), before);
     }
 
     #[test]
