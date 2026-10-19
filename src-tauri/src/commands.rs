@@ -131,6 +131,19 @@ pub fn save_project(state: State<AppState>, path: Option<String>) -> CmdResult<P
     Ok(project_info_of(&state))
 }
 
+/// Escribe la canción como `.mid` en una carpeta temporal para arrastrarla a un DAW.
+/// Devuelve la ruta absoluta del archivo.
+#[tauri::command]
+pub fn prepare_midi_drag(state: State<AppState>) -> CmdResult<String> {
+    let bytes = export_smf(state.doc().song(), &ExportOptions::default()).map_err(|e| e.to_string())?;
+    let name = project::display_name(state.project_path.lock().unwrap_or_else(|p| p.into_inner()).as_deref()).unwrap_or_else(|| "Tonalia".into());
+    let dir = std::env::temp_dir().join("tonalia-midi");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let path = dir.join(format!("{name}.mid"));
+    std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
 /// Exporta a MIDI estándar. `region` = [inicio, fin) en ticks; `tracks` = pistas elegidas.
 #[tauri::command]
 pub fn export_midi(state: State<AppState>, path: String, include_chords: bool, tracks: Option<Vec<u32>>, region: Option<(i64, i64)>) -> CmdResult<()> {

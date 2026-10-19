@@ -65,6 +65,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_drag::init())
         .setup(|app| {
             let state = AppState::new(app.path().app_data_dir().ok());
             spawn_transport_emitter(app.handle().clone(), state.audio.shared.clone());
@@ -96,6 +97,7 @@ pub fn run() {
             commands::open_project,
             commands::save_project,
             commands::export_midi,
+            commands::prepare_midi_drag,
         ])
         .run(tauri::generate_context!())
         .expect("error al iniciar Tonalia");

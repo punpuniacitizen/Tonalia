@@ -11,6 +11,7 @@ import { Popover } from "../common/Popover";
 import { Segmented } from "../common/Segmented";
 import { PreviewSettingsPanel } from "../lenses/PreviewSettingsPanel";
 import { FileMenu } from "./FileMenu";
+import { MidiDragChip } from "./MidiDragChip";
 import "./Header.css";
 
 export function Header() {
@@ -33,6 +34,7 @@ export function Header() {
       </div>
 
       <FileMenu />
+      <MidiDragChip />
 
       <div className="transport">
         <button className="icon-button" title={t("transport.rewind")} onClick={rewind}>

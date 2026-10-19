@@ -248,6 +248,7 @@
     "save": "Guardar",
     "saveAs": "Guardar como…",
     "exportMidi": "Exportar MIDI…",
+    "dragMidi": "Arrastra esto a tu DAW (o a una carpeta) para llevarte la canción como MIDI",
     "discardQuestion": "Hay cambios sin guardar. ¿Descartarlos?",
     "autosaveNote": "Tonalia guarda una copia automática: si cierras la app, tu canción te espera al volver."
   },

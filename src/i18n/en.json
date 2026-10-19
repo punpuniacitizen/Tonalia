@@ -248,6 +248,7 @@
     "save": "Save",
     "saveAs": "Save as…",
     "exportMidi": "Export MIDI…",
+    "dragMidi": "Drag this into your DAW (or a folder) to take the song as MIDI",
     "discardQuestion": "There are unsaved changes. Discard them?",
     "autosaveNote": "Tonalia keeps an automatic copy: if you close the app, your song waits for you."
   },
