@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useProject } from "../../stores/project";
+import { useSong } from "../../stores/song";
 import { Icon, type IconName } from "../common/Icon";
 import { Popover } from "../common/Popover";
 
@@ -10,6 +11,7 @@ export function FileMenu() {
   const { t } = useTranslation();
   const info = useProject((s) => s.info);
   const p = useProject();
+  const loop = useSong((s) => s.view?.song.loopRegion ?? null);
 
   useEffect(() => {
     void useProject.getState().refresh();
@@ -20,8 +22,11 @@ export function FileMenu() {
     { icon: "folder", label: t("file.open"), keys: "Ctrl+O", run: p.openProject },
     { icon: "save", label: t("file.save"), keys: "Ctrl+S", run: p.saveProject },
     { icon: "save", label: t("file.saveAs"), keys: "Ctrl+Mayús+S", run: p.saveProjectAs },
-    { icon: "download", label: t("file.exportMidi"), keys: "Ctrl+E", run: p.exportMidi },
+    { icon: "download", label: t("file.exportMidi"), keys: "Ctrl+E", run: () => p.exportMidi() },
   ];
+  if (loop) {
+    items.push({ icon: "download", label: t("file.exportLoop"), keys: "", run: () => p.exportMidi(loop) });
+  }
 
   return (
     <Popover

@@ -8,6 +8,7 @@ import { Segmented } from "../common/Segmented";
 import { ChordLens } from "../lenses/ChordLens";
 import { GravityMap } from "./GravityMap";
 import { HarmonyWheel } from "./HarmonyWheel";
+import { ScaleShape } from "./ScaleShape";
 import { Tonnetz } from "./Tonnetz";
 import "./HarmonyWheel.css";
 import "./WheelDock.css";
@@ -60,6 +61,7 @@ export function WheelDock() {
               </div>
             </div>
           ))}
+          <ScaleShape keyScale={key} notation={notation} />
           <p className="dock-hint">{t("wheel.hint")}</p>
           <p className="dock-hint tip-hint">{t("tips.hint")}</p>
         </aside>

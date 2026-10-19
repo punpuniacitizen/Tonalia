@@ -21,6 +21,74 @@
   height: 100%;
 }
 
+/* ---------- Forma de la escala ---------- */
+.scale-shape {
+  margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+}
+
+.scale-shape svg {
+  width: 110px;
+  height: 106px;
+  flex: none;
+  overflow: visible;
+}
+
+.scale-shape text {
+  text-anchor: middle;
+}
+
+.scale-poly {
+  fill: color-mix(in oklab, var(--accent) 22%, transparent);
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  transform-origin: 0 0;
+}
+
+.scale-on {
+  fill: var(--accent);
+}
+
+.scale-label {
+  fill: var(--text-1);
+  font-size: 8px;
+}
+
+.scale-shape .clock-ring {
+  fill: none;
+  stroke: var(--line-strong);
+}
+
+.scale-shape .clock-root {
+  fill: var(--text-0);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.scale-shape .clock-off {
+  fill: var(--text-3);
+}
+
+.scale-shape figcaption {
+  display: grid;
+  gap: 4px;
+}
+
+.scale-shape figcaption small {
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+.wheel-dock.is-compact .scale-shape svg {
+  width: 84px;
+  height: 80px;
+}
+
 /* ---------- Mapa T–S–D ---------- */
 .gravity {
   overflow: visible;

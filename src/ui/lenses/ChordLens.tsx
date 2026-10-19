@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { api } from "../../api";
+import { api, chordsSequence } from "../../api";
+import { pitchName } from "../../lib/pitch";
 import type { ChordView } from "../../bindings/ChordView";
 import type { SubstituteView } from "../../bindings/SubstituteView";
 import { chordSymbol, functionColor, romanSymbol, spelledName } from "../../lib/music";
@@ -10,7 +11,7 @@ import { sameRef, useUi } from "../../stores/ui";
 import { useSong } from "../../stores/song";
 import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
-import { ChromaticClock, Fretboard, MiniKeys } from "./Anatomy";
+import { ChromaticClock, Fretboard, MiniKeys, SusResolution } from "./Anatomy";
 import "./lenses.css";
 
 type AnatomyView = "keys" | "clock" | "guitar";
@@ -27,6 +28,8 @@ export function ChordLens({ chord }: { chord: ChordView }) {
   const [subs, setSubs] = useState<SubstituteView[]>([]);
   const { label, transition } = chord;
   const hasContext = transition.reason.kind !== "noContext";
+  const ivs = chord.chord.intervals;
+  const isSus = !ivs.includes(3) && !ivs.includes(4) && (ivs.includes(5) || ivs.includes(2));
   const position = view?.chords.findIndex((c) => sameRef(c, chord)) ?? -1;
   const previous = position > 0 ? view!.chords[position - 1].chord : null;
 
@@ -79,6 +82,23 @@ export function ChordLens({ chord }: { chord: ChordView }) {
       {anatomy === "keys" && <MiniKeys pitchClasses={label.pitchClasses} root={chord.chord.root} />}
       {anatomy === "clock" && <ChromaticClock chord={chord.chord} notes={label.notes} notation={notation} />}
       {anatomy === "guitar" && <Fretboard pitchClasses={label.pitchClasses} root={chord.chord.root} />}
+
+      {isSus && (
+        <div className="lens-sus" data-tip="concept.transitions">
+          <SusResolution chord={chord.chord} label={(pc) => pitchName(pc, notation, false)} />
+          <p>{t("lens.susHint")}</p>
+          <button
+            className="ghost-button small"
+            onClick={() => {
+              const root = 48 + chord.chord.root;
+              const susPitches = [root, ...chord.chord.intervals.map((i) => root + i)];
+              void api.previewSequence(chordsSequence([susPitches, [root, root + 4, root + 7]], 1.1), view?.song.chordTrack.instrument);
+            }}
+          >
+            <Icon name="play" size={12} filled /> {t("lens.susListen")}
+          </button>
+        </div>
+      )}
 
       <div className="lens-notes" aria-label={t("lens.notes")}>
         {label.notes.map((n, i) => (

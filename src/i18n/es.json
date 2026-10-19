@@ -103,7 +103,9 @@
     "clock": "Reloj",
     "clockHint": "Las 12 notas en círculo: el acorde es un polígono; todos los mayores tienen la misma forma girada",
     "guitar": "Mástil",
-    "alternatives": "Alternativas (rearmonizar)"
+    "alternatives": "Alternativas (rearmonizar)",
+    "susHint": "Acorde suspendido: le falta la tercera, así que queda «en el aire». La nota suspendida quiere moverse por grado conjunto hasta la tercera.",
+    "susListen": "Escuchar la resolución"
   },
   "subs": {
     "relative": "relativo",
@@ -118,6 +120,10 @@
     "susHint": "Quita la tercera: queda en el aire, ambiguo y moderno",
     "seventh": "con séptima",
     "seventhHint": "Añade la séptima de la escala: más rico y suave"
+  },
+  "scaleShape": {
+    "whole": "T",
+    "half": "S"
   },
   "dock": {
     "view": "Vista",
@@ -248,6 +254,8 @@
     "save": "Guardar",
     "saveAs": "Guardar como…",
     "exportMidi": "Exportar MIDI…",
+    "exportLoop": "Exportar solo la región de bucle…",
+    "loopSuffix": "bucle",
     "dragMidi": "Arrastra esto a tu DAW (o a una carpeta) para llevarte la canción como MIDI",
     "discardQuestion": "Hay cambios sin guardar. ¿Descartarlos?",
     "autosaveNote": "Tonalia guarda una copia automática: si cierras la app, tu canción te espera al volver."

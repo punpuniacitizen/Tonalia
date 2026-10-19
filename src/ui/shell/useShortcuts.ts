@@ -40,7 +40,7 @@ export function useShortcuts() {
         void project.newProject();
       } else if (ctrl && k === "e") {
         e.preventDefault();
-        void project.exportMidi();
+        void project.exportMidi(undefined);
       } else if (e.code === "Space") {
         e.preventDefault();
         useTransport.getState().toggle();

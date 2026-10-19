@@ -103,7 +103,9 @@
     "clock": "Clock",
     "clockHint": "The 12 notes in a circle: the chord is a polygon; all major chords share the same rotated shape",
     "guitar": "Fretboard",
-    "alternatives": "Alternatives (reharmonize)"
+    "alternatives": "Alternatives (reharmonize)",
+    "susHint": "Suspended chord: it lacks the third, so it hangs 'in the air'. The suspended note wants to move by step to the third.",
+    "susListen": "Hear the resolution"
   },
   "subs": {
     "relative": "relative",
@@ -118,6 +120,10 @@
     "susHint": "Removes the third: hangs in the air, ambiguous and modern",
     "seventh": "with 7th",
     "seventhHint": "Adds the scale's seventh: richer and softer"
+  },
+  "scaleShape": {
+    "whole": "W",
+    "half": "H"
   },
   "dock": {
     "view": "View",
@@ -248,6 +254,8 @@
     "save": "Save",
     "saveAs": "Save as…",
     "exportMidi": "Export MIDI…",
+    "exportLoop": "Export only the loop region…",
+    "loopSuffix": "loop",
     "dragMidi": "Drag this into your DAW (or a folder) to take the song as MIDI",
     "discardQuestion": "There are unsaved changes. Discard them?",
     "autosaveNote": "Tonalia keeps an automatic copy: if you close the app, your song waits for you."

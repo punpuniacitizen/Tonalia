@@ -23,7 +23,7 @@ interface ProjectState {
   openProject: () => Promise<void>;
   saveProject: () => Promise<boolean>;
   saveProjectAs: () => Promise<boolean>;
-  exportMidi: () => Promise<void>;
+  exportMidi: (region?: { start: number; end: number }) => Promise<void>;
 }
 
 async function confirmDiscard(): Promise<boolean> {
@@ -73,14 +73,15 @@ export const useProject = create<ProjectState>()((set, get) => ({
       return false;
     }
   },
-  exportMidi: async () => {
+  exportMidi: async (region) => {
+    const suffix = region ? `-${i18n.t("file.loopSuffix")}` : "";
     const path = await save({
       filters: [{ name: "MIDI", extensions: ["mid"] }],
-      defaultPath: `${get().info.name ?? i18n.t("file.untitled")}.mid`,
+      defaultPath: `${get().info.name ?? i18n.t("file.untitled")}${suffix}.mid`,
     });
     if (!path) return;
     try {
-      await invoke("export_midi", { path, includeChords: true, tracks: null, region: null });
+      await invoke("export_midi", { path, includeChords: true, tracks: null, region: region ? [region.start, region.end] : null });
     } catch (e) {
       useSong.setState({ error: String(e) });
     }

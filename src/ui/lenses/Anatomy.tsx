@@ -93,6 +93,42 @@ export function ChromaticClock({ chord, notes, notation }: { chord: Chord; notes
   );
 }
 
+/**
+ * Suspensión animada: la nota suspendida (4ª o 2ª) se desliza hasta la tercera,
+ * que es adonde "quiere" ir. Devuelve null si el acorde no es sus.
+ */
+export function SusResolution({ chord, label }: { chord: Chord; label: (pc: number) => string }) {
+  const has = (i: number) => chord.intervals.includes(i);
+  if (has(3) || has(4)) return null;
+  const sus4 = has(5);
+  if (!sus4 && !has(2)) return null;
+  const from = (chord.root + (sus4 ? 5 : 2)) % 12;
+  const to = (chord.root + 4) % 12;
+  const x = (pc: number) => 12 + ((pc - chord.root + 12) % 12) * 19;
+  return (
+    <svg viewBox="0 0 248 46" className="sus-anim">
+      {Array.from({ length: 12 }, (_, k) => (
+        <rect key={k} x={4 + k * 19} y={18} width={17} height={10} rx={2} className={[1, 3, 6, 8, 10].includes((chord.root + k) % 12) ? "sus-key black" : "sus-key"} />
+      ))}
+      <circle cx={x(chord.root)} cy={23} r={5} className="sus-fixed" />
+      <circle cx={x((chord.root + 7) % 12)} cy={23} r={5} className="sus-fixed" />
+      <motion.circle
+        cy={23}
+        r={6}
+        className="sus-moving"
+        animate={{ cx: [x(from), x(from), x(to), x(to)] }}
+        transition={{ duration: 2.4, times: [0, 0.35, 0.6, 1], repeat: Infinity, ease: "easeInOut" }}
+      />
+      <text x={x(from)} y={12} className="sus-text">
+        {label(from)}
+      </text>
+      <text x={x(to)} y={42} className="sus-text">
+        → {label(to)}
+      </text>
+    </svg>
+  );
+}
+
 // Afinación estándar, de la 6ª cuerda (grave) a la 1ª: Mi La Re Sol Si Mi.
 const STRINGS = [4, 9, 2, 7, 11, 4];
 const FRETS = 12;

@@ -260,6 +260,55 @@ input[type="range"] {
   stroke-width: 2;
 }
 
+/* Suspensión animada */
+.lens-sus {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border-radius: var(--radius-m);
+  background: var(--bg-2);
+}
+
+.lens-sus p {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 12px;
+}
+
+.sus-anim {
+  width: 100%;
+  font-family: var(--font-display);
+}
+
+.sus-key {
+  fill: #c9cee3;
+  opacity: 0.18;
+}
+
+.sus-key.black {
+  fill: #0b0d16;
+  opacity: 1;
+  stroke: var(--line);
+}
+
+.sus-fixed {
+  fill: var(--lens-color);
+  opacity: 0.6;
+}
+
+.sus-moving {
+  fill: var(--text-0);
+  stroke: var(--lens-color);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px var(--lens-color));
+}
+
+.sus-text {
+  text-anchor: middle;
+  fill: var(--text-1);
+  font-size: 9px;
+}
+
 /* Alternativas */
 .lens-subs h4 {
   margin: 0 0 6px;
