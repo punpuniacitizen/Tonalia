@@ -4,6 +4,7 @@
 //! el stream no puede cambiar de hilo). La app le habla a través de [`AudioHandle`].
 
 pub mod sequencer;
+pub mod sf2;
 pub mod synth;
 
 use std::sync::{Arc, Mutex, mpsc};
@@ -21,6 +22,7 @@ pub struct AudioHandle {
     tx: Mutex<rtrb::Producer<AudioMsg>>,
     garbage: Mutex<rtrb::Consumer<Garbage>>,
     pub shared: Arc<Shared>,
+    pub sample_rate: f32,
     /// Si no hay dispositivo de audio, la app funciona igual pero en silencio.
     pub error: Option<String>,
 }
@@ -50,15 +52,15 @@ impl AudioHandle {
             })
             .expect("no se pudo crear el hilo de audio");
 
-        let error = match ready_rx.recv() {
-            Ok(Ok(_sample_rate)) => None,
-            Ok(Err(e)) => Some(e),
-            Err(_) => Some("el hilo de audio terminó sin responder".into()),
+        let (sample_rate, error) = match ready_rx.recv() {
+            Ok(Ok(sr)) => (sr, None),
+            Ok(Err(e)) => (48_000.0, Some(e)),
+            Err(_) => (48_000.0, Some("el hilo de audio terminó sin responder".into())),
         };
         if let Some(e) = &error {
             eprintln!("[audio] sin salida de sonido: {e}");
         }
-        Self { tx: Mutex::new(tx), garbage: Mutex::new(garbage_rx), shared, error }
+        Self { tx: Mutex::new(tx), garbage: Mutex::new(garbage_rx), shared, sample_rate, error }
     }
 
     pub fn send(&self, msg: AudioMsg) {
@@ -107,9 +109,9 @@ where
                     engine.handle(msg);
                 }
                 for frame in data.chunks_mut(channels) {
-                    let value = T::from_sample(engine.next_sample());
-                    for sample in frame.iter_mut() {
-                        *sample = value;
+                    let (l, r) = engine.next_sample();
+                    for (i, sample) in frame.iter_mut().enumerate() {
+                        *sample = T::from_sample(if i % 2 == 0 { l } else { r });
                     }
                 }
                 engine.publish();

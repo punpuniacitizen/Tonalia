@@ -45,6 +45,8 @@ export const api = {
   seek: (position: number) => invoke<void>("transport_seek", { position }),
   transportState: () => invoke<TransportState>("transport_state"),
   audioStatus: () => invoke<string | null>("audio_status"),
+  soundEngine: () => invoke<{ sampledAvailable: boolean; sampled: boolean }>("sound_engine"),
+  setSoundEngine: (sampled: boolean) => invoke<void>("set_sound_engine", { sampled }),
 };
 
 export function onTransport(handler: (state: TransportState) => void): Promise<UnlistenFn> {

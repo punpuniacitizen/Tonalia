@@ -1,35 +1,76 @@
 //! Sintetizador polifónico propio, sin samples: síntesis FM de dos operadores.
+//! Es el respaldo cuando no hay banco SoundFont (ver `sf2.rs`).
 //!
 //! Cada voz es una portadora senoidal modulada en frecuencia por otra senoide. El índice
 //! de modulación decae rápido (ataque brillante que se oscurece), como un piano eléctrico.
-//! Cuatro "instrumentos" cambian los parámetros: piano eléctrico, bajo, pulsado y colchón.
 
 use std::f32::consts::TAU;
 
+/// Instrumentos disponibles. Con SoundFont cada uno es un programa General MIDI;
+/// con el sintetizador FM, unos parámetros.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Instrument {
+    Piano,
     EPiano,
-    Bass,
+    Guitar,
     Pluck,
+    Bass,
+    Strings,
     Pad,
 }
 
 impl Instrument {
+    pub const ALL: [Instrument; 7] = [
+        Instrument::Piano,
+        Instrument::EPiano,
+        Instrument::Guitar,
+        Instrument::Pluck,
+        Instrument::Bass,
+        Instrument::Strings,
+        Instrument::Pad,
+    ];
+
     pub fn from_name(name: &str) -> Self {
         match name {
-            "bass" => Instrument::Bass,
+            "epiano" => Instrument::EPiano,
+            "guitar" => Instrument::Guitar,
             "pluck" => Instrument::Pluck,
+            "bass" => Instrument::Bass,
+            "strings" => Instrument::Strings,
             "pad" => Instrument::Pad,
-            _ => Instrument::EPiano,
+            _ => Instrument::Piano,
+        }
+    }
+
+    pub fn index(self) -> usize {
+        Self::ALL.iter().position(|&i| i == self).unwrap_or(0)
+    }
+
+    /// Programa General MIDI (0 = piano de cola).
+    pub fn gm_program(self) -> i32 {
+        match self {
+            Instrument::Piano => 0,
+            Instrument::EPiano => 4,
+            Instrument::Guitar => 24,
+            Instrument::Pluck => 46,
+            Instrument::Bass => 33,
+            Instrument::Strings => 48,
+            Instrument::Pad => 89,
         }
     }
 
     fn params(self) -> Params {
         match self {
-            Instrument::EPiano => Params { attack: 0.004, decay: 1.6, sustain: 0.0, release: 0.35, ratio: 1.0, index: 2.2, index_decay: 0.35, gain: 0.9, detune: 0.0 },
+            Instrument::Piano | Instrument::EPiano => {
+                Params { attack: 0.004, decay: 1.6, sustain: 0.0, release: 0.35, ratio: 1.0, index: 2.2, index_decay: 0.35, gain: 0.9, detune: 0.0 }
+            }
             Instrument::Bass => Params { attack: 0.006, decay: 0.9, sustain: 0.55, release: 0.12, ratio: 1.0, index: 1.3, index_decay: 0.15, gain: 1.1, detune: 0.0 },
-            Instrument::Pluck => Params { attack: 0.002, decay: 0.35, sustain: 0.0, release: 0.2, ratio: 2.0, index: 3.0, index_decay: 0.12, gain: 0.8, detune: 0.0 },
-            Instrument::Pad => Params { attack: 0.35, decay: 2.5, sustain: 0.75, release: 0.9, ratio: 1.0, index: 0.6, index_decay: 3.0, gain: 0.55, detune: 0.006 },
+            Instrument::Guitar | Instrument::Pluck => {
+                Params { attack: 0.002, decay: 0.35, sustain: 0.0, release: 0.2, ratio: 2.0, index: 3.0, index_decay: 0.12, gain: 0.8, detune: 0.0 }
+            }
+            Instrument::Strings | Instrument::Pad => {
+                Params { attack: 0.35, decay: 2.5, sustain: 0.75, release: 0.9, ratio: 1.0, index: 0.6, index_decay: 3.0, gain: 0.55, detune: 0.006 }
+            }
         }
     }
 }
@@ -130,7 +171,7 @@ impl Synth {
         });
         let mut p = instrument.params();
         // Las notas graves de piano suenan más tiempo que las agudas.
-        if instrument == Instrument::EPiano {
+        if matches!(instrument, Instrument::Piano | Instrument::EPiano) {
             p.decay *= (1.0 + (60.0 - pitch as f32) / 48.0).clamp(0.5, 2.0);
         }
         let sr = self.sample_rate;

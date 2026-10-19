@@ -115,10 +115,20 @@
     "emptyHint": "No notes yet: click to open the piano roll and draw a melody"
   },
   "instruments": {
-    "piano": "Electric piano",
+    "piano": "Grand piano",
+    "epiano": "Electric piano",
+    "guitar": "Guitar",
+    "pluck": "Harp",
     "bass": "Bass",
-    "pluck": "Pluck",
+    "strings": "Strings",
     "pad": "Pad"
+  },
+  "engine": {
+    "title": "Sound",
+    "sampled": "Sampled",
+    "synth": "Synth",
+    "loading": "Loading instruments…",
+    "hint": "Sampled: real recordings (GeneralUser GS). Synth: light FM sound."
   },
   "piano": {
     "tool": "Tool",

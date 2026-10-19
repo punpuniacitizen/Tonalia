@@ -115,10 +115,20 @@
     "emptyHint": "Sin notas todavía: haz clic para abrir el piano roll y dibujar una melodía"
   },
   "instruments": {
-    "piano": "Piano eléctrico",
+    "piano": "Piano de cola",
+    "epiano": "Piano eléctrico",
+    "guitar": "Guitarra",
+    "pluck": "Arpa",
     "bass": "Bajo",
-    "pluck": "Pulsado",
+    "strings": "Cuerdas",
     "pad": "Colchón"
+  },
+  "engine": {
+    "title": "Sonido",
+    "sampled": "Sampleado",
+    "synth": "Sintetizador",
+    "loading": "Cargando instrumentos…",
+    "hint": "Sampleado: grabaciones reales (GeneralUser GS). Sintetizador: sonido FM ligero."
   },
   "piano": {
     "tool": "Herramienta",

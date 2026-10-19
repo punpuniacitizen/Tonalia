@@ -13,6 +13,7 @@ use tonalia_core::Song;
 use tonalia_core::queries::{chord_track_notes, song_length, track_notes};
 use tonalia_core::time::QUARTER;
 
+use super::sf2::Sf2;
 use super::synth::{Instrument, Synth};
 
 /// Los ids con este bit son de previsualización; el resto, del secuenciador.
@@ -88,6 +89,10 @@ pub enum AudioMsg {
     Seek(f64),
     Preview(Vec<PreviewNote>),
     StopPreview,
+    /// Banco SoundFont ya cargado (se carga en otro hilo: tarda ~1 s).
+    SoundFont(Box<Sf2>),
+    /// Elegir instrumentos sampleados (`true`) o el sintetizador FM (`false`).
+    UseSoundFont(bool),
 }
 
 /// Lo que el hilo de audio devuelve para liberar fuera de él.
@@ -103,9 +108,19 @@ pub enum Garbage {
 pub struct Shared {
     position_bits: AtomicU64,
     playing: AtomicBool,
+    soundfont_loaded: AtomicBool,
+    using_soundfont: AtomicBool,
 }
 
 impl Shared {
+    pub fn soundfont_loaded(&self) -> bool {
+        self.soundfont_loaded.load(Ordering::Relaxed)
+    }
+
+    pub fn using_soundfont(&self) -> bool {
+        self.using_soundfont.load(Ordering::Relaxed)
+    }
+
     pub fn position(&self) -> f64 {
         f64::from_bits(self.position_bits.load(Ordering::Relaxed))
     }
@@ -133,6 +148,8 @@ const MAX_PENDING: usize = 128;
 
 pub struct Engine {
     synth: Synth,
+    sf2: Option<Box<Sf2>>,
+    use_sf2: bool,
     sample_rate: f32,
     schedule: Box<Schedule>,
     next_event: usize,
@@ -148,6 +165,8 @@ impl Engine {
     pub fn new(sample_rate: f32, shared: Arc<Shared>, garbage: rtrb::Producer<Garbage>) -> Self {
         Self {
             synth: Synth::new(sample_rate),
+            sf2: None,
+            use_sf2: true,
             sample_rate,
             schedule: Box::default(),
             next_event: 0,
@@ -164,8 +183,34 @@ impl Engine {
         self.schedule.events.partition_point(|e| e.tick < tick)
     }
 
+    fn sampled(&mut self) -> Option<&mut Sf2> {
+        if self.use_sf2 { self.sf2.as_deref_mut() } else { None }
+    }
+
+    fn voice_on(&mut self, id: u64, pitch: u8, velocity: f32, instrument: Instrument) {
+        match self.sampled() {
+            Some(sf) => sf.note_on(pitch, velocity, instrument, id & PREVIEW_BIT != 0),
+            None => self.synth.note_on(id, pitch, velocity, instrument),
+        }
+    }
+
+    fn voice_off(&mut self, id: u64, pitch: u8, instrument: Instrument) {
+        match self.sampled() {
+            Some(sf) => sf.note_off(pitch, instrument, id & PREVIEW_BIT != 0),
+            None => self.synth.note_off(id),
+        }
+    }
+
     fn release_sequencer_voices(&mut self) {
         self.synth.release_where(|id| id & PREVIEW_BIT == 0);
+        if let Some(sf) = self.sf2.as_deref_mut() {
+            sf.release_all(false);
+        }
+    }
+
+    fn publish_engine(&self) {
+        self.shared.soundfont_loaded.store(self.sf2.is_some(), Ordering::Relaxed);
+        self.shared.using_soundfont.store(self.sf2.is_some() && self.use_sf2, Ordering::Relaxed);
     }
 
     pub fn handle(&mut self, msg: AudioMsg) {
@@ -212,36 +257,60 @@ impl Engine {
                 let _ = self.garbage.push(Garbage::Notes(notes));
             }
             AudioMsg::StopPreview => self.stop_preview(),
+            AudioMsg::SoundFont(sf) => {
+                self.release_all_voices();
+                self.sf2 = Some(sf);
+                self.publish_engine();
+            }
+            AudioMsg::UseSoundFont(on) => {
+                // Al cambiar de motor, las notas que suenan en el otro se sueltan.
+                self.release_all_voices();
+                self.use_sf2 = on;
+                self.publish_engine();
+            }
+        }
+    }
+
+    fn release_all_voices(&mut self) {
+        self.pending.clear();
+        self.synth.release_where(|_| true);
+        if let Some(sf) = self.sf2.as_deref_mut() {
+            sf.release_all(false);
+            sf.release_all(true);
         }
     }
 
     fn stop_preview(&mut self) {
         self.pending.clear();
         self.synth.release_where(|id| id & PREVIEW_BIT != 0);
+        if let Some(sf) = self.sf2.as_deref_mut() {
+            sf.release_all(true);
+        }
     }
 
-    /// Avanza una muestra y devuelve su valor.
-    pub fn next_sample(&mut self) -> f32 {
+    /// Avanza una muestra y devuelve su valor estéreo.
+    pub fn next_sample(&mut self) -> (f32, f32) {
         if self.playing {
-            let s = &self.schedule;
-            while self.next_event < s.events.len() && s.events[self.next_event].tick <= self.position {
-                let e = s.events[self.next_event];
-                if e.on {
-                    self.synth.note_on(e.id, e.pitch, e.velocity, e.instrument);
-                } else {
-                    self.synth.note_off(e.id);
+            while let Some(e) = self.schedule.events.get(self.next_event).copied() {
+                if e.tick > self.position {
+                    break;
                 }
                 self.next_event += 1;
+                if e.on {
+                    self.voice_on(e.id, e.pitch, e.velocity, e.instrument);
+                } else {
+                    self.voice_off(e.id, e.pitch, e.instrument);
+                }
             }
-            let ticks_per_sample = s.bpm / 60.0 * QUARTER as f64 / self.sample_rate as f64;
-            self.position += ticks_per_sample;
-            if let Some((start, end)) = s.loop_range {
+            let (bpm, loop_range, length) = (self.schedule.bpm, self.schedule.loop_range, self.schedule.length);
+            self.position += bpm / 60.0 * QUARTER as f64 / self.sample_rate as f64;
+            if let Some((start, end)) = loop_range {
                 if self.position >= end {
                     self.position = start;
                     self.next_event = self.first_event_from(start);
                     self.release_sequencer_voices();
                 }
-            } else if self.position >= s.length {
+            } else if self.position >= length {
                 self.playing = false;
                 self.position = 0.0;
                 self.next_event = 0;
@@ -251,26 +320,32 @@ impl Engine {
 
         let mut i = 0;
         while i < self.pending.len() {
-            let p = &mut self.pending[i];
+            let p = self.pending[i];
             if !p.started {
                 if p.start_in <= 0 {
-                    p.started = true;
-                    self.synth.note_on(p.id, p.note.pitch, p.note.velocity, p.note.instrument);
+                    self.pending[i].started = true;
+                    self.voice_on(p.id, p.note.pitch, p.note.velocity, p.note.instrument);
                 } else {
-                    p.start_in -= 1;
+                    self.pending[i].start_in -= 1;
                 }
+            } else if p.stop_in <= 1 {
+                self.voice_off(p.id, p.note.pitch, p.note.instrument);
+                self.pending.swap_remove(i);
+                continue;
             } else {
-                p.stop_in -= 1;
-                if p.stop_in <= 0 {
-                    self.synth.note_off(p.id);
-                    self.pending.swap_remove(i);
-                    continue;
-                }
+                self.pending[i].stop_in -= 1;
             }
             i += 1;
         }
 
-        self.synth.next_sample()
+        let fm = self.synth.next_sample();
+        match self.sf2.as_deref_mut() {
+            Some(sf) => {
+                let (l, r) = sf.next_sample();
+                (l + fm, r + fm)
+            }
+            None => (fm, fm),
+        }
     }
 
     /// Publica posición y estado para la interfaz (una vez por bloque de audio).
@@ -322,7 +397,7 @@ mod tests {
         // A 100 BPM un compás dura 2,4 s: tras 3 s debe haber dado la vuelta.
         let mut peak = 0.0f32;
         for _ in 0..(48_000 * 3) {
-            peak = peak.max(engine.next_sample().abs());
+            peak = peak.max(engine.next_sample().0.abs());
         }
         engine.publish();
         assert!(peak > 0.05);

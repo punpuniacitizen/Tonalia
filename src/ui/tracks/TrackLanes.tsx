@@ -5,6 +5,7 @@ import { api } from "../../api";
 import type { DetectedView } from "../../bindings/DetectedView";
 import type { SongView } from "../../bindings/SongView";
 import type { Track } from "../../bindings/Track";
+import { INSTRUMENTS } from "../../lib/instruments";
 import { chordSymbol, functionColor, romanSymbol } from "../../lib/music";
 import { noteKey, useNotes, type PianoTool } from "../../stores/notes";
 import { useSong } from "../../stores/song";
@@ -16,7 +17,6 @@ import { tickToX } from "../timeline/geometry";
 import { PianoRoll } from "./PianoRoll";
 import "./tracks.css";
 
-export const INSTRUMENTS = ["piano", "bass", "pluck", "pad"];
 const PIANO_HEIGHT = 288;
 const MINI_HEIGHT = 40;
 

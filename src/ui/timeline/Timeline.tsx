@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TICKS_PER_BAR } from "../../lib/music";
-import { INSTRUMENTS, TrackLanes } from "../tracks/TrackLanes";
+import { INSTRUMENTS } from "../../lib/instruments";
+import { TrackLanes } from "../tracks/TrackLanes";
 import { useNotes } from "../../stores/notes";
 import { useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";

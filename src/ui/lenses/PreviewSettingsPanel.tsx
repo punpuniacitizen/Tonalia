@@ -1,10 +1,43 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { api } from "../../api";
 import type { ChordSize } from "../../bindings/ChordSize";
 import { useSong } from "../../stores/song";
 import { useUi } from "../../stores/ui";
 import { Segmented } from "../common/Segmented";
 import "./lenses.css";
+
+/** Instrumentos sampleados o sintetizador FM. */
+function SoundEngineSwitch() {
+  const { t } = useTranslation();
+  const [engine, setEngine] = useState<{ sampledAvailable: boolean; sampled: boolean } | null>(null);
+  useEffect(() => {
+    void api.soundEngine().then(setEngine);
+  }, []);
+  if (!engine) return null;
+  return (
+    <label className="setting" title={t("engine.hint")}>
+      <span>{t("engine.title")}</span>
+      {engine.sampledAvailable ? (
+        <Segmented<"sampled" | "synth">
+          label={t("engine.title")}
+          value={engine.sampled ? "sampled" : "synth"}
+          onChange={(v) => {
+            void api.setSoundEngine(v === "sampled");
+            setEngine({ ...engine, sampled: v === "sampled" });
+          }}
+          options={[
+            { value: "sampled", label: t("engine.sampled") },
+            { value: "synth", label: t("engine.synth") },
+          ]}
+        />
+      ) : (
+        <small>{t("engine.loading")}</small>
+      )}
+    </label>
+  );
+}
 
 // Rasgueo en ticks: ninguno, 1/64, 1/32, 1/16, 1/8.
 const STRUMS = [0, 162, 324, 648, 1296];
@@ -24,6 +57,8 @@ export function PreviewSettingsPanel() {
   return (
     <div className="settings-panel">
       <h3>{t("preview.title")}</h3>
+
+      <SoundEngineSwitch />
 
       <label className="setting">
         <span>{t("preview.size")}</span>

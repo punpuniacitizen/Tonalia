@@ -147,6 +147,27 @@ pub fn transport_state(state: State<AppState>) -> TransportState {
     TransportState { playing: state.audio.shared.playing(), position: state.audio.shared.position() }
 }
 
+#[derive(Serialize, Clone, Copy, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SoundEngine {
+    /// El banco SoundFont terminó de cargar.
+    pub sampled_available: bool,
+    /// Se están usando los instrumentos sampleados.
+    pub sampled: bool,
+}
+
+#[tauri::command]
+pub fn sound_engine(state: State<AppState>) -> SoundEngine {
+    let s = &state.audio.shared;
+    SoundEngine { sampled_available: s.soundfont_loaded(), sampled: s.using_soundfont() }
+}
+
+/// Instrumentos sampleados (`true`) o sintetizador FM (`false`).
+#[tauri::command]
+pub fn set_sound_engine(state: State<AppState>, sampled: bool) {
+    state.audio.send(AudioMsg::UseSoundFont(sampled));
+}
+
 /// `None` si el audio funciona; si no, el motivo.
 #[tauri::command]
 pub fn audio_status(state: State<AppState>) -> Option<String> {

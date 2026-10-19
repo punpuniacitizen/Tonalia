@@ -2,6 +2,7 @@ mod audio;
 mod commands;
 mod state;
 
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
@@ -31,6 +32,33 @@ fn spawn_transport_emitter(app: AppHandle, shared: Arc<Shared>) {
         .expect("no se pudo crear el hilo de transporte");
 }
 
+const SOUNDFONT: &str = "GeneralUser-GS.sf2";
+
+/// Dónde está el banco de sonidos: junto a la app instalada o en `assets/` al desarrollar.
+fn soundfont_path(app: &AppHandle) -> Option<PathBuf> {
+    let bundled = app.path().resource_dir().ok().map(|d| d.join("soundfonts").join(SOUNDFONT));
+    let dev = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("assets").join("soundfonts").join(SOUNDFONT);
+    bundled.into_iter().chain([dev]).find(|p| p.exists())
+}
+
+/// Carga el SoundFont en segundo plano; mientras tanto suena el sintetizador FM.
+fn spawn_soundfont_loader(app: AppHandle) {
+    thread::Builder::new()
+        .name("tonalia-soundfont".into())
+        .spawn(move || {
+            let Some(path) = soundfont_path(&app) else {
+                eprintln!("[audio] no se encontró {SOUNDFONT}; se usa el sintetizador FM");
+                return;
+            };
+            let state = app.state::<AppState>();
+            match audio::sf2::Sf2::load(&path, state.audio.sample_rate) {
+                Ok(sf) => state.audio.send(audio::AudioMsg::SoundFont(Box::new(sf))),
+                Err(e) => eprintln!("[audio] no se pudo cargar el SoundFont: {e}"),
+            }
+        })
+        .expect("no se pudo crear el hilo del SoundFont");
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -39,6 +67,7 @@ pub fn run() {
             let state = AppState::new();
             spawn_transport_emitter(app.handle().clone(), state.audio.shared.clone());
             app.manage(state);
+            spawn_soundfont_loader(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -57,6 +86,8 @@ pub fn run() {
             commands::transport_seek,
             commands::transport_state,
             commands::audio_status,
+            commands::sound_engine,
+            commands::set_sound_engine,
         ])
         .run(tauri::generate_context!())
         .expect("error al iniciar Tonalia");
