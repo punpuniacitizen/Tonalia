@@ -44,6 +44,24 @@ pub fn describe(chord: &Chord, key: &Key) -> ChordLabel {
     }
 }
 
+/// Un acorde reconocido a partir de notas, ya etiquetado en una tonalidad.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct DetectedView {
+    pub chord: Chord,
+    pub label: ChordLabel,
+    pub root_is_bass: bool,
+}
+
+/// Candidatos de [`crate::detect::detect`] con su nombre, romano y función en `key`.
+pub fn detect_labeled(pitches: &[u8], key: &Key) -> Vec<DetectedView> {
+    crate::detect::detect(pitches)
+        .into_iter()
+        .map(|d| DetectedView { label: describe(&d.chord, key), chord: d.chord, root_is_bass: d.root_is_bass })
+        .collect()
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
@@ -165,5 +183,12 @@ mod tests {
         assert_eq!(view.chords[1].voicing[0].position, view.chords[1].start);
         let json = serde_json::to_value(&view).unwrap();
         assert!(json["chords"][0]["label"]["pitchClasses"].is_array());
+    }
+
+    #[test]
+    fn deteccion_etiquetada() {
+        let found = detect_labeled(&[57, 60, 64], &Key::major(PitchClass::C));
+        assert_eq!(found[0].label.roman, "vi");
+        assert!(found[0].root_is_bass);
     }
 }

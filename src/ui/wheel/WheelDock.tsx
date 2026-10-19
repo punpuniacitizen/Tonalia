@@ -19,17 +19,19 @@ export function WheelDock() {
   const { level, notation, wheelSource, set } = useUi();
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState(520);
+  const ready = view !== null;
 
+  // Se registra cuando el elemento ya existe (mientras carga, el componente no pinta nada).
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
       const { width, height } = el.getBoundingClientRect();
-      setSize(Math.max(320, Math.min(height - 48, width - 560, 680)));
+      setSize(Math.max(180, Math.min(height - 40, width - 560, 680)));
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [ready]);
 
   if (!view) return null;
   const key = selected?.key ?? view.song.homeKey;
@@ -38,7 +40,7 @@ export function WheelDock() {
   const isActive = (s: WheelSource) => JSON.stringify(s) === JSON.stringify(wheelSource);
 
   return (
-    <section className="wheel-dock" ref={ref}>
+    <section className={`wheel-dock ${size < 340 ? "is-compact" : ""}`} ref={ref}>
       {selected ? (
         <div className="dock-side dock-legend">
           <ChordLens chord={selected} />

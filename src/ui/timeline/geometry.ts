@@ -1,8 +1,8 @@
 import type { Grid } from "../../bindings/Grid";
 import { TICKS_PER_BAR } from "../../lib/music";
 
-/** Margen izquierdo del contenido de la línea de tiempo, en píxeles. */
-export const PAD = 28;
+/** Margen izquierdo del contenido de la línea de tiempo (deja sitio a la tira de teclado). */
+export const PAD = 56;
 
 export function pxPerTick(pxPerBar: number): number {
   return pxPerBar / TICKS_PER_BAR;

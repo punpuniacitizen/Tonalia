@@ -95,6 +95,40 @@
     "preview": "Escuchar",
     "tension": "Tensión"
   },
+  "tracks": {
+    "chords": "Acordes",
+    "new": "Pista",
+    "add": "Añadir pista",
+    "delete": "Borrar pista",
+    "expand": "Abrir el piano roll",
+    "collapse": "Plegar",
+    "instrument": "Instrumento",
+    "mute": "Silenciar",
+    "solo": "Solo",
+    "volume": "Volumen",
+    "emptyHint": "Sin notas todavía: haz clic para abrir el piano roll y dibujar una melodía"
+  },
+  "instruments": {
+    "piano": "Piano eléctrico",
+    "bass": "Bajo",
+    "pluck": "Pulsado",
+    "pad": "Colchón"
+  },
+  "piano": {
+    "tool": "Herramienta",
+    "draw": "Dibujar",
+    "drawHint": "Clic y arrastra para crear notas · clic derecho borra",
+    "select": "Seleccionar",
+    "selectHint": "Arrastra para seleccionar con un lazo (también Mayús + arrastrar)",
+    "velocity": "Intensidad",
+    "velocityHint": "Arrastra una nota arriba/abajo para cambiar su intensidad",
+    "toChord": "Acorde desde notas",
+    "detected": "Estas notas forman…",
+    "inversion": "invertido",
+    "set": "Fijar",
+    "setHint": "Reemplaza el acorde que suena ahí",
+    "add": "Añadir"
+  },
   "intervals": {
     "1": "2ª menor",
     "2": "2ª mayor",

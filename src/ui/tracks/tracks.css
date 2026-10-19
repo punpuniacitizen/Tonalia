@@ -1,0 +1,242 @@
+.track-lanes {
+  position: relative;
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.lane {
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+
+.lane.is-expanded {
+  background: rgba(4, 5, 10, 0.55);
+}
+
+/* Cabecera del carril: su contenido queda fijo a la izquierda al desplazar. */
+.lane-head {
+  height: 32px;
+}
+
+.lane-head-sticky {
+  position: sticky;
+  left: 8px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px 0 4px;
+  border-radius: 0 0 10px 0;
+  background: linear-gradient(90deg, rgba(8, 10, 18, 0.95), rgba(8, 10, 18, 0.75));
+}
+
+.lane-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: var(--radius-s);
+}
+
+.lane-toggle:hover {
+  background: var(--bg-3);
+}
+
+.lane-chevron {
+  display: inline-grid;
+  color: var(--text-2);
+  transition: transform 0.25s var(--ease-out);
+}
+
+.lane-chevron.is-open {
+  transform: rotate(90deg);
+}
+
+.lane-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--track);
+  box-shadow: 0 0 10px var(--track);
+}
+
+.lane-name {
+  font-weight: 600;
+  min-width: 64px;
+  text-align: left;
+}
+
+.lane-head select {
+  padding: 3px 6px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--text-1);
+  font-size: 12px;
+}
+
+.lane-flag {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-2);
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+}
+
+.lane-flag.is-on.mute {
+  color: var(--bg-0);
+  background: var(--fn-subdominant);
+}
+
+.lane-flag.is-on.solo {
+  color: var(--bg-0);
+  background: var(--accent-2);
+}
+
+.lane-volume {
+  width: 72px;
+}
+
+.lane-delete {
+  width: 26px;
+  height: 26px;
+}
+
+.ghost-button.small {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
+.ghost-button.is-on {
+  border-color: var(--accent);
+}
+
+/* Vista plegada */
+.lane-mini {
+  position: relative;
+  cursor: pointer;
+}
+
+.lane-mini:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.mini-note {
+  position: absolute;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--track);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--track) 60%, transparent);
+}
+
+.lane-mini-empty {
+  position: absolute;
+  left: calc(var(--pad) + 8px);
+  top: 12px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.lane-add {
+  position: sticky;
+  left: 8px;
+  display: inline-block;
+  padding: 8px 0 4px;
+}
+
+/* Piano roll */
+.piano-roll {
+  position: relative;
+  animation: roll-open 0.35s var(--ease-out);
+  transform-origin: top;
+}
+
+@keyframes roll-open {
+  from {
+    opacity: 0;
+    transform: scaleY(0.6);
+  }
+}
+
+.piano-keys {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  width: 48px;
+  height: 100%;
+  box-shadow: 6px 0 14px rgba(0, 0, 0, 0.5);
+}
+
+.piano-keys canvas {
+  display: block;
+  cursor: pointer;
+}
+
+.piano-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  touch-action: none;
+}
+
+/* Acorde desde notas */
+.detected-list {
+  display: grid;
+  gap: 6px;
+  width: 290px;
+}
+
+.detected-list h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.detected-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-m);
+  background: var(--bg-2);
+  border-left: 3px solid var(--fn);
+}
+
+.detected-symbol {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--fn);
+}
+
+.detected-roman {
+  color: var(--text-1);
+}
+
+.detected-item small {
+  color: var(--text-2);
+}
+
+.detected-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.detected-actions button {
+  padding: 3px 8px;
+  border-radius: var(--radius-s);
+  background: var(--bg-4);
+  font-size: 11px;
+}
+
+.detected-actions button:hover {
+  background: var(--accent);
+  color: var(--bg-0);
+}

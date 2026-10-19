@@ -95,6 +95,40 @@
     "preview": "Listen",
     "tension": "Tension"
   },
+  "tracks": {
+    "chords": "Chords",
+    "new": "Track",
+    "add": "Add track",
+    "delete": "Delete track",
+    "expand": "Open the piano roll",
+    "collapse": "Fold",
+    "instrument": "Instrument",
+    "mute": "Mute",
+    "solo": "Solo",
+    "volume": "Volume",
+    "emptyHint": "No notes yet: click to open the piano roll and draw a melody"
+  },
+  "instruments": {
+    "piano": "Electric piano",
+    "bass": "Bass",
+    "pluck": "Pluck",
+    "pad": "Pad"
+  },
+  "piano": {
+    "tool": "Tool",
+    "draw": "Draw",
+    "drawHint": "Click and drag to create notes · right-click deletes",
+    "select": "Select",
+    "selectHint": "Drag to lasso-select (or Shift + drag)",
+    "velocity": "Velocity",
+    "velocityHint": "Drag a note up/down to change its velocity",
+    "toChord": "Chord from notes",
+    "detected": "These notes make…",
+    "inversion": "inverted",
+    "set": "Set",
+    "setHint": "Replaces the chord playing there",
+    "add": "Add"
+  },
   "intervals": {
     "1": "minor 2nd",
     "2": "major 2nd",

@@ -9,6 +9,30 @@
   padding: 24px 32px;
 }
 
+.wheel-dock {
+  overflow: hidden;
+}
+
+/* Rueda pequeña (piano roll abierto): solo lo esencial a los lados. */
+.wheel-dock.is-compact {
+  padding: 8px 24px;
+}
+
+.wheel-dock.is-compact .dock-hint,
+.wheel-dock.is-compact .legend-item small,
+.wheel-dock.is-compact .dock-side h2 {
+  display: none;
+}
+
+.wheel-dock.is-compact .dock-side {
+  gap: 6px;
+}
+
+.wheel-dock.is-compact .chord-lens {
+  transform: scale(0.85);
+  transform-origin: left center;
+}
+
 .dock-side {
   display: grid;
   gap: 12px;

@@ -6,8 +6,23 @@
 }
 
 .timeline-scroll {
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: auto;
+  /* Siempre queda sitio para la rueda debajo. */
+  max-height: calc(100vh - 56px - 300px);
+}
+
+/* Con el piano roll abierto, la cinta de acordes se compacta. */
+.timeline.has-roll .ribbon-lane {
+  height: 112px;
+}
+
+.timeline.has-roll .block-primary {
+  font-size: 18px;
+}
+
+.chord-head {
+  margin-top: 6px;
+  margin-bottom: -6px;
 }
 
 .timeline-content {

@@ -2,9 +2,8 @@
 
 use serde::Serialize;
 use tauri::State;
-use tonalia_core::analysis::SongView;
+use tonalia_core::analysis::{DetectedView, SongView, detect_labeled};
 use tonalia_core::commands::EditCommand;
-use tonalia_core::detect::{DetectedChord, detect};
 use tonalia_core::palette::{ChordSize, Palette, build_palette};
 use tonalia_core::pitch::PitchClass;
 use tonalia_core::time::{BAR, QUARTER};
@@ -65,9 +64,10 @@ pub fn get_palette(key: Key, size: ChordSize, previous: Option<Chord>) -> Palett
     build_palette(&key, size, previous.as_ref())
 }
 
+/// Reconoce el acorde formado por unas notas (el más probable primero).
 #[tauri::command]
-pub fn detect_chord(pitches: Vec<u8>) -> Vec<DetectedChord> {
-    detect(&pitches)
+pub fn detect_chord(pitches: Vec<u8>, key: Key) -> Vec<DetectedView> {
+    detect_labeled(&pitches, &key)
 }
 
 /// Escucha un acorde con los ajustes de previsualización de la canción.

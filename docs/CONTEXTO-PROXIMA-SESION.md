@@ -30,7 +30,7 @@ assets del original, y no se toca nada de licencias.
 | 0. Entorno (Rust, Build Tools C++, Git, Tauri) | ✅ |
 | 1. Núcleo teórico `tonalia-core` (51 tests) | ✅ |
 | 2. Audio + Rueda armónica + Cinta de acordes + lente | ✅ verificado con capturas |
-| 3. Pistas y piano roll inteligente | ⏳ siguiente |
+| 3. Pistas y piano roll inteligente | 🟡 casi: carriles, piano roll con coloreado armónico, herramientas, teclado y "acorde desde notas" hechos; falta verificar en ventana los últimos ajustes (cinta compacta con piano roll abierto, notas fuera de escala en rojo), probar mover/estirar/lazo/intensidad y "acorde desde notas" |
 | 4. Secciones, guardar/abrir, export MIDI, SoundFont | pendiente |
 | 5+. Capa educativa | pendiente |
 
