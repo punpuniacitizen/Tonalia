@@ -65,6 +65,13 @@ assets del original, y no se toca nada de licencias.
 - **Biblioteca:** 16 progresiones famosas (pop, jazz, blues, andaluza, canon, épica,
   modales…), se escuchan y se añaden en tu tonalidad (o en su relativa).
 - **Entrenamiento auditivo:** intervalos, calidad de acordes y funciones, según el nivel.
+- **Escalas como formas:** el polígono de la escala de la tonalidad en un reloj cromático
+  (columna izquierda del muelle), con su patrón de tonos y semitonos.
+- **Suspensiones animadas:** en la lente de un acorde sus, la nota suspendida se desliza
+  hasta la tercera y se puede escuchar la resolución.
+- **Bienvenida y ayuda** (primera vez, botón "?" o tecla `?`): pasos básicos y atajos.
+- Exportar solo la **región de bucle** (menú Archivo) y editar durante la reproducción sin
+  cortes (las notas que suenan se retoman).
 
 ## Verificado y sin verificar
 
@@ -75,12 +82,12 @@ assets del original, y no se toca nada de licencias.
 
 ## Ideas para seguir
 
-- Suspensiones animadas (la 4ª que "cae" a la 3ª) en la lente.
-- "Escalas como formas": polígono de la escala en el reloj cromático junto a la rueda.
-- Exportar solo la región de bucle o una pista (el comando ya acepta `region` y `tracks`).
+- Exportar una sola pista (el comando `export_midi` ya acepta `tracks`).
 - Salida MIDI en vivo (midir) y, más adelante, plug-in VST3/CLAP con nih-plug.
 - Importar proyectos del formato original (`.klp`, claves conocidas en el informe §8.2).
-- Al cambiar el programa durante la reproducción se cortan las notas sostenidas.
+- Más contenido educativo: tips sobre cadencias concretas, dominantes secundarias, modulación.
+- Al editar en plena reproducción las notas que suenan se re-atacan (no hay silencio, pero
+  se oye el nuevo ataque).
 
 ## Puesta en marcha en otra máquina (notebook)
 

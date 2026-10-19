@@ -137,6 +137,9 @@ export function Header() {
       </div>
 
       <div className="history">
+        <button className="icon-button help-button" title={t("help.button")} onClick={() => ui.set({ panel: ui.panel === "help" ? null : "help" })}>
+          ?
+        </button>
         <button className="icon-button" title={`${t("edit.undo")} (Ctrl+Z)`} disabled={!view.canUndo} onClick={undo}>
           <Icon name="undo" />
         </button>

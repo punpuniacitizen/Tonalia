@@ -29,7 +29,10 @@ export function useShortcuts() {
 
       const k = e.key.toLowerCase();
       const project = useProject.getState();
-      if (ctrl && k === "s") {
+      if (e.key === "?") {
+        const ui = useUi.getState();
+        ui.set({ panel: ui.panel === "help" ? null : "help" });
+      } else if (ctrl && k === "s") {
         e.preventDefault();
         void (e.shiftKey ? project.saveProjectAs() : project.saveProject());
       } else if (ctrl && k === "o") {

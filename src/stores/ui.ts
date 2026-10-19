@@ -15,7 +15,7 @@ export type Language = "es" | "en";
 /** De dónde salen los acordes del anillo medio de la rueda. */
 export type WheelSource = { kind: "mode"; scale: string } | { kind: "left" } | { kind: "right" };
 /** Panel lateral o ventana abierta (biblioteca, entrenamiento auditivo…). */
-export type Panel = "library" | "training" | null;
+export type Panel = "library" | "training" | "help" | null;
 /** Qué se ve en el centro del muelle: rueda, mapa de funciones o Tonnetz. */
 export type DockView = "wheel" | "map" | "tonnetz";
 
@@ -30,6 +30,8 @@ interface UiState {
   wheelSource: WheelSource;
   panel: Panel;
   dockView: DockView;
+  /** Ya se mostró la bienvenida. */
+  welcomed: boolean;
   /** Mostrar las líneas de conducción de voces en la cinta. */
   showVoices: boolean;
   selected: ChordRef | null;
@@ -64,6 +66,7 @@ export const useUi = create<UiState>()(
       wheelSource: { kind: "mode", scale: "aeolian" },
       panel: null,
       dockView: "wheel",
+      welcomed: false,
       showVoices: false,
       selected: null,
       set: (patch) => set(patch),

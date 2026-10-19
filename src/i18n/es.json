@@ -121,6 +121,33 @@
     "seventh": "con séptima",
     "seventhHint": "Añade la séptima de la escala: más rico y suave"
   },
+  "help": {
+    "title": "Bienvenido a Tonalia",
+    "subtitle": "Armonía que se ve: compón y entiende por qué suena así.",
+    "button": "Ayuda y atajos (?)",
+    "step1Title": "Elige acordes en la rueda",
+    "step1": "Pasa el ratón para escucharlos, haz clic para añadirlos o arrástralos a la cinta. Los arcos de luz te sugieren qué acorde suena bien después.",
+    "step2Title": "Escucha y mira la cinta",
+    "step2": "Espacio reproduce. El color de cada bloque es su función (reposo, movimiento, tensión) y su altura, la tensión. Selecciona un acorde para ver su anatomía y alternativas.",
+    "step3Title": "Escribe melodías y bajos",
+    "step3": "Abre una pista: el piano roll ilumina las notas del acorde que suena para que elijas con confianza. Activa «Voces» para ver cómo se mueven los acordes.",
+    "step4Title": "Aprende jugando",
+    "step4": "La Biblioteca trae progresiones famosas y «Oído» entrena tu escucha. Mira la progresión como mapa de funciones o en el Tonnetz.",
+    "shortcuts": "Atajos de teclado",
+    "start": "Empezar",
+    "keys": {
+      "play": "Reproducir / parar",
+      "undo": "Deshacer / rehacer",
+      "delete": "Borrar acorde o notas seleccionadas",
+      "chords": "Acorde anterior / siguiente",
+      "transpose": "Transponer notas (Mayús: octava)",
+      "selectAll": "Seleccionar todas las notas del piano roll",
+      "file": "Guardar / abrir / nuevo",
+      "export": "Exportar MIDI",
+      "zoom": "Acercar / alejar la línea de tiempo",
+      "help": "Esta ayuda"
+    }
+  },
   "scaleShape": {
     "whole": "T",
     "half": "S"

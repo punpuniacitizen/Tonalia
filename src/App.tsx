@@ -6,6 +6,7 @@ import { useUi } from "./stores/ui";
 import { LibraryDrawer } from "./ui/library/LibraryDrawer";
 import { EarTraining } from "./ui/training/EarTraining";
 import { DragGhost } from "./ui/shell/DragGhost";
+import { HelpOverlay } from "./ui/shell/HelpOverlay";
 import { Header } from "./ui/shell/Header";
 import { useShortcuts } from "./ui/shell/useShortcuts";
 import { Timeline } from "./ui/timeline/Timeline";
@@ -25,6 +26,8 @@ export default function App() {
   useEffect(() => {
     void load();
     void api.audioStatus().then(setAudioError);
+    // La primera vez, bienvenida.
+    if (!useUi.getState().welcomed) useUi.getState().set({ panel: "help" });
   }, [load]);
 
   return (
@@ -38,6 +41,7 @@ export default function App() {
       <DragGhost />
       {panel === "library" && <LibraryDrawer onClose={() => setUi({ panel: null })} />}
       {panel === "training" && <EarTraining onClose={() => setUi({ panel: null })} />}
+      {panel === "help" && <HelpOverlay onClose={() => setUi({ panel: null, welcomed: true })} />}
       <TipLayer />
       {(error || audioError) && (
         <div className="toast" role="alert" onClick={clearError}>

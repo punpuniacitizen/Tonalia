@@ -121,6 +121,33 @@
     "seventh": "with 7th",
     "seventhHint": "Adds the scale's seventh: richer and softer"
   },
+  "help": {
+    "title": "Welcome to Tonalia",
+    "subtitle": "Harmony you can see: compose and understand why it sounds that way.",
+    "button": "Help and shortcuts (?)",
+    "step1Title": "Pick chords on the wheel",
+    "step1": "Hover to hear them, click to add them or drag them onto the ribbon. The light arcs suggest which chord sounds good next.",
+    "step2Title": "Listen and watch the ribbon",
+    "step2": "Space plays. Each block's color is its function (rest, motion, tension) and its height is its tension. Select a chord to see its anatomy and alternatives.",
+    "step3Title": "Write melodies and basslines",
+    "step3": "Open a track: the piano roll lights up the notes of the chord playing so you can choose with confidence. Turn on 'Voices' to see how chords move.",
+    "step4Title": "Learn by playing",
+    "step4": "The Library has famous progressions and 'Ear' trains your listening. View the progression as a function map or on the Tonnetz.",
+    "shortcuts": "Keyboard shortcuts",
+    "start": "Start",
+    "keys": {
+      "play": "Play / stop",
+      "undo": "Undo / redo",
+      "delete": "Delete selected chord or notes",
+      "chords": "Previous / next chord",
+      "transpose": "Transpose notes (Shift: octave)",
+      "selectAll": "Select all piano roll notes",
+      "file": "Save / open / new",
+      "export": "Export MIDI",
+      "zoom": "Zoom the timeline",
+      "help": "This help"
+    }
+  },
   "scaleShape": {
     "whole": "W",
     "half": "H"
