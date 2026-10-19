@@ -155,6 +155,7 @@ function PianoToolbar({ track }: { track: Track }) {
           { value: "velocity", label: t("piano.velocity"), title: t("piano.velocityHint") },
         ]}
       />
+
       {selection && selection.size >= 2 && <NotesToChord track={track} keys={selection} />}
     </>
   );

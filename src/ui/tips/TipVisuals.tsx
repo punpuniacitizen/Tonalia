@@ -33,6 +33,16 @@ export function TipVisualView({ visual, lang }: { visual: TipVisual; lang: "es" 
       return <ThirdsTower />;
     case "reharm":
       return <Reharm lang={lang} />;
+    case "notes":
+      return <Notes lang={lang} />;
+    case "triad":
+      return <Triad lang={lang} />;
+    case "diatonic":
+      return <Diatonic />;
+    case "subdivision":
+      return <Subdivision lang={lang} />;
+    case "modulation":
+      return <Modulation lang={lang} />;
   }
 }
 
@@ -432,12 +442,14 @@ function Borrow() {
         </g>
       ))}
       {minor.map((c, i) => (
-        <motion.g key={c} transform={`translate(${12 + i * 43},54)`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.06 }}>
+        <g key={c} transform={`translate(${12 + i * 43},54)`}>
+          <motion.g initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.06 }}>
           <rect width={38} height={30} rx={6} fill="var(--fn-subdominant)" fillOpacity={0.22} stroke="var(--fn-subdominant)" strokeDasharray="4 3" />
           <text x={19} y={20} className="tip-small">
             {c}
           </text>
         </motion.g>
+        </g>
       ))}
     </svg>
   );
@@ -468,6 +480,210 @@ function Tension() {
           transition={{ delay: i * 0.08, type: "spring", stiffness: 160, damping: 14 }}
         />
       ))}
+    </svg>
+  );
+}
+
+/** Una octava con sus 12 notas numeradas, un semitono y un tono. */
+function Notes({ lang }: { lang: string }) {
+  const es = lang === "es";
+  const kw = 34;
+  return (
+    <svg viewBox="0 0 320 128" className="tip-svg">
+      <g transform="translate(24,24)">
+        {WHITE.map((pc, i) => (
+          <motion.rect key={pc} x={i * kw} y={0} width={kw - 3} height={66} rx={4} fill="#2a2f45" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }} />
+        ))}
+        {BLACK.map(([pc, after]) => (
+          <rect key={pc} x={(after + 1) * kw - 11} y={0} width={20} height={40} rx={3} fill="#0b0d16" stroke="var(--line-strong)" />
+        ))}
+        {Array.from({ length: 13 }, (_, pc) => (
+          <motion.text key={pc} x={keyX(pc, kw)} y={WHITE.includes(pc) ? 60 : 32} className="tip-small" fill={pc === 0 || pc === 12 ? "var(--accent-2)" : "var(--text-1)"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 + pc * 0.05 }}>
+            {pc === 12 ? "1" : pc + 1}
+          </motion.text>
+        ))}
+        {/* Semitono: Mi → Fa. Tono: Do → Re. */}
+        <path d={`M${keyX(4, kw)},-4 Q${(keyX(4, kw) + keyX(5, kw)) / 2},-16 ${keyX(5, kw)},-4`} className="tip-arc strong" />
+        <text x={(keyX(4, kw) + keyX(5, kw)) / 2} y={-18} className="tip-caption" fill="var(--fn-dominant)">
+          {es ? "semitono" : "half step"}
+        </text>
+        <path d={`M${keyX(0, kw)},-4 Q${keyX(1, kw)},-16 ${keyX(2, kw)},-4`} className="tip-arc" />
+        <text x={keyX(1, kw)} y={-18} className="tip-caption">
+          {es ? "tono" : "whole step"}
+        </text>
+        <path d={`M${keyX(0, kw)},78 L${keyX(0, kw)},84 L${keyX(12, kw)},84 L${keyX(12, kw)},78`} fill="none" stroke="var(--accent-2)" strokeWidth={1.5} />
+        <text x={keyX(6, kw)} y={98} className="tip-caption" fill="var(--accent-2)">
+          {es ? "octava: 12 semitonos" : "octave: 12 half steps"}
+        </text>
+      </g>
+    </svg>
+  );
+}
+
+/** Do-Mi-Sol en el teclado: se salta una nota de la escala entre cada voz. */
+function Triad({ lang }: { lang: string }) {
+  const es = lang === "es";
+  const kw = 34;
+  const tones: Record<number, string> = { 0: es ? "fundamental" : "root", 4: es ? "3ª" : "3rd", 7: es ? "5ª" : "5th" };
+  return (
+    <svg viewBox="0 0 320 124" className="tip-svg">
+      <g transform="translate(24,6)">
+        {WHITE.map((pc, i) => {
+          const on = pc in tones;
+          return (
+            <motion.rect
+              key={pc}
+              x={i * kw}
+              y={0}
+              width={kw - 3}
+              height={66}
+              rx={4}
+              fill={pc === 0 ? "var(--fn-tonic)" : on ? "var(--accent-2)" : "#2a2f45"}
+              initial={{ opacity: 0.4 }}
+              animate={{ opacity: on ? 1 : 0.45 }}
+              transition={{ delay: on ? 0.2 + pc * 0.06 : 0 }}
+            />
+          );
+        })}
+        {BLACK.map(([pc, after]) => (
+          <rect key={pc} x={(after + 1) * kw - 11} y={0} width={20} height={40} rx={3} fill="#0b0d16" stroke="var(--line-strong)" />
+        ))}
+        {[
+          [0, 4],
+          [4, 7],
+        ].map(([a, b], i) => (
+          <motion.path
+            key={a}
+            d={`M${keyX(a, kw)},72 Q${(keyX(a, kw) + keyX(b, kw)) / 2},88 ${keyX(b, kw)},72`}
+            className="tip-arc"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ delay: 0.5 + i * 0.3, duration: 0.5 }}
+          />
+        ))}
+        {Object.entries(tones).map(([pc, label]) => (
+          <text key={pc} x={keyX(Number(pc), kw)} y={104} className="tip-caption" fill={pc === "0" ? "var(--fn-tonic)" : "var(--accent-2)"}>
+            {label}
+          </text>
+        ))}
+        <text x={keyX(2, kw)} y={58} className="tip-small" fill="var(--text-2)">
+          ✕
+        </text>
+        <text x={keyX(5, kw)} y={58} className="tip-small" fill="var(--text-2)">
+          ✕
+        </text>
+        <text x={keyX(11, kw)} y={104} className="tip-caption" fill="var(--text-2)">
+          {es ? "✕ se salta" : "✕ skipped"}
+        </text>
+      </g>
+    </svg>
+  );
+}
+
+/** Los 7 acordes de Do mayor con su grado y su función. */
+function Diatonic() {
+  const chords = [
+    { n: "C", r: "I", fn: FN.tonic },
+    { n: "Dm", r: "ii", fn: FN.subdominant },
+    { n: "Em", r: "iii", fn: FN.tonic },
+    { n: "F", r: "IV", fn: FN.subdominant },
+    { n: "G", r: "V", fn: FN.dominant },
+    { n: "Am", r: "vi", fn: FN.tonic },
+    { n: "B°", r: "vii°", fn: FN.dominant },
+  ];
+  return (
+    <svg viewBox="0 0 320 96" className="tip-svg">
+      {chords.map((c, i) => (
+        <g key={c.n} transform={`translate(${10 + i * 43.5},14)`}>
+          <motion.g initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
+          <rect width={39} height={40} rx={7} fill={c.fn} fillOpacity={0.25} stroke={c.fn} />
+          <text x={19.5} y={25} className="tip-small" fill="var(--text-0)">
+            {c.n}
+          </text>
+          <text x={19.5} y={64} className="tip-caption" fill={c.fn}>
+            {c.r}
+          </text>
+        </motion.g>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/** Un compás de 4 pulsos partido en dos (binaria) y en tres (ternaria). */
+function Subdivision({ lang }: { lang: string }) {
+  const es = lang === "es";
+  const rows = [
+    { y: 34, per: 2, label: es ? "binaria · 1/8" : "binary · 1/8", color: "var(--accent-2)" },
+    { y: 86, per: 3, label: es ? "ternaria · 1/12" : "ternary · 1/12", color: "var(--accent)" },
+  ];
+  const x0 = 24;
+  const width = 272;
+  return (
+    <svg viewBox="0 0 320 118" className="tip-svg">
+      {rows.map((r) => (
+        <g key={r.per}>
+          <line x1={x0} x2={x0 + width} y1={r.y} y2={r.y} stroke="var(--line-strong)" />
+          {Array.from({ length: 4 * r.per + 1 }, (_, i) => {
+            const x = x0 + (i * width) / (4 * r.per);
+            const onBeat = i % r.per === 0;
+            return <line key={i} x1={x} x2={x} y1={r.y - (onBeat ? 9 : 5)} y2={r.y + (onBeat ? 9 : 5)} stroke={onBeat ? "var(--text-1)" : "var(--line-strong)"} />;
+          })}
+          {Array.from({ length: 4 * r.per }, (_, i) => (
+            <motion.circle
+              key={`n${i}`}
+              cx={x0 + (i * width) / (4 * r.per) + 1}
+              cy={r.y}
+              r={i % r.per === 0 ? 5 : 3.5}
+              fill={r.color}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.05 * i + (r.per === 3 ? 0.4 : 0) }}
+            />
+          ))}
+          <text x={x0} y={r.y - 15} className="tip-caption start" fill={r.color}>
+            {r.label}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/** Do mayor y Sol mayor como dos círculos: en la intersección, los acordes que comparten. */
+function Modulation({ lang }: { lang: string }) {
+  const es = lang === "es";
+  const onlyC = ["F", "B°"];
+  const shared = ["C", "Em", "Am", "G"];
+  const onlyG = ["D", "F♯°"];
+  return (
+    <svg viewBox="0 0 320 124" className="tip-svg">
+      <motion.circle cx={122} cy={62} r={54} fill="var(--fn-tonic)" fillOpacity={0.12} stroke="var(--fn-tonic)" initial={{ cx: 104 }} animate={{ cx: 122 }} transition={{ duration: 0.6 }} />
+      <motion.circle cx={198} cy={62} r={54} fill="var(--accent-2)" fillOpacity={0.12} stroke="var(--accent-2)" initial={{ cx: 216 }} animate={{ cx: 198 }} transition={{ duration: 0.6 }} />
+      <text x={92} y={18} className="tip-caption" fill="var(--fn-tonic)">
+        {es ? "Do mayor" : "C major"}
+      </text>
+      <text x={228} y={18} className="tip-caption" fill="var(--accent-2)">
+        {es ? "Sol mayor" : "G major"}
+      </text>
+      {onlyC.map((c, i) => (
+        <text key={c} x={92} y={56 + i * 18} className="tip-small">
+          {c}
+        </text>
+      ))}
+      {shared.map((c, i) => (
+        <motion.text key={c} x={160} y={38 + i * 17} className="tip-small" fill={c === "Am" ? "var(--accent-2)" : "var(--text-0)"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 + i * 0.1 }}>
+          {c}
+        </motion.text>
+      ))}
+      {onlyG.map((c, i) => (
+        <text key={c} x={230} y={56 + i * 18} className="tip-small">
+          {c}
+        </text>
+      ))}
+      <text x={160} y={118} className="tip-caption">
+        {es ? "pivotes: acordes en común" : "pivots: shared chords"}
+      </text>
     </svg>
   );
 }

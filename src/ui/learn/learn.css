@@ -1,0 +1,228 @@
+/* ---------- Lección (tutorial y Aprender) ---------- */
+.lesson {
+  display: grid;
+  gap: 10px;
+}
+
+.lesson-visual {
+  padding: 16px 12px 8px;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(139, 123, 255, 0.16), transparent 70%), var(--bg-1);
+  border-bottom: 1px solid var(--line);
+}
+
+.lesson-visual .tip-svg {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.lesson-head h2 {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.lesson-body {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.lesson-takeaway {
+  margin: 2px 0 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--radius-m);
+  color: var(--text-0);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  background: color-mix(in oklab, var(--accent-2) 10%, var(--bg-2));
+  border: 1px solid color-mix(in oklab, var(--accent-2) 30%, transparent);
+}
+
+.lesson-takeaway svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--accent-2);
+}
+
+.lesson-inapp {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.lesson-inapp strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.lesson-more h3 {
+  margin: 4px 0 6px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.lesson-more {
+  display: grid;
+  gap: 6px;
+}
+
+.lesson-listen {
+  justify-self: start;
+}
+
+/* ---------- Panel Aprender ---------- */
+.learn {
+  width: min(960px, calc(100vw - 32px));
+  height: min(680px, calc(100vh - 40px));
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  overflow: hidden;
+  padding: 0;
+}
+
+.learn-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 14px;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.learn-nav header {
+  padding: 0 6px;
+}
+
+.learn-nav h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.learn-nav header p {
+  margin: 2px 0 0;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.learn-group {
+  display: grid;
+  gap: 2px;
+}
+
+.learn-group h3 {
+  margin: 0 0 4px;
+  padding: 0 6px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.learn-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--radius-s);
+  text-align: left;
+  color: var(--text-1);
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.learn-item:hover {
+  background: var(--bg-3);
+  color: var(--text-0);
+}
+
+.learn-item.is-active {
+  background: color-mix(in oklab, var(--accent) 22%, var(--bg-3));
+  color: var(--text-0);
+}
+
+.learn-check {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-3);
+}
+
+.learn-check.is-done {
+  border-color: var(--accent-2);
+  background: var(--accent-2);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--accent-2) 60%, transparent);
+}
+
+.learn-tour {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.learn-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 28px 18px;
+}
+
+.learn-main .lesson {
+  flex: 1;
+  align-content: start;
+}
+
+.learn-main .lesson-visual {
+  margin: 0 -28px;
+  padding-top: 26px;
+}
+
+.learn-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
+.learn-close svg {
+  transform: rotate(45deg);
+}
+
+.learn-pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.learn-pager .ghost-button {
+  align-self: center;
+}
+
+@media (max-width: 720px) {
+  .learn {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .learn-nav {
+    max-height: 180px;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+}

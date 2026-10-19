@@ -59,12 +59,12 @@
 .key-sector.is-home path {
   fill: color-mix(in oklab, var(--accent) 30%, var(--bg-2));
   stroke: var(--accent);
-  filter: drop-shadow(0 0 10px color-mix(in oklab, var(--accent) 70%, transparent));
+  filter: drop-shadow(0 0 calc(10px * var(--glow, 1)) color-mix(in oklab, var(--accent) calc(70% * var(--glow, 1)), transparent));
 }
 
 .key-sector.is-home text {
   fill: var(--text-0);
-  font-weight: 600;
+  font-weight: var(--text-weight, 600);
 }
 
 /* ---------- Casillas de acordes ---------- */
@@ -91,7 +91,7 @@
 .chord-sector .sector-label {
   fill: var(--text-0);
   font-size: 21px;
-  font-weight: 600;
+  font-weight: var(--text-weight, 600);
 }
 
 .chord-sector .sector-sub {
@@ -114,14 +114,14 @@
 
 .chord-sector:hover path {
   fill: color-mix(in oklab, var(--fn) 45%, var(--bg-1));
-  filter: drop-shadow(0 0 14px var(--fn));
+  filter: drop-shadow(0 0 calc(14px * var(--glow, 1)) color-mix(in oklab, var(--fn) calc(100% * var(--glow, 1)), transparent));
   transform: scale(1.04);
 }
 
 .chord-sector.is-strong path {
   stroke: var(--accent-2);
   stroke-width: 2;
-  filter: drop-shadow(0 0 8px color-mix(in oklab, var(--accent-2) 70%, transparent));
+  filter: drop-shadow(0 0 calc(8px * var(--glow, 1)) color-mix(in oklab, var(--accent-2) calc(70% * var(--glow, 1)), transparent));
 }
 
 .chord-sector.is-previous path {
@@ -140,7 +140,7 @@
 
 .score-arc.is-strong {
   stroke-width: 2.4;
-  filter: drop-shadow(0 0 5px var(--accent-2));
+  filter: drop-shadow(0 0 calc(5px * var(--glow, 1)) color-mix(in oklab, var(--accent-2) calc(100% * var(--glow, 1)), transparent));
 }
 
 /* ---------- Centro ---------- */
@@ -148,12 +148,12 @@
 .center-key {
   fill: var(--text-0);
   font-size: 38px;
-  font-weight: 600;
+  font-weight: var(--text-weight, 600);
 }
 
 .center-symbol {
   font-size: 34px;
-  font-weight: 600;
+  font-weight: var(--text-weight, 600);
 }
 
 .center-sub {
@@ -187,4 +187,19 @@
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+}
+
+/* Acorde pivote de la modulación que se está mirando. */
+.chord-sector.is-pivot path {
+  stroke: var(--accent-2);
+  stroke-width: 2.6;
+  stroke-dasharray: 5 3;
+  animation: pivot-dash 1s linear infinite;
+  filter: drop-shadow(0 0 calc(8px * var(--glow, 1)) color-mix(in oklab, var(--accent-2) 80%, transparent));
+}
+
+@keyframes pivot-dash {
+  to {
+    stroke-dashoffset: -16;
+  }
 }

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { api, chordsSequence } from "../../api";
@@ -8,13 +7,12 @@ import type { ChordView } from "../../bindings/ChordView";
 import type { SubstituteView } from "../../bindings/SubstituteView";
 import { chordSymbol, functionColor, romanSymbol, spelledName } from "../../lib/music";
 import { reasonText } from "../../lib/reason";
-import { sameRef, useUi } from "../../stores/ui";
+import { sameRef, useUi, type ChordToolsTab } from "../../stores/ui";
 import { useSong } from "../../stores/song";
 import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
 import { ChromaticClock, Fretboard, MiniKeys, SusResolution } from "./Anatomy";
 import { showTip } from "../../stores/tips";
-import { ChordBuilder } from "./ChordBuilder";
 import "./lenses.css";
 
 type AnatomyView = "keys" | "clock" | "guitar";
@@ -28,7 +26,9 @@ export function ChordLens({ chord }: { chord: ChordView }) {
   const view = useSong((s) => s.view);
   const edit = useSong((s) => s.edit);
   const [anatomy, setAnatomy] = useState<AnatomyView>("keys");
-  const [building, setBuilding] = useState(false);
+  const tools = useUi((s) => s.chordTools);
+  const setUi = useUi((s) => s.set);
+  const toggleTools = (tab: ChordToolsTab) => setUi({ chordTools: tools?.tab === tab ? null : { tab, anchor: null } });
   const [subs, setSubs] = useState<SubstituteView[]>([]);
   const { label, transition } = chord;
   const hasContext = transition.reason.kind !== "noContext";
@@ -73,25 +73,14 @@ export function ChordLens({ chord }: { chord: ChordView }) {
         <small>— {t(`function.${label.function}Hint`)}</small>
       </div>
 
-      <button className={`builder-toggle ${building ? "is-open" : ""}`} onClick={() => setBuilding((b) => !b)}>
-        <Icon name="wand" size={14} /> {t("builder.title")}
-        <Icon name="chevronDown" size={14} />
-      </button>
-      {building &&
-        createPortal(
-          <div className="builder-float glass" style={{ ["--lens-color" as string]: functionColor(label.function) }}>
-            <header className="builder-float-head">
-              <span>
-                <Icon name="wand" size={15} /> {t("builder.title")}
-              </span>
-              <button className="icon-button" onClick={() => setBuilding(false)} title={t("tips.close")}>
-                <Icon name="chevronDown" size={16} />
-              </button>
-            </header>
-            <ChordBuilder chord={chord} />
-          </div>,
-          document.body,
-        )}
+      <div className="lens-tools">
+        <button className={`builder-toggle ${tools?.tab === "extensions" ? "is-open" : ""}`} onClick={() => toggleTools("extensions")} title={t("builder.title")}>
+          <Icon name="wand" size={14} /> {t("builder.short")}
+        </button>
+        <button className={`builder-toggle ${tools?.tab === "voices" ? "is-open" : ""}`} onClick={() => toggleTools("voices")} title={t("voicing.hint")}>
+          <Icon name="lines" size={14} /> {t("voicing.title")}
+        </button>
+      </div>
 
       <Segmented<AnatomyView>
         label={t("lens.anatomy")}
@@ -134,11 +123,17 @@ export function ChordLens({ chord }: { chord: ChordView }) {
 
       {hasContext && (
         <div className="lens-reason" data-tip="concept.transitions">
-          <div className="score-wrap" title={t("lens.transition")}>
+          <div className="score-wrap" title={t("lens.arrivalHint")}>
             <div className="score-meter" style={{ ["--score" as string]: transition.score }} />
             <span>{Math.round(transition.score * 100)}</span>
           </div>
-          <div>{reasonText(t, transition.reason)}</div>
+          <div>
+            {/* Qué mide el número: cómo llega este acorde desde el anterior. */}
+            <span className="reason-label" title={t("lens.arrivalHint")}>
+              {t("lens.transition")} · {t(`lens.grade.${transition.score >= 1 ? "strong" : transition.score >= 0.7 ? "ok" : "weak"}`)}
+            </span>
+            {reasonText(t, transition.reason)}
+          </div>
         </div>
       )}
 
@@ -177,7 +172,7 @@ export function ChordLens({ chord }: { chord: ChordView }) {
         </button>
       </div>
       {level === "advanced" && (
-        <small style={{ color: "var(--text-2)" }}>
+        <small className="lens-tension" style={{ color: "var(--text-2)" }}>
           {t("lens.tension")} {label.tension.toFixed(2)}
         </small>
       )}

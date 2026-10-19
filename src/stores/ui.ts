@@ -4,18 +4,23 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+import type { Chord } from "../bindings/Chord";
 import type { ChordRef } from "../bindings/ChordRef";
 import type { ChordSize } from "../bindings/ChordSize";
-import type { Grid } from "../bindings/Grid";
 import type { Notation } from "../bindings/Notation";
+import type { TourKind } from "../learn/tours";
 
 export type Level = "beginner" | "intermediate" | "advanced";
 export type SymbolMode = "names" | "roman";
 export type Language = "es" | "en";
 /** De dónde salen los acordes del anillo medio de la rueda. */
 export type WheelSource = { kind: "mode"; scale: string } | { kind: "left" } | { kind: "right" };
-/** Panel lateral o ventana abierta (biblioteca, entrenamiento auditivo…). */
-export type Panel = "library" | "training" | "help" | null;
+/** Panel lateral o ventana abierta (biblioteca, entrenamiento auditivo, aprender…). */
+export type Panel = "library" | "training" | "help" | "welcome" | "learn" | null;
+/** Pestaña de la ventana de herramientas del acorde. */
+export type ChordToolsTab = "extensions" | "voices";
+/** Ventana de herramientas del acorde seleccionado; `anchor` = junto a qué bloque abrirla. */
+export type ChordTools = { tab: ChordToolsTab; anchor: { left: number; right: number; top: number } | null };
 /** Qué se ve en el centro del muelle: rueda, mapa de funciones o Tonnetz. */
 export type DockView = "wheel" | "map" | "tonnetz";
 
@@ -25,13 +30,34 @@ interface UiState {
   level: Level;
   language: Language;
   chordSize: ChordSize;
-  grid: Grid;
+  /** Cuadrícula: en cuántas partes se divide cada compás (0 = libre). */
+  gridDivisions: number;
   pxPerBar: number;
   wheelSource: WheelSource;
+  /** Último modo elegido: al dejar una tonalidad vecina se vuelve a él. */
+  lastModeScale: string;
   panel: Panel;
   dockView: DockView;
   /** Ya se mostró la bienvenida. */
   welcomed: boolean;
+  /** Ya se ofreció elegir tutorial (básico o «sé lo que hago»). */
+  onboarded: boolean;
+  /** Recorrido guiado en curso y paso actual (no se recuerdan entre sesiones). */
+  tour: TourKind | null;
+  tourStep: number;
+  /** Alto del muelle elegido con el divisor (null = automático). */
+  dockHeight: number | null;
+  /** Modo «enfocar armonía»: oculta las pistas y agranda la rueda (no se recuerda). */
+  harmonyFocus: boolean;
+  /** Muelle (rueda, leyenda, modos) oculto: todo el alto para la línea de tiempo. */
+  dockHidden: boolean;
+  /** Ventana de extensiones / voces del acorde seleccionado (no se recuerda). */
+  chordTools: ChordTools | null;
+  /** Acordes pivote de la modulación que se está mirando: la rueda los resalta. */
+  pivotChords: Chord[] | null;
+  /** Lección abierta en Aprender y lecciones ya vistas. */
+  lesson: string | null;
+  learned: string[];
   /** Mostrar las tensiones (9, 11, 13) en el mapa T–S–D y el Tonnetz. */
   showTensions: boolean;
   /** Mostrar las líneas de conducción de voces en la cinta. */
@@ -63,12 +89,23 @@ export const useUi = create<UiState>()(
       level: "beginner",
       language: "es",
       chordSize: "triads",
-      grid: "beat",
+      gridDivisions: 4,
       pxPerBar: 180,
       wheelSource: { kind: "mode", scale: "aeolian" },
+      lastModeScale: "aeolian",
       panel: null,
       dockView: "wheel",
       welcomed: false,
+      onboarded: false,
+      tour: null,
+      tourStep: 0,
+      lesson: null,
+      learned: [],
+      dockHeight: null,
+      harmonyFocus: false,
+      dockHidden: false,
+      chordTools: null,
+      pivotChords: null,
       showTensions: false,
       showVoices: false,
       selected: null,
@@ -78,11 +115,17 @@ export const useUi = create<UiState>()(
     {
       name: "tonalia-ui",
       storage: safeStorage,
-      partialize: ({ selected: _selected, panel: _panel, set: _set, select: _select, ...rest }) => rest,
+      partialize: ({ selected: _selected, panel: _panel, tour: _tour, tourStep: _tourStep, harmonyFocus: _harmonyFocus, chordTools: _chordTools, pivotChords: _pivotChords, set: _set, select: _select, ...rest }) => rest,
     },
   ),
 );
 
 export function sameRef(a: ChordRef | null, b: ChordRef | null): boolean {
   return !!a && !!b && a.section === b.section && a.index === b.index;
+}
+
+/** Marca una lección como vista (para el progreso de Aprender). */
+export function markLearned(id: string) {
+  const { learned, set } = useUi.getState();
+  if (!learned.includes(id)) set({ learned: [...learned, id] });
 }

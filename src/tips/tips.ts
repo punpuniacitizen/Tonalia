@@ -16,7 +16,12 @@ export type TipVisual =
   | { kind: "voices" }
   | { kind: "tonnetz" }
   | { kind: "extensions" }
-  | { kind: "reharm" };
+  | { kind: "reharm" }
+  | { kind: "notes" }
+  | { kind: "triad" }
+  | { kind: "diatonic" }
+  | { kind: "subdivision" }
+  | { kind: "modulation" };
 
 type Text = { title: string; kicker: string; mood: string[]; body: string; useWhen: string[]; examples?: string };
 
@@ -381,14 +386,14 @@ export const TIPS: Record<string, Tip> = {
       kicker: "Colores de otra escala",
       mood: ["agridulce", "épico", "sorpresa emotiva"],
       body: "El préstamo modal toma acordes de un modo paralelo (misma tónica, otra escala). En Do mayor, los prestados de Do menor (Fm, A♭, B♭, E♭) añaden sombra y emoción sin cambiar de tonalidad. El anillo medio de la rueda los muestra.",
-      useWhen: ["♭VI → ♭VII → I: final épico", "iv menor (Fm en Do): momento emotivo, casi nostálgico", "Elige el modo de origen en «Tomar prestado de» para explorar colores"],
+      useWhen: ["♭VI → ♭VII → I: final épico", "iv menor (Fm en Do): momento emotivo, casi nostálgico", "Elige el modo de origen en «Modos» (junto a la rueda) para explorar colores"],
     },
     en: {
       title: "Borrowed chords",
       kicker: "Colors from another scale",
       mood: ["bittersweet", "epic", "emotional surprise"],
       body: "Modal borrowing takes chords from a parallel mode (same tonic, another scale). In C major, chords borrowed from C minor (Fm, A♭, B♭, E♭) add shadow and emotion without changing key. The wheel's middle ring shows them.",
-      useWhen: ["♭VI → ♭VII → I: epic ending", "Minor iv (Fm in C): an emotional, almost nostalgic moment", "Pick the source mode in 'Borrow from' to explore colors"],
+      useWhen: ["♭VI → ♭VII → I: epic ending", "Minor iv (Fm in C): an emotional, almost nostalgic moment", "Pick the source mode in 'Modes' (next to the wheel) to explore colors"],
     },
   },
   "concept.voices": {

@@ -115,3 +115,9 @@
 .help-start {
   justify-self: end;
 }
+
+.help-tours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

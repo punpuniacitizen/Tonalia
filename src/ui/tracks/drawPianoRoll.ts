@@ -73,6 +73,8 @@ export type DrawState = {
   showLabels: boolean;
   lasso: { x0: number; y0: number; x1: number; y1: number } | null;
   hoverPitch: number | null;
+  /** Divisiones del compás de la cuadrícula (0 = libre: se dibujan los tiempos). */
+  gridDivisions: number;
 };
 
 export function pitchToY(pitch: number, topPitch: number): number {
@@ -126,9 +128,13 @@ export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
     ctx.fillRect(0, (i + 1) * ROW_HEIGHT - 1, s.width, 1);
   }
   const endTick = xToTick(s.width, s.pxPerBar);
-  for (let t = 0; t <= endTick; t += TICKS_PER_BEAT) {
+  // Compás marcado, tiempos (en tercios si la división es ternaria) medios, subdivisiones suaves.
+  const divisions = gridLineDivisions(s.gridDivisions, s.pxPerBar);
+  const lineStep = TICKS_PER_BAR / divisions;
+  const group = divisions % 3 === 0 ? TICKS_PER_BAR / 3 : TICKS_PER_BEAT;
+  for (let i = 0, t = 0; t <= endTick; i++, t = i * lineStep) {
     const x = Math.round(tickToX(t, s.pxPerBar));
-    ctx.fillStyle = t % TICKS_PER_BAR === 0 ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.045)";
+    ctx.fillStyle = t % TICKS_PER_BAR === 0 ? "rgba(255,255,255,0.14)" : t % group === 0 ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.035)";
     ctx.fillRect(x, 0, 1, s.height);
   }
 
@@ -248,4 +254,11 @@ export function drawKeyboard(
       ctx.fillText(pitchName(pitch, notation), 4, y + ROW_HEIGHT / 2);
     }
   }
+}
+
+/** Divisiones que se dibujan: las de la cuadrícula (o los tiempos si es libre), sin bajar de ~8 px. */
+export function gridLineDivisions(gridDivisions: number, pxPerBar: number): number {
+  let d = gridDivisions > 0 ? gridDivisions : 4;
+  while (d > 1 && pxPerBar / d < 8) d = d % 2 === 0 ? d / 2 : d % 3 === 0 ? d / 3 : 1;
+  return d;
 }

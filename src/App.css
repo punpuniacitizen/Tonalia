@@ -26,3 +26,149 @@
   display: flex;
   flex-direction: column;
 }
+
+/* ---------- Reparto entre línea de tiempo y muelle ---------- */
+
+/* Con un alto elegido con el divisor, la línea de tiempo se queda con el resto (y hace scroll). */
+.stage.has-dock-size .timeline {
+  flex: 1 1 0;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stage.has-dock-size .timeline-scroll {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
+.stage.has-dock-size .dock-wrap {
+  flex: 0 1 var(--dock-h);
+  min-height: 300px;
+}
+
+/* Enfocar armonía: solo regla, secciones y cinta compacta arriba; el resto para la rueda. */
+.stage.is-focus .timeline {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.stage.is-focus .timeline-scroll {
+  max-height: none;
+}
+
+.stage.is-focus .track-lanes,
+.stage.is-focus .dock-splitter {
+  display: none;
+}
+
+.stage.is-focus .ribbon-lane {
+  height: 112px;
+}
+
+.stage.is-focus .dock-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.dock-splitter {
+  position: relative;
+  z-index: 5;
+  flex: 0 0 auto;
+  height: 11px;
+  margin: -5px 0 -6px;
+  display: grid;
+  place-items: center;
+  cursor: row-resize;
+  touch-action: none;
+}
+
+.dock-splitter span {
+  width: 48px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  transition: background 0.2s, box-shadow 0.2s, width 0.2s;
+}
+
+.dock-splitter:hover span,
+.is-resizing-dock .dock-splitter span {
+  width: 72px;
+  background: var(--accent);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+.is-resizing-dock {
+  cursor: row-resize;
+  user-select: none;
+}
+
+/* Muelle oculto: la línea de tiempo (y el piano roll) usan todo el alto. */
+.stage.is-dock-manual .timeline {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stage.is-dock-manual .timeline-scroll {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
+.dock-reveal-wrap {
+  flex: none;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dock-reveal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  font-size: 12px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.dock-reveal:hover {
+  color: var(--text-0);
+  border-color: var(--accent);
+}
+
+.dock-reveal svg {
+  transform: rotate(180deg);
+}
+
+.dock-reveal kbd,
+.dock-hide kbd {
+  padding: 0 4px;
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text-2);
+  background: var(--bg-4);
+}
+
+/* El muelle va dentro de un envoltorio que es el que se anima al ocultar / mostrar. */
+.dock-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Mientras se oculta o aparece, su alto lo marca la animación. */
+.stage.is-dock-manual .dock-wrap {
+  flex: 0 0 auto;
+}

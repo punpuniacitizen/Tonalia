@@ -36,7 +36,7 @@ const sortNotes = (notes: Note[]) => [...notes].sort((a, b) => a.position - b.po
 export function PianoRoll({ track, width, height }: { track: Track; width: number; height: number }) {
   const view = useSong((s) => s.view) as SongView;
   const edit = useSong((s) => s.edit);
-  const { pxPerBar, grid, notation, level } = useUi();
+  const { pxPerBar, gridDivisions, notation, level } = useUi();
   const { tool, selection, selectionTrack, select, clearSelection } = useNotes();
   const playing = useTransport((s) => s.playing);
   const selectedChord = useSelectedChord();
@@ -57,7 +57,11 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
   const rows = Math.ceil(height / ROW_HEIGHT);
   const regions = useMemo(() => harmonyRegions(view, xToTick(canvasWidth, pxPerBar)), [view, canvasWidth, pxPerBar]);
   const sel = selectionTrack === track.id ? selection : EMPTY;
-  const step = gridStep(grid) > 1 ? gridStep(grid) : MIN_LENGTH;
+  const step = gridDivisions > 0 ? gridStep(gridDivisions) : MIN_LENGTH;
+  // Con Alt pulsado (se puede pulsar a mitad del arrastre) las notas se mueven y estiran
+  // libremente, sin la cuadrícula; el mínimo pasa a ser una semifusa de 1/64.
+  const snapTo = (ticks: number, free: boolean) => snap(ticks, free ? 0 : gridDivisions);
+  const minLength = (n: Note, free: boolean) => (free ? Math.min(MIN_LENGTH, n.length) : Math.min(step, n.length));
 
   const setDraftNotes = (n: Note[] | null) => {
     draftRef.current = n;
@@ -88,8 +92,9 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
       showLabels: level !== "advanced",
       lasso,
       hoverPitch,
+      gridDivisions,
     });
-  }, [canvasWidth, height, topPitch, pxPerBar, regions, notes, sel, track.color, notation, level, lasso, hoverPitch]);
+  }, [canvasWidth, height, topPitch, pxPerBar, regions, notes, sel, track.color, notation, level, lasso, hoverPitch, gridDivisions]);
 
   // Teclado: resalta las notas del acorde en el instante de interés y lo que suena.
   useEffect(() => {
@@ -153,6 +158,7 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.altKey) e.preventDefault();
     const { x, y } = local(e);
     const tick = xToTick(x, pxPerBar);
     const pitch = yToPitch(y, topPitch);
@@ -181,7 +187,7 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
       gesture.current = { kind: "lasso", x0: x, y0: y, additive: e.shiftKey };
       if (!e.shiftKey) clearSelection();
     } else if (tool === "draw") {
-      const position = Math.max(0, Math.floor(tick / step) * step);
+      const position = Math.max(0, e.altKey ? Math.round(tick) : Math.floor(tick / step) * step);
       const note: Note = { position, length: step, pitch, velocity: 0.8 };
       gesture.current = { kind: "create", note };
       setDraftNotes([...committed.filter((n) => noteKey(n) !== noteKey(note)), note]);
@@ -221,14 +227,14 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
 
     switch (g.kind) {
       case "create": {
-        const end = Math.max(g.note.position + step, Math.ceil(tick / step) * step);
+        const end = e.altKey ? Math.max(g.note.position + MIN_LENGTH, Math.round(tick)) : Math.max(g.note.position + step, Math.ceil(tick / step) * step);
         const note = { ...g.note, length: end - g.note.position };
         setDraftNotes([...committed.filter((n) => noteKey(n) !== noteKey(note)), note]);
         break;
       }
       case "move": {
         const minPos = Math.min(...g.originals.map((n) => n.position));
-        const dt = Math.max(-minPos, snap(tick - g.downTick, grid));
+        const dt = Math.max(-minPos, snapTo(tick - g.downTick, e.altKey));
         const dp = pitch - g.downPitch;
         const moved = g.originals.map((n) => ({ ...n, position: n.position + dt, pitch: Math.min(127, Math.max(0, n.pitch + dp)) }));
         setDraftNotes([...others(g.originals), ...moved]);
@@ -239,16 +245,16 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
         break;
       }
       case "resizeEnd": {
-        const dt = snap(tick - g.downTick, grid);
-        const resized = g.originals.map((n) => ({ ...n, length: Math.max(Math.min(step, n.length), n.length + dt) }));
+        const dt = snapTo(tick - g.downTick, e.altKey);
+        const resized = g.originals.map((n) => ({ ...n, length: Math.max(minLength(n, e.altKey), n.length + dt) }));
         setDraftNotes([...others(g.originals), ...resized]);
         break;
       }
       case "resizeStart": {
-        const dt = snap(tick - g.downTick, grid);
+        const dt = snapTo(tick - g.downTick, e.altKey);
         const resized = g.originals.map((n) => {
           const end = n.position + n.length;
-          const position = Math.min(end - Math.min(step, n.length), Math.max(0, n.position + dt));
+          const position = Math.min(end - minLength(n, e.altKey), Math.max(0, n.position + dt));
           return { ...n, position, length: end - position };
         });
         setDraftNotes([...others(g.originals), ...resized]);

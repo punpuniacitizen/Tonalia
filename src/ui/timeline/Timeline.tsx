@@ -11,12 +11,15 @@ import { useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";
 import { useUi } from "../../stores/ui";
 import { ChordRibbon } from "./ChordRibbon";
+import { gridLineDivisions } from "../tracks/drawPianoRoll";
 import { gridStep, PAD, tickToX, xToTick } from "./geometry";
+import { GridPicker } from "./GridPicker";
 import "./Timeline.css";
 
 export function Timeline() {
   const view = useSong((s) => s.view);
   const pxPerBar = useUi((s) => s.pxPerBar);
+  const gridDivisions = useUi((s) => s.gridDivisions);
   const seek = useTransport((s) => s.seek);
   const hasRoll = useNotes((s) => s.expandedTrack !== null);
   const edit = useSong((s) => s.edit);
@@ -62,7 +65,7 @@ export function Timeline() {
     if (e.button !== 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const tickAt = (clientX: number) => Math.max(0, xToTick(clientX - rect.left, pxPerBar));
-    const step = gridStep(useUi.getState().grid);
+    const step = gridStep(useUi.getState().gridDivisions);
     const start = tickAt(e.clientX);
     const startX = e.clientX;
     let dragging = false;
@@ -95,7 +98,10 @@ export function Timeline() {
   return (
     <section className={`timeline ${hasRoll ? "has-roll" : ""} ${showVoices ? "has-voices" : ""}`}>
       <div className="timeline-scroll" ref={scrollRef}>
-        <div className="timeline-content" style={{ width, ["--bar" as string]: `${pxPerBar}px`, ["--pad" as string]: `${PAD}px` }}>
+        <div
+          className="timeline-content"
+          style={{ width, ["--bar" as string]: `${pxPerBar}px`, ["--pad" as string]: `${PAD}px`, ["--div" as string]: gridLineDivisions(gridDivisions, pxPerBar) }}
+        >
           <div className="ruler" onPointerDown={onRulerDown} title={t("timeline.rulerHint")}>
             {loop && (
               <div
@@ -217,6 +223,8 @@ function ChordTrackHead() {
         <button className="ghost-button small" onClick={() => edit({ type: "resetVoicings" })} title={t("voices.resetHint")}>
           {t("voices.reset")}
         </button>
+        <span className="head-sep" />
+        <GridPicker />
       </div>
     </div>
   );

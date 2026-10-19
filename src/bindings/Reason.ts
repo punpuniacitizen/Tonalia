@@ -3,4 +3,4 @@
 /**
  * Por qué una transición suena bien (o no).
  */
-export type Reason = { "kind": "noContext" } | { "kind": "sameRoot" } | { "kind": "fromTonic" } | { "kind": "fifthDown" } | { "kind": "functionalPair", from: number, to: number, } | { "kind": "strongRootMotion", semitones: number, } | { "kind": "susResolution" } | { "kind": "preparedSus" } | { "kind": "weak" };
+export type Reason = { "kind": "noContext" } | { "kind": "sameRoot" } | { "kind": "fromTonic" } | { "kind": "fromTonicOutside" } | { "kind": "fifthDown" } | { "kind": "functionalPair", from: number, to: number, } | { "kind": "strongRootMotion", semitones: number, } | { "kind": "susResolution" } | { "kind": "preparedSus" } | { "kind": "weak" };

@@ -11,7 +11,7 @@ import { sameRef, useUi } from "../../stores/ui";
 /**
  * Atajos globales:
  * Espacio = reproducir/parar · Ctrl+Z / Ctrl+Y = deshacer/rehacer · Supr = borrar
- * ← → = acorde anterior/siguiente · Esc = quitar selección
+ * ← → = acorde anterior/siguiente · W = enfocar armonía · H = ocultar el muelle · Esc = quitar selección
  * Con notas seleccionadas: Supr = borrarlas · ↑ ↓ = transponer (Mayús: octava) · Ctrl+A = todas
  */
 export function useShortcuts() {
@@ -44,6 +44,12 @@ export function useShortcuts() {
       } else if (ctrl && k === "e") {
         e.preventDefault();
         void project.exportMidi(undefined);
+      } else if (!ctrl && !e.altKey && k === "w") {
+        const ui = useUi.getState();
+        ui.set({ harmonyFocus: ui.dockHidden ? true : !ui.harmonyFocus, dockHidden: false });
+      } else if (!ctrl && !e.altKey && k === "h") {
+        const ui = useUi.getState();
+        ui.set({ dockHidden: !ui.dockHidden, harmonyFocus: false });
       } else if (e.code === "Space") {
         e.preventDefault();
         useTransport.getState().toggle();

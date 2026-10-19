@@ -73,8 +73,11 @@ pub enum Reason {
     NoContext,
     /// Misma fundamental (cambio de color, no de función).
     SameRoot,
-    /// Desde la tónica se puede ir a cualquier parte.
+    /// Desde la tónica se puede ir a cualquier acorde de la escala.
     FromTonic,
+    /// Desde la tónica, pero a un acorde con notas fuera de la escala: funciona como color
+    /// o sorpresa, no como un paso natural de la tonalidad.
+    FromTonicOutside,
     /// La fundamental baja una quinta (ii→V, V→I, vi→ii…): el movimiento más fuerte.
     FifthDown,
     /// Un par funcional clásico, como IV→V o vi→IV. `from`/`to` son grados en semitonos.
@@ -140,14 +143,24 @@ pub fn sus_resolves(a: &Chord, b: &Chord) -> bool {
     targets.iter().any(|&t| b.contains_pc(t))
 }
 
-/// Puntuación de ir de `previous` a `candidate` en una tonalidad con tónica `key_root`.
-pub fn score(previous: Option<&Chord>, candidate: &Chord, key_root: PitchClass) -> Transition {
+/// Puntuación de ir de `previous` a `candidate` en la tonalidad `key`.
+pub fn score(previous: Option<&Chord>, candidate: &Chord, key: &Key) -> Transition {
+    let key_root = key.root;
     let Some(a) = previous else {
         return Transition::new(0.8, Reason::NoContext);
     };
     if !a.is_sus() && !candidate.is_sus() {
         if a.root == candidate.root {
             return Transition::new(1.0, Reason::SameRoot);
+        }
+        // Desde la tónica todo acorde de la escala es un paso natural; uno con notas de fuera
+        // (préstamo, cromatismo) también puede ir, pero como color: aceptable, no fuerte.
+        if a.root == key_root {
+            return if candidate.pitch_classes().iter().all(|&p| key.contains(p)) {
+                Transition::new(1.0, Reason::FromTonic)
+            } else {
+                Transition::new(0.7, Reason::FromTonicOutside)
+            };
         }
         if let Some(reason) = functional(a, candidate, key_root) {
             return Transition::new(1.0, reason);
@@ -177,12 +190,12 @@ mod tests {
     }
 
     fn s(a: &Chord, b: &Chord) -> Transition {
-        score(Some(a), b, C)
+        score(Some(a), b, &Key::major(C))
     }
 
     #[test]
     fn sin_contexto() {
-        assert_eq!(score(None, &Chord::major(C), C), Transition::new(0.8, Reason::NoContext));
+        assert_eq!(score(None, &Chord::major(C), &Key::major(C)), Transition::new(0.8, Reason::NoContext));
     }
 
     #[test]
@@ -209,6 +222,17 @@ mod tests {
         // IV→iii y vi→V no tienen regla.
         assert_eq!(s(&f, &em), Transition::new(0.0, Reason::Weak));
         assert_eq!(s(&am, &g).score, 0.0);
+    }
+
+    #[test]
+    fn desde_la_tonica() {
+        // A un acorde de la escala: paso natural.
+        assert_eq!(s(&Chord::major(C), &Chord::minor(pc(9))), Transition::new(1.0, Reason::FromTonic)); // I→vi
+        // A un préstamo o un cromatismo: se puede, pero como color.
+        assert_eq!(s(&Chord::major(C), &Chord::minor(pc(5))), Transition::new(0.7, Reason::FromTonicOutside)); // I→iv
+        assert_eq!(s(&Chord::major(C), &Chord::major(pc(8))), Transition::new(0.7, Reason::FromTonicOutside)); // I→♭VI
+        // Misma fundamental sigue siendo cambio de color, no de función.
+        assert_eq!(s(&Chord::major(C), &Chord::minor(C)).reason, Reason::SameRoot);
     }
 
     #[test]

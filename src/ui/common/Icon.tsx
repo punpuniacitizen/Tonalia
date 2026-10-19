@@ -26,6 +26,9 @@ const PATHS = {
   lines: "M3 18c4-8 7-8 9-4s5 4 9-4",
   grid: "M4 4h16v16H4zM4 12h16M12 4v16",
   guitar: "M14 4l6 6M17 7l-6 6M9 11a4 4 0 1 0 4 4",
+  expand: "M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5",
+  shrink: "M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5",
+  cap: "M2 9l10-5 10 5-10 5zM6 11v5c3 2.5 9 2.5 12 0v-5M22 9v6",
 } as const;
 
 export type IconName = keyof typeof PATHS;

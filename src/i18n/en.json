@@ -46,6 +46,7 @@
   },
   "builder": {
     "title": "Extensions (7, 9, 11, 13)",
+    "short": "Extensions",
     "base": "Base",
     "seventh": "Seventh",
     "tensions": "Tensions",
@@ -114,14 +115,19 @@
     "title": "Harmony wheel",
     "diatonic": "In key",
     "borrowed": "Borrowed",
-    "borrowFrom": "Borrow from",
+    "borrowFrom": "Modes",
     "neighbors": "Neighbor keys",
     "neighborLeft": "Neighbor ◀",
     "neighborRight": "▶ Neighbor",
-    "hint": "Hover to listen · click to add · drag onto the ribbon",
     "from": "After {{chord}}",
     "collapse": "Fold the wheel",
-    "expand": "Open the wheel"
+    "expand": "Open the wheel",
+    "yourKey": "your key",
+    "yourKeyHint": "Your key: pick it to see only its own chords, no borrowing",
+    "bright": "bright",
+    "dark": "dark",
+    "majorFormula": "= major",
+    "backToModesHint": "Go back to the borrowed chords of the mode you had picked"
   },
   "function": {
     "tonic": "Tonic",
@@ -134,7 +140,8 @@
   "reason": {
     "noContext": "First chord: any start works.",
     "sameRoot": "Same root: the color changes, not the function.",
-    "fromTonic": "From the tonic you can go anywhere.",
+    "fromTonic": "From the tonic you can go to any chord in the scale.",
+    "fromTonicOutside": "From the tonic anything goes, but this chord brings notes from outside the scale: it sounds like color or surprise.",
     "fifthDown": "The root falls a fifth: the strongest move in harmony.",
     "functionalPair": "A classic functional step ({{from}} → {{to}}).",
     "strongRootMotion": "Strong root motion ({{interval}}).",
@@ -151,6 +158,8 @@
   "lens": {
     "notes": "Notes",
     "transition": "Arrival",
+    "arrivalHint": "Arrival: how natural it sounds to reach this chord from the previous one (0 to 100)",
+    "grade": {"strong": "strong", "ok": "fair", "weak": "weak"},
     "preview": "Listen",
     "tension": "Tension",
     "anatomy": "Chord anatomy",
@@ -201,7 +210,10 @@
       "file": "Save / open / new",
       "export": "Export MIDI",
       "zoom": "Zoom the timeline",
-      "help": "This help"
+      "help": "This help",
+      "focus": "Expand / shrink the wheel (harmony focus)",
+      "hideDock": "Hide / show the wheel",
+      "chordTools": "On a chord: extensions and voices next to it"
     }
   },
   "scaleShape": {
@@ -215,11 +227,21 @@
     "mapHint": "The progression as a journey between rest, motion and tension",
     "mapEmpty": "Add chords to see their journey",
     "tonnetzHint": "Note network: each triangle is a chord; neighbors share two notes",
+    "tonnetzAddHint": "click to add · drag to the ribbon",
     "plrHint": "Transform the chord:",
     "plrSelect": "Select a major or minor chord:",
     "plrP": "P (parallel): major ↔ minor on the same root",
     "plrR": "R (relative): C ↔ Am — they share two notes",
-    "plrL": "L (leading-tone): C ↔ Em — they share two notes"
+    "plrL": "L (leading-tone): C ↔ Em — they share two notes",
+    "focus": "Expand",
+    "unfocus": "Shrink",
+    "focusHint": "Focus on harmony: hide the tracks and enlarge the wheel (W)",
+    "unfocusHint": "Show the tracks again (W)",
+    "hide": "Hide",
+    "hideHint": "Hide the wheel and its panels to give tracks and the piano roll more room (H)",
+    "show": "Show the wheel",
+    "showHint": "Show the wheel, legend and modes again (H)",
+    "splitterHint": "Drag to split the space between the timeline and the wheel · double-click: automatic"
   },
   "tensions": {
     "toggle": "Tensions",
@@ -354,7 +376,7 @@
     "useWhen": "Use it when…",
     "listen": "Hear an example",
     "close": "Close",
-    "hint": "💡 Right-click chords, functions, modes or the wheel to learn what they convey and when to use them."
+    "hint": "Right-click chords, functions, modes or the wheel to learn what they convey and when to use them."
   },
   "tracks": {
     "chords": "Chords",
@@ -388,7 +410,7 @@
   "piano": {
     "tool": "Tool",
     "draw": "Draw",
-    "drawHint": "Click and drag to create notes · right-click deletes",
+    "drawHint": "Click and drag to create notes · right-click deletes · Alt: no grid",
     "select": "Select",
     "selectHint": "Drag to lasso-select (or Shift + drag)",
     "velocity": "Velocity",
@@ -407,5 +429,114 @@
     "6": "tritone",
     "8": "minor 6th",
     "9": "major 6th"
+  },
+  "tour": {
+    "chooseTitle": "How would you like to start?",
+    "basicName": "Basic tutorial",
+    "basicDesc": "I'm starting from scratch: what a chord is, scales, modes, tonic and dominant… then a walk through the app.",
+    "basicTime": "9 theory ideas + tour · about 8 min",
+    "appName": "I know what I'm doing",
+    "appDesc": "I know the theory: just show me where things are and how the app works.",
+    "appTime": "Interface tour · about 3 min",
+    "chooseNote": "You can replay either one from the '?' button. The theory stays in 'Learn'.",
+    "explore": "Explore on my own",
+    "next": "Next",
+    "back": "Back",
+    "skip": "Exit",
+    "finish": "Finish",
+    "skipTheory": "Skip to the app",
+    "theoryChapter": "Theory",
+    "appChapter": "The app",
+    "introTitle": "Basic tutorial",
+    "introBody": "First, 9 theory ideas: one per card, with a drawing and a button to hear it. Then you'll see where each idea shows up on screen. Everything stays in 'Learn' so you can review it.",
+    "part2Title": "Now, the app",
+    "part2Body": "You've got the ideas. Let's see where each one lives on screen and how to use it.",
+    "outroTitle": "Ready to compose!",
+    "outroBody": "Try adding chords from the wheel and watch their colors. When in doubt, right-click anything. The lessons are in 'Learn' and the tour is behind the '?' button.",
+    "openLearn": "Open Learn"
+  },
+  "learn": {
+    "title": "Learn",
+    "short": "Learn",
+    "progress": "{{done}} of {{total}} lessons viewed",
+    "inApp": "In Tonalia:",
+    "replayTour": "Replay the tutorial",
+    "more": "Going deeper",
+    "group": {
+      "basics": "Basics",
+      "harmony": "Harmony",
+      "rhythm": "Rhythm",
+      "beyond": "Going further"
+    }
+  },
+  "grid": {
+    "title": "Grid: bar divisions",
+    "hint": "How many parts each bar is split into for snapping notes, chords and the loop",
+    "bar": "Bar",
+    "free": "Free",
+    "binary": "Binary",
+    "ternary": "Ternary",
+    "none": "No grid",
+    "altHint": "Hold Alt while editing notes to adjust them without the grid."
+  },
+  "voicing": {
+    "title": "Voices",
+    "tools": "Chord tools",
+    "hint": "Choose by hand which octave each note of the chord plays in",
+    "empty": "This chord has no notes.",
+    "up": "Move this voice up an octave",
+    "down": "Move this voice down an octave",
+    "invertUp": "Inversion",
+    "invertUpHint": "The lowest note goes to the top (next inversion)",
+    "invertDown": "Inversion",
+    "invertDownHint": "The highest note goes to the bottom (previous inversion)",
+    "drop2": "Drop 2",
+    "drop2Hint": "Drops the second voice from the top an octave: opens up the chord (jazz staple)",
+    "allUp": "Move the whole chord up an octave",
+    "allDown": "Move the whole chord down an octave",
+    "position": {
+      "root": "Root position",
+      "first": "1st inversion",
+      "second": "2nd inversion",
+      "third": "3rd inversion",
+      "other": "Another note in the bass"
+    }
+  },
+  "modulation": {
+    "title": "Key change",
+    "markHint": "Key change: click to see how to prepare it",
+    "distance": {
+      "same": "same",
+      "relative": "relative",
+      "parallel": "parallel",
+      "neighbor": "neighbor",
+      "close": "close",
+      "far": "distant"
+    },
+    "distanceHint": {
+      "same": "It's the same key.",
+      "relative": "Same notes, different center: a very smooth change.",
+      "parallel": "Same tonic, different mode: the color changes, not the center.",
+      "neighbor": "They share 6 of 7 notes: the change sounds natural.",
+      "close": "They share {{n}} of 7 notes: you notice the change, but it flows.",
+      "far": "They share only {{n}} notes: the change surprises; better prepare it."
+    },
+    "plan": {
+      "pivot": "Pivot chord",
+      "dominant": "New key's dominant",
+      "direct": "Direct change"
+    },
+    "planHint": {
+      "pivot": "A chord from both keys acts as a bridge and the dominant confirms the change.",
+      "dominant": "{{v7}} is the dominant of {{key}}: it pushes straight to its tonic.",
+      "direct": "No preparation: it arrives all at once, on purpose (like pop's 'up a step')."
+    },
+    "pivotRoles": "{{chord}} is {{from}} in {{a}} and {{to}} in {{b}}.",
+    "noPivot": "These keys share no chords: there's no pivot. Try the dominant or the direct change.",
+    "wheelHint": "Pivots light up on the wheel.",
+    "showWheel": "Show on the wheel",
+    "listen": "Listen",
+    "insert": "Insert",
+    "insertHint": "Adds these chords at the end of the previous section, right before the change"
   }
 }

@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useUi } from "../../stores/ui";
 import { Icon, type IconName } from "../common/Icon";
 import "./help.css";
 
@@ -24,11 +25,15 @@ const SHORTCUTS: [string, string][] = [
   ["Ctrl+S / Ctrl+O / Ctrl+N", "file"],
   ["Ctrl+E", "export"],
   ["Ctrl + rueda", "zoom"],
+  ["W", "focus"],
+  ["H", "hideDock"],
+  ["Doble clic", "chordTools"],
   ["?", "help"],
 ];
 
 export function HelpOverlay({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
+  const set = useUi((s) => s.set);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => (e.key === "Escape" || e.key === "?") && onClose();
     window.addEventListener("keydown", onKey);
@@ -51,6 +56,17 @@ export function HelpOverlay({ onClose }: { onClose: () => void }) {
             <p>{t("help.subtitle")}</p>
           </div>
         </header>
+        <div className="help-tours">
+          <button className="ghost-button small" onClick={() => set({ panel: null, welcomed: true, tour: "basic", tourStep: 0 })}>
+            <Icon name="book" size={13} /> {t("tour.basicName")}
+          </button>
+          <button className="ghost-button small" onClick={() => set({ panel: null, welcomed: true, tour: "app", tourStep: 0 })}>
+            <Icon name="wand" size={13} /> {t("tour.appName")}
+          </button>
+          <button className="ghost-button small" onClick={() => set({ panel: "learn", welcomed: true })}>
+            <Icon name="cap" size={13} /> {t("learn.title")}
+          </button>
+        </div>
         <ol className="help-steps">
           {STEPS.map((s, i) => (
             <motion.li key={s.key} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.08 }}>

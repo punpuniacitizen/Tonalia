@@ -355,27 +355,34 @@
   flex-shrink: 0;
 }
 
-@media (max-width: 1700px) {
-  .brand-tagline {
-    display: none;
-  }
+/* Compactación por pasos según el espacio real (lo decide Header con data-compact):
+   1 = sin lema · 2 = botones de aprendizaje y tonalidad sin texto · 3 = nombre de archivo y BPM cortos. */
+.header:not([data-compact="0"]) .brand-tagline {
+  display: none;
 }
 
-@media (max-width: 1500px) {
-  .learn-button span,
-  .learn-button-label {
-    display: none;
-  }
-  .key-pill-label {
-    display: none;
-  }
+.header:is([data-compact="2"], [data-compact="3"], [data-compact="4"], [data-compact="5"]) :is(.learn-button span, .learn-button-label, .key-pill-label) {
+  display: none;
 }
 
-@media (max-width: 1320px) {
-  .file-name {
-    max-width: 90px;
-  }
-  .bpm-label {
-    display: none;
-  }
+.header:is([data-compact="3"], [data-compact="4"], [data-compact="5"]) .file-name {
+  max-width: 90px;
+}
+
+.header:is([data-compact="3"], [data-compact="4"], [data-compact="5"]) .bpm-label {
+  display: none;
+}
+
+/* Paso 4: notación y nombres/romanos viven en el menú de nivel. */
+.header:is([data-compact="4"], [data-compact="5"]) .view-switches > .segmented {
+  display: none;
+}
+
+.header:not([data-compact="4"]):not([data-compact="5"]) .compact-only {
+  display: none;
+}
+
+/* Paso 5: solo el orbe como marca. */
+.header[data-compact="5"] .brand-name {
+  display: none;
 }

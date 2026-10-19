@@ -32,7 +32,7 @@
   /* Líneas de compás y de tiempo de fondo */
   background-image:
     repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px var(--bar)),
-    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px calc(var(--bar) / 4));
+    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px calc(var(--bar) / var(--div, 4)));
   background-position: var(--pad) 0, var(--pad) 0;
   background-size: calc(100% - var(--pad)) 100%;
   background-repeat: no-repeat;
@@ -469,4 +469,227 @@
   background: var(--text-0);
   opacity: 1;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+}
+
+/* ---------- Selector de cuadrícula ---------- */
+.grid-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 300px;
+}
+
+.grid-panel h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Cada grupo: su nombre arriba y los chips debajo, todo alineado con el título. */
+.grid-group {
+  display: grid;
+  gap: 5px;
+}
+
+.grid-group > span {
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.grid-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.grid-chip {
+  min-width: 34px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-size: 12px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.grid-chip:hover {
+  color: var(--text-0);
+  border-color: var(--line-strong);
+}
+
+.grid-chip.is-active {
+  color: var(--text-0);
+  background: color-mix(in oklab, var(--accent) 25%, var(--bg-2));
+  border-color: var(--accent);
+}
+
+.grid-panel p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+/* ---------- Puente de modulación ---------- */
+.mod-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 4;
+  width: 0;
+  pointer-events: none;
+}
+
+.mod-line {
+  position: absolute;
+  top: 26px;
+  bottom: 0;
+  left: 0;
+  border-left: 1.5px dashed color-mix(in oklab, var(--accent-2) 70%, transparent);
+}
+
+.mod-chip {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-0);
+  background: color-mix(in oklab, var(--accent-2) 20%, var(--bg-2));
+  border: 1px solid color-mix(in oklab, var(--accent-2) 60%, transparent);
+  transition: box-shadow 0.2s, background 0.2s;
+}
+
+.mod-chip:hover,
+.mod-chip.is-open {
+  background: color-mix(in oklab, var(--accent-2) 32%, var(--bg-2));
+  box-shadow: 0 0 14px color-mix(in oklab, var(--accent-2) 45%, transparent);
+}
+
+/* Cuanto más lejos, más cálido el aviso. */
+.mod-chip.is-close {
+  border-color: color-mix(in oklab, var(--fn-subdominant) 60%, transparent);
+  background: color-mix(in oklab, var(--fn-subdominant) 18%, var(--bg-2));
+}
+
+.mod-chip.is-far {
+  border-color: color-mix(in oklab, var(--fn-dominant) 60%, transparent);
+  background: color-mix(in oklab, var(--fn-dominant) 18%, var(--bg-2));
+}
+
+.mod-chip.is-static {
+  position: static;
+  transform: none;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.bridge-panel {
+  position: fixed;
+  z-index: 90;
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  animation: pop-in 0.2s var(--ease-out);
+}
+
+.bridge-panel header h3 {
+  margin: 2px 0 4px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.bridge-panel header p,
+.bridge-plan p {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Los tres caminos uno al lado del otro: la ventana queda baja y no tapa la rueda. */
+.bridge-plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bridge-plan {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-m);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+}
+
+.bridge-plan-head {
+  display: grid;
+  gap: 6px;
+}
+
+.bridge-plan-head strong {
+  font-size: 13px;
+}
+
+.bridge-path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bridge-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bridge-arrow {
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+.bridge-chord {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--bg-4);
+}
+
+.bridge-chord.is-target {
+  color: var(--bg-0);
+  background: var(--accent-2);
+}
+
+.bridge-pivot {
+  color: var(--accent-2) !important;
+}
+
+.bridge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bridge-actions .ghost-button {
+  align-self: center;
+}
+
+.bridge-note {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 11px;
 }

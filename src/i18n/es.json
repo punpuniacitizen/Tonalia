@@ -46,6 +46,7 @@
   },
   "builder": {
     "title": "Extensiones (7, 9, 11, 13)",
+    "short": "Extensiones",
     "base": "Base",
     "seventh": "Séptima",
     "tensions": "Tensiones",
@@ -114,14 +115,19 @@
     "title": "Rueda armónica",
     "diatonic": "De la tonalidad",
     "borrowed": "Prestados",
-    "borrowFrom": "Tomar prestado de",
+    "borrowFrom": "Modos",
     "neighbors": "Tonalidades vecinas",
     "neighborLeft": "Vecina ◀",
     "neighborRight": "▶ Vecina",
-    "hint": "Pasa el ratón para escuchar · clic para añadir · arrastra a la cinta",
     "from": "Después de {{chord}}",
     "collapse": "Plegar la rueda",
-    "expand": "Abrir la rueda"
+    "expand": "Abrir la rueda",
+    "yourKey": "tu tonalidad",
+    "yourKeyHint": "Tu tonalidad: elígela para ver solo sus acordes, sin préstamos",
+    "bright": "brillante",
+    "dark": "oscuro",
+    "majorFormula": "= mayor",
+    "backToModesHint": "Volver a los acordes prestados del modo que tenías elegido"
   },
   "function": {
     "tonic": "Tónica",
@@ -134,7 +140,8 @@
   "reason": {
     "noContext": "Primer acorde: cualquier comienzo vale.",
     "sameRoot": "Misma fundamental: cambia el color, no la función.",
-    "fromTonic": "Desde la tónica se puede ir a cualquier parte.",
+    "fromTonic": "Desde la tónica se puede ir a cualquier acorde de la escala.",
+    "fromTonicOutside": "Desde la tónica todo vale, pero este acorde trae notas de fuera de la escala: suena a color o sorpresa.",
     "fifthDown": "La fundamental baja una quinta: el movimiento más fuerte de la armonía.",
     "functionalPair": "Un paso funcional clásico ({{from}} → {{to}}).",
     "strongRootMotion": "Movimiento de fundamental fuerte ({{interval}}).",
@@ -151,6 +158,8 @@
   "lens": {
     "notes": "Notas",
     "transition": "Llegada",
+    "arrivalHint": "Llegada: qué tan natural suena llegar a este acorde desde el anterior (0 a 100)",
+    "grade": {"strong": "fuerte", "ok": "aceptable", "weak": "débil"},
     "preview": "Escuchar",
     "tension": "Tensión",
     "anatomy": "Anatomía del acorde",
@@ -201,7 +210,10 @@
       "file": "Guardar / abrir / nuevo",
       "export": "Exportar MIDI",
       "zoom": "Acercar / alejar la línea de tiempo",
-      "help": "Esta ayuda"
+      "help": "Esta ayuda",
+      "focus": "Ampliar / reducir la rueda (enfocar armonía)",
+      "hideDock": "Ocultar / mostrar la rueda",
+      "chordTools": "Sobre un acorde: extensiones y voces a su lado"
     }
   },
   "scaleShape": {
@@ -215,11 +227,21 @@
     "mapHint": "La progresión como un viaje entre reposo, movimiento y tensión",
     "mapEmpty": "Añade acordes para ver su recorrido",
     "tonnetzHint": "Red de notas: cada triángulo es un acorde; los vecinos comparten dos notas",
+    "tonnetzAddHint": "clic para añadir · arrastra a la cinta",
     "plrHint": "Transformar el acorde:",
     "plrSelect": "Selecciona un acorde mayor o menor:",
     "plrP": "P (paralelo): mayor ↔ menor con la misma fundamental",
     "plrR": "R (relativo): Do ↔ Lam — comparten dos notas",
-    "plrL": "L (sensible): Do ↔ Mim — comparten dos notas"
+    "plrL": "L (sensible): Do ↔ Mim — comparten dos notas",
+    "focus": "Ampliar",
+    "unfocus": "Reducir",
+    "focusHint": "Enfocar la armonía: oculta las pistas y agranda la rueda (W)",
+    "unfocusHint": "Volver a ver las pistas (W)",
+    "hide": "Ocultar",
+    "hideHint": "Ocultar la rueda y sus paneles para dejar más espacio a las pistas y el piano roll (H)",
+    "show": "Mostrar la rueda",
+    "showHint": "Volver a mostrar la rueda, la leyenda y los modos (H)",
+    "splitterHint": "Arrastra para repartir el espacio entre la línea de tiempo y la rueda · doble clic: automático"
   },
   "tensions": {
     "toggle": "Tensiones",
@@ -354,7 +376,7 @@
     "useWhen": "Úsalo cuando…",
     "listen": "Escuchar ejemplo",
     "close": "Cerrar",
-    "hint": "💡 Clic derecho sobre acordes, funciones, modos o la rueda para aprender qué transmiten y cuándo usarlos."
+    "hint": "Clic derecho sobre acordes, funciones, modos o la rueda para aprender qué transmiten y cuándo usarlos."
   },
   "tracks": {
     "chords": "Acordes",
@@ -388,7 +410,7 @@
   "piano": {
     "tool": "Herramienta",
     "draw": "Dibujar",
-    "drawHint": "Clic y arrastra para crear notas · clic derecho borra",
+    "drawHint": "Clic y arrastra para crear notas · clic derecho borra · Alt: sin cuadrícula",
     "select": "Seleccionar",
     "selectHint": "Arrastra para seleccionar con un lazo (también Mayús + arrastrar)",
     "velocity": "Intensidad",
@@ -407,5 +429,114 @@
     "6": "tritono",
     "8": "6ª menor",
     "9": "6ª mayor"
+  },
+  "tour": {
+    "chooseTitle": "¿Cómo quieres empezar?",
+    "basicName": "Tutorial básico",
+    "basicDesc": "Empiezo desde cero: qué es un acorde, escalas, modos, tónica y dominante… y luego un paseo por la app.",
+    "basicTime": "9 ideas de teoría + recorrido · unos 8 min",
+    "appName": "Sé lo que hago",
+    "appDesc": "Ya sé teoría: solo quiero ver dónde está cada cosa y cómo se usa la app.",
+    "appTime": "Recorrido por la interfaz · unos 3 min",
+    "chooseNote": "Puedes repetir cualquiera desde el botón «?». La teoría queda guardada en «Aprender».",
+    "explore": "Explorar por mi cuenta",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "skip": "Salir",
+    "finish": "Terminar",
+    "skipTheory": "Saltar a la app",
+    "theoryChapter": "Teoría",
+    "appChapter": "La app",
+    "introTitle": "Tutorial básico",
+    "introBody": "Primero, 9 ideas de teoría: una por tarjeta, con un dibujo y un botón para escucharla. Después verás dónde aparece cada idea en la pantalla. Todo queda guardado en «Aprender» para repasarlo.",
+    "part2Title": "Ahora, la app",
+    "part2Body": "Ya tienes las ideas. Vamos a ver dónde vive cada una en la pantalla y cómo se usa.",
+    "outroTitle": "¡Listo para componer!",
+    "outroBody": "Prueba a añadir acordes desde la rueda y fíjate en sus colores. Si dudas, haz clic derecho sobre cualquier cosa. Las lecciones están en «Aprender» y el recorrido, en el botón «?».",
+    "openLearn": "Abrir Aprender"
+  },
+  "learn": {
+    "title": "Aprender",
+    "short": "Aprender",
+    "progress": "{{done}} de {{total}} lecciones vistas",
+    "inApp": "En Tonalia:",
+    "replayTour": "Repetir el tutorial",
+    "more": "Para profundizar",
+    "group": {
+      "basics": "Fundamentos",
+      "harmony": "Armonía",
+      "rhythm": "Ritmo",
+      "beyond": "Más allá"
+    }
+  },
+  "grid": {
+    "title": "Cuadrícula: divisiones del compás",
+    "hint": "En cuántas partes se divide cada compás para ajustar notas, acordes y el bucle",
+    "bar": "Compás",
+    "free": "Libre",
+    "binary": "Binarias",
+    "ternary": "Ternarias",
+    "none": "Sin cuadrícula",
+    "altHint": "Mantén Alt al editar notas para ajustarlas sin cuadrícula."
+  },
+  "voicing": {
+    "title": "Voces",
+    "tools": "Herramientas del acorde",
+    "hint": "Elige a mano en qué octava suena cada nota del acorde",
+    "empty": "Este acorde no tiene notas.",
+    "up": "Subir esta voz una octava",
+    "down": "Bajar esta voz una octava",
+    "invertUp": "Inversión",
+    "invertUpHint": "La nota más grave pasa arriba (siguiente inversión)",
+    "invertDown": "Inversión",
+    "invertDownHint": "La nota más aguda pasa abajo (inversión anterior)",
+    "drop2": "Drop 2",
+    "drop2Hint": "Baja una octava la segunda voz desde arriba: abre el acorde (típico del jazz)",
+    "allUp": "Subir todo el acorde una octava",
+    "allDown": "Bajar todo el acorde una octava",
+    "position": {
+      "root": "Posición fundamental",
+      "first": "1.ª inversión",
+      "second": "2.ª inversión",
+      "third": "3.ª inversión",
+      "other": "Otra nota en el bajo"
+    }
+  },
+  "modulation": {
+    "title": "Cambio de tonalidad",
+    "markHint": "Cambio de tonalidad: clic para ver cómo prepararlo",
+    "distance": {
+      "same": "igual",
+      "relative": "relativa",
+      "parallel": "paralela",
+      "neighbor": "vecina",
+      "close": "cercana",
+      "far": "lejana"
+    },
+    "distanceHint": {
+      "same": "Es la misma tonalidad.",
+      "relative": "Mismas notas, otro centro: el cambio es muy suave.",
+      "parallel": "Misma tónica, otro modo: cambia el color, no el centro.",
+      "neighbor": "Comparten 6 de 7 notas: el cambio suena natural.",
+      "close": "Comparten {{n}} de 7 notas: el cambio se nota, pero fluye.",
+      "far": "Comparten solo {{n}} notas: el cambio sorprende; conviene prepararlo."
+    },
+    "plan": {
+      "pivot": "Acorde pivote",
+      "dominant": "Dominante de la nueva",
+      "direct": "Cambio directo"
+    },
+    "planHint": {
+      "pivot": "Un acorde de las dos tonalidades hace de puente y la dominante confirma el cambio.",
+      "dominant": "{{v7}} es la dominante de {{key}}: empuja directo a su tónica.",
+      "direct": "Sin preparación: entra de golpe, a propósito (como el «sube un tono» del pop)."
+    },
+    "pivotRoles": "{{chord}} es {{from}} en {{a}} y {{to}} en {{b}}.",
+    "noPivot": "Estas tonalidades no comparten ningún acorde: no hay pivote. Prueba con la dominante o el cambio directo.",
+    "wheelHint": "Los pivotes se resaltan en la rueda.",
+    "showWheel": "Ver en la rueda",
+    "listen": "Escuchar",
+    "insert": "Insertar",
+    "insertHint": "Añade estos acordes al final de la sección anterior, justo antes del cambio"
   }
 }

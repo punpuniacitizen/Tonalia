@@ -102,7 +102,7 @@ pub struct Palette {
 pub fn build_palette(key: &Key, size: ChordSize, previous: Option<&Chord>) -> Palette {
     let entry = |degree: usize, chord: Chord| PaletteEntry {
         label: describe(&chord, key),
-        transition: score(previous, &chord, key.root),
+        transition: score(previous, &chord, key),
         degree,
         chord,
     };

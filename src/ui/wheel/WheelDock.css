@@ -5,8 +5,9 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 24px;
-  padding: 24px 32px;
+  gap: 48px;
+  /* Laterales hacia los bordes, pero con aire: el margen crece con el ancho de la ventana. */
+  padding: 20px clamp(32px, 7vw, 140px) 10px;
 }
 
 .wheel-dock {
@@ -218,12 +219,6 @@
   fill: var(--danger);
 }
 
-.tn-hint {
-  margin: 0;
-  color: var(--text-2);
-  font-size: 12px;
-}
-
 /* ---------- Mapa T–S–D ---------- */
 .gravity {
   overflow: visible;
@@ -286,7 +281,7 @@
 /* ---------- Tonnetz ---------- */
 .tonnetz-wrap {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   justify-items: center;
 }
 
@@ -298,6 +293,13 @@
 .tri {
   fill: transparent;
   stroke: rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: fill 0.15s;
+}
+
+/* Los acordes de la tonalidad, apenas teñidos con su función: se encuentran de un vistazo. */
+.tri.is-key {
+  fill: color-mix(in oklab, var(--fn) 10%, transparent);
 }
 
 .tri.is-used {
@@ -309,6 +311,30 @@
   fill: color-mix(in oklab, var(--fn) 60%, transparent);
   stroke: white;
   stroke-width: 2;
+}
+
+.tri.is-hover {
+  fill: color-mix(in oklab, var(--fn, var(--accent)) 45%, transparent);
+  stroke: color-mix(in oklab, var(--fn, var(--accent)) 90%, white);
+}
+
+/* Las notas no tapan los triángulos: se puede apuntar a cualquier parte del acorde. */
+.tn-node,
+.tn-label {
+  pointer-events: none;
+}
+
+.tn-tri-label {
+  fill: var(--text-1);
+  font-size: 8px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.tn-tri-label.is-hover {
+  fill: var(--text-0);
+  font-size: 10px;
 }
 
 .tonnetz-path {
@@ -347,6 +373,7 @@
   gap: 6px;
   color: var(--text-2);
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .plr button {
@@ -369,10 +396,9 @@
 
 /* Rueda pequeña (piano roll abierto): solo lo esencial a los lados. */
 .wheel-dock.is-compact {
-  padding: 8px 24px;
+  padding: 8px clamp(24px, 6vw, 120px);
 }
 
-.wheel-dock.is-compact .dock-hint,
 .wheel-dock.is-compact .legend-item small,
 .wheel-dock.is-compact .dock-side h2 {
   display: none;
@@ -382,9 +408,55 @@
   gap: 6px;
 }
 
-.wheel-dock.is-compact .chord-lens {
-  transform: scale(0.85);
-  transform-origin: left center;
+/* La lente se ajusta al alto con FitHeight: sin barra de scroll. */
+.dock-legend:has(.fit-height) {
+  overflow: hidden;
+}
+
+/* El contenido ajustado conserva el espaciado de la columna (la leyenda tiene varios bloques). */
+.fit-height > div {
+  display: grid;
+  gap: 12px;
+}
+
+/* Lente ancha (muelle bajo con espacio al costado): arriba el acorde con sus acciones y
+   su función; en dos columnas la anatomía (izquierda) y el porqué y las alternativas
+   (derecha); abajo, a lo ancho, el constructor de extensiones. */
+.fit-height .is-wide .chord-lens {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "head    actions"
+    "fn      fn"
+    "seg     reason"
+    "anat    reason"
+    "notes   reason"
+    "sus     sus"
+    "subs    subs"
+    "builder builder"
+    "tension tension";
+  column-gap: 20px;
+  row-gap: 10px;
+  align-items: start;
+}
+
+.is-wide .chord-lens > .lens-head { grid-area: head; justify-content: flex-start; align-items: baseline; gap: 12px; }
+.is-wide .chord-lens > .lens-actions { grid-area: actions; justify-self: end; align-self: center; margin: 0; }
+.is-wide .chord-lens > .lens-function { grid-area: fn; margin-top: -4px; }
+.is-wide .chord-lens > .segmented { grid-area: seg; justify-self: start; }
+.is-wide .chord-lens > .mini-keys,
+.is-wide .chord-lens > .clock,
+.is-wide .chord-lens > .fretboard { grid-area: anat; }
+.is-wide .chord-lens > .lens-notes { grid-area: notes; }
+.is-wide .chord-lens > .lens-sus { grid-area: sus; }
+.is-wide .chord-lens > .lens-reason { grid-area: reason; }
+.is-wide .chord-lens > .lens-subs { grid-area: subs; }
+.is-wide .chord-lens > .lens-tools { grid-area: builder; }
+.is-wide .chord-lens > .lens-tension { grid-area: tension; }
+
+/* Ancha y con poco alto: alternativas en una sola línea (el tipo queda en el título). */
+.is-wide .chord-lens .sub-chip small {
+  display: none;
 }
 
 .dock-side {
@@ -392,6 +464,8 @@
   gap: 12px;
   align-content: center;
   max-width: 300px;
+  /* Crece con el muelle: todo el contenido (textos, botones, lente) a la misma escala. */
+  zoom: var(--side-scale, 1);
 }
 
 .dock-legend {
@@ -407,6 +481,7 @@
 
 .dock-sources {
   justify-self: end;
+  text-align: right;
 }
 
 .dock-side h2 {
@@ -430,15 +505,21 @@
   align-items: flex-start;
   gap: 10px;
   color: var(--fn);
+  font-size: 13px;
+}
+
+/* Las tres funciones juntas, como una lista bajo el título. */
+.legend-item + .legend-item {
+  margin-top: -6px;
 }
 
 .legend-item .dot {
-  margin-top: 5px;
+  margin-top: 4px;
 }
 
 .legend-item strong {
   display: block;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .legend-item small {
@@ -446,21 +527,6 @@
   font-size: 12px;
 }
 
-.dock-hint {
-  margin: 8px 0 0;
-  color: var(--text-2);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.source-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: flex-end;
-}
-
-.source-list button,
 .source-neighbors button {
   padding: 5px 11px;
   border-radius: 999px;
@@ -471,13 +537,11 @@
   transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
 
-.source-list button:hover,
 .source-neighbors button:hover {
   color: var(--text-0);
   border-color: var(--text-2);
 }
 
-.source-list button.is-active,
 .source-neighbors button.is-active {
   color: var(--text-0);
   background: color-mix(in oklab, var(--accent) 25%, var(--bg-2));
@@ -487,8 +551,217 @@
 
 .source-neighbors {
   display: flex;
+  align-items: center;
   gap: 6px;
-  justify-content: flex-end;
+  color: var(--text-2);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.source-neighbors {
+  flex-wrap: wrap;
+  /* Separada de la tonalidad: es otro bloque. */
+  margin-top: 14px;
+}
+
+/* El título en su propia línea; Fa y Sol debajo. */
+.source-neighbors span {
+  flex-basis: 100%;
+}
+
+.source-neighbors button {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Volver de una tonalidad vecina a los modos. */
+.source-neighbors .neighbor-back {
+  border-style: solid;
+  border-color: transparent;
+  background: none;
+  color: var(--text-1);
+}
+
+.source-neighbors .neighbor-back:hover {
+  color: var(--text-0);
+  border-color: var(--line-strong);
+}
+
+/* ---------- Escalera de modos ---------- */
+.mode-ladder {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.ladder {
+  position: relative;
+  display: grid;
+  padding: 14px 0;
+}
+
+/* Riel de brillo: claro arriba (lidio), oscuro abajo (locrio). */
+.ladder-rail {
+  position: absolute;
+  right: 7px;
+  top: 22px;
+  bottom: 22px;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #ffffff, #cfc4ff 35%, #8b6cf0 70%, #3d2c86);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
+}
+
+/* Sol arriba, luna abajo: los extremos del riel. */
+.ladder-end {
+  position: absolute;
+  right: 0;
+  width: 18px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.ladder-end.is-top {
+  top: 0;
+  color: var(--text-0);
+}
+
+.ladder-end.is-bottom {
+  bottom: 0;
+  color: #8b6cf0;
+}
+
+.ladder-row {
+  position: relative;
+  white-space: nowrap;
+  display: grid;
+  grid-template-columns: 1fr auto 18px;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0 3px 10px;
+  border-radius: var(--radius-s);
+  text-align: right;
+  color: var(--text-1);
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ladder-row:hover:not(:disabled) {
+  color: var(--text-0);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ladder-stop {
+  justify-self: center;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bg-0);
+  border: 2px solid var(--text-3);
+  transition: transform 0.2s var(--ease-spring), border-color 0.2s, background 0.2s;
+}
+
+.ladder-row:hover:not(:disabled) .ladder-stop {
+  border-color: var(--text-1);
+}
+
+.ladder-formula {
+  display: flex;
+  gap: 5px;
+  justify-content: flex-start;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.ladder-row:hover .ladder-formula,
+.ladder-row.is-active .ladder-formula {
+  opacity: 1;
+}
+
+.ladder-formula .is-signature {
+  color: var(--text-0);
+  font-weight: 700;
+}
+
+.ladder-row.is-active {
+  color: var(--text-0);
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+.ladder-row.is-active .ladder-stop {
+  transform: scale(1.35);
+  background: var(--accent);
+  border-color: var(--text-0);
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* La tonalidad actual: su peldaño marcado, no se elige (ya es el anillo interior). */
+.ladder-row.is-own {
+  color: var(--text-0);
+  font-weight: 600;
+}
+
+.ladder-row.is-own .ladder-stop {
+  width: 12px;
+  height: 12px;
+  background: var(--text-0);
+  border-color: var(--accent-2);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--accent-2) 70%, transparent);
+}
+
+/* Menores alteradas: fuera de la escalera, en una fila aparte. */
+/* Una debajo de la otra: así no ensanchan la columna más que la escalera. */
+.ladder-altered {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+/* En los chips, el nombre primero y la fórmula (al pasar el ratón) detrás. */
+.ladder-altered .ladder-formula {
+  order: 2;
+}
+
+.ladder-altered .ladder-row .ladder-formula {
+  display: none;
+}
+
+.ladder-altered .ladder-row:hover .ladder-formula,
+.ladder-altered .ladder-row.is-active .ladder-formula {
+  display: flex;
+}
+
+.ladder-altered .ladder-row {
+  grid-template-columns: auto auto;
+  padding: 3px 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.ladder-altered .ladder-stop {
+  display: none;
+}
+
+.ladder-altered .ladder-row.is-active {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.ladder-altered .ladder-row.is-own {
+  border-style: solid;
+  border-color: var(--accent-2);
+}
+
+
+.wheel-dock.is-compact .ladder-row {
+  padding-block: 1px;
 }
 
 /* Fantasma del acorde que se arrastra */
@@ -506,4 +779,17 @@
   border: 1px solid var(--fn);
   box-shadow: 0 0 30px color-mix(in oklab, var(--fn) 60%, transparent), 0 12px 30px rgba(0, 0, 0, 0.5);
   transform: translate(-50%, -120%) rotate(-3deg);
+}
+
+.focus-toggle {
+  border-style: solid;
+}
+
+.focus-toggle kbd {
+  padding: 0 4px;
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text-2);
+  background: var(--bg-4);
 }

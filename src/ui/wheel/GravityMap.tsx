@@ -21,6 +21,9 @@ const ZONES = {
 
 const GOLDEN = 137.508;
 
+/** Proporción alto/ancho del dibujo (viewBox 340 × 284). */
+export const MAP_RATIO = 284 / 340;
+
 /** Tensiones de un acorde como pequeños satélites en arco por encima de su punto. */
 function TensionSatellites({ x, y, target }: { x: number; y: number; target: ChordView }) {
   const { t } = useTranslation();
@@ -104,7 +107,7 @@ export function GravityMap({ size }: { size: number }) {
   const here = current >= 0 ? path[current] : null;
 
   return (
-    <svg className="gravity" viewBox="-170 -130 340 270" width={size} height={size * 0.8} role="img" aria-label={t("dock.map")}>
+    <svg className="gravity" viewBox="-170 -130 340 284" width={size} height={size * MAP_RATIO} role="img" aria-label={t("dock.map")}>
       {(Object.keys(ZONES) as (keyof typeof ZONES)[]).map((fn) => {
         const z = ZONES[fn];
         return (

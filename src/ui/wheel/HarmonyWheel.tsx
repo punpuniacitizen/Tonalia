@@ -24,6 +24,7 @@ import {
   romanSymbol,
   scaleSteps,
 } from "../../lib/music";
+import { matchesPivot } from "../../lib/modulation";
 import { reasonText } from "../../lib/reason";
 import { pointerGesture, useDrag } from "../../stores/drag";
 import { insertionPoint, useSelectedChord, useSong } from "../../stores/song";
@@ -37,6 +38,50 @@ const R = {
   keys: [252, 296] as const,
 };
 const HALF = 14; // medio ancho de cada casilla, en grados (30° menos un pequeño hueco)
+const VIEW = 620; // lado del dibujo (viewBox), en unidades
+
+/**
+ * La rueda se dibuja en 620 unidades y se escala entera, así que con una rueda chica los
+ * textos se volverían ilegibles. `k` = unidades por píxel de pantalla: cada texto usa su
+ * tamaño de diseño, pero nunca menos que `minPx` píxeles reales. `max` (en unidades) es lo
+ * que cabe en la casilla: si la rueda es tan chica que el mínimo no entra, manda la casilla.
+ */
+const fontSize = (k: number, base: number, minPx: number, max = Infinity) => Math.min(max, Math.max(base, minPx * k));
+
+/** Achica la letra si el texto no cabe a lo ancho (se permite comprimirlo solo un poco). */
+const fitWidth = (text: string, size: number, width: number) => Math.min(size, (width * 1.15) / (Math.max(1, text.length) * 0.6));
+
+/**
+ * Cuanto más chica la rueda, menos brillo y letra apenas más fina: el resplandor y el grosor
+ * que lucen en grande empastan los textos en pequeño. `g` va de 0 (≤ 220 px) a 1 (≥ 520 px).
+ */
+function wheelLook(size: number) {
+  const g = Math.max(0, Math.min(1, (size - 220) / 300));
+  return {
+    width: size,
+    height: size,
+    ["--glow" as string]: (g * g).toFixed(3),
+    ["--text-weight" as string]: Math.round(540 + 60 * g),
+  };
+}
+
+/** Líneas de texto apiladas y centradas en 0: devuelve la línea base de cada una. */
+function stackBaselines(sizes: number[], gap: number): number[] {
+  const caps = sizes.map((s) => s * 0.72);
+  let y = -(caps.reduce((a, b) => a + b, 0) + gap * (sizes.length - 1)) / 2;
+  return caps.map((c) => {
+    y += c;
+    const base = y;
+    y += gap;
+    return base;
+  });
+}
+
+/** Si el texto no cabe en `width`, se comprime (mejor apretado que cortado o encimado). */
+function fitProps(text: string, size: number, width: number) {
+  const estimate = text.length * size * 0.6;
+  return estimate > width ? { textLength: width, lengthAdjust: "spacingAndGlyphs" as const } : {};
+}
 
 const rad = (deg: number) => (deg * Math.PI) / 180;
 function polar(angle: number, r: number): [number, number] {
@@ -64,7 +109,8 @@ export function HarmonyWheel({ size }: { size: number }) {
   const view = useSong((s) => s.view);
   const edit = useSong((s) => s.edit);
   const selected = useSelectedChord();
-  const { notation, symbols, level, chordSize, wheelSource, select } = useUi();
+  const { notation, symbols, level, chordSize, wheelSource, select, pivotChords } = useUi();
+  const isPivot = (e: PaletteEntry) => !!pivotChords?.some((p) => matchesPivot(e.chord, p));
   const [palette, setPalette] = useState<Palette | null>(null);
   const [hovered, setHovered] = useState<PaletteEntry | null>(null);
   const dragging = useDrag((s) => s.payload !== null);
@@ -85,6 +131,7 @@ export function HarmonyWheel({ size }: { size: number }) {
   }, [keyId, chordSize, previousId]);
 
   const rotation = useShortestRotation(key ? -fifthsAngle(key.root) : 0);
+  const k = VIEW / size;
   if (!view || !key || !palette) return <div className="wheel-wrap" style={{ width: size, height: size }} />;
 
   const scaleLabel = (name: string) => t(`scale.${name}`);
@@ -94,7 +141,10 @@ export function HarmonyWheel({ size }: { size: number }) {
       ? palette.left
       : wheelSource.kind === "right"
         ? palette.right
-        : (palette.borrowed.find((g) => g.scale === wheelSource.scale) ?? palette.borrowed[0])?.entries ?? [];
+        : // El modo de la propia tonalidad no presta nada: anillo medio vacío.
+          JSON.stringify(scaleSteps(wheelSource.scale)) === JSON.stringify(key.scale.steps)
+          ? []
+          : (palette.borrowed.find((g) => g.scale === wheelSource.scale) ?? palette.borrowed[0])?.entries ?? [];
   const inKey = (e: PaletteEntry) => palette.diatonic.some((d) => JSON.stringify(d.chord) === JSON.stringify(e.chord));
 
   const label = (e: PaletteEntry) => (symbols === "names" ? chordSymbol(e.label, notation) : romanSymbol(e.label));
@@ -131,7 +181,9 @@ export function HarmonyWheel({ size }: { size: number }) {
   ].filter(({ e }) => e.transition.score >= 0.7 && e.transition.reason.kind !== "noContext");
 
   return (
-    <div className="wheel-wrap" style={{ width: size, height: size }}>
+    // Brillo de las casillas: pleno con la rueda grande, casi nada con la chica (el halo
+    // detrás de letras pequeñas las vuelve borrosas).
+    <div className="wheel-wrap" style={wheelLook(size)}>
       <svg className="wheel" viewBox="-310 -310 620 620" width={size} height={size} role="group" aria-label={t("wheel.title")}>
         <defs>
           <radialGradient id="wheel-core" r="0.5">
@@ -150,6 +202,9 @@ export function HarmonyWheel({ size }: { size: number }) {
             const isHome = pc === key.root;
             const isNeighbor = pc === (key.root + 7) % 12 || pc === (key.root + 5) % 12;
             const [x, y] = polar(a, (R.keys[0] + R.keys[1]) / 2);
+            const name = `${keyRootName(pc, key.scale.name, notation)}${minorLike ? "m" : ""}`;
+            const fs = fitWidth(name, fontSize(k, 15, 10, (R.keys[1] - R.keys[0]) * 0.68), 120);
+            const showName = isHome || isNeighbor || k * 10 <= (R.keys[1] - R.keys[0]) * 0.68;
             return (
               <g
                 key={`k${pc}`}
@@ -159,10 +214,11 @@ export function HarmonyWheel({ size }: { size: number }) {
               >
                 <path d={sectorPath(a - HALF, a + HALF, R.keys[0], R.keys[1])} />
                 <g className="upright" style={{ transform: `translate(${x}px, ${y}px) rotate(${-rotation}deg)` }}>
-                  <text y={5}>
-                    {keyRootName(pc, key.scale.name, notation)}
-                    {minorLike ? "m" : ""}
-                  </text>
+                  {showName && (
+                    <text y={fs * 0.36} style={{ fontSize: fs }} {...fitProps(name, fs, 120)}>
+                      {name}
+                    </text>
+                  )}
                 </g>
               </g>
             );
@@ -203,9 +259,11 @@ export function HarmonyWheel({ size }: { size: number }) {
               r0={R.diatonic[0]}
               r1={R.diatonic[1]}
               rotation={rotation}
+              k={k}
               text={label(e)}
               sub={showSub ? subLabel(e) : null}
               isPrevious={!!previous && JSON.stringify(previous) === JSON.stringify(e.chord)}
+              isPivot={isPivot(e)}
               onDown={onEntryDown}
               onEnter={onEntryEnter}
               onLeave={() => setHovered(null)}
@@ -220,11 +278,13 @@ export function HarmonyWheel({ size }: { size: number }) {
               r0={R.borrowed[0]}
               r1={R.borrowed[1]}
               rotation={rotation}
+              k={k}
               text={label(e)}
               sub={showSub ? subLabel(e) : null}
               shared={inKey(e)}
               small
               isPrevious={!!previous && JSON.stringify(previous) === JSON.stringify(e.chord)}
+              isPivot={isPivot(e)}
               onDown={onEntryDown}
               onEnter={onEntryEnter}
               onLeave={() => setHovered(null)}
@@ -233,33 +293,22 @@ export function HarmonyWheel({ size }: { size: number }) {
         </g>
 
         {/* Centro: la tonalidad, o el acorde bajo el ratón */}
-        <g className="wheel-center" data-tip={`mode.${key.scale.name}`}>
-          <circle r={R.center} fill="transparent" />
-          {hovered ? (
-            <>
-              <text y={-14} className="center-symbol" style={{ fill: functionColor(hovered.label.function) }}>
-                {chordSymbol(hovered.label, notation)}
-              </text>
-              <text y={14} className="center-sub">
-                {romanSymbol(hovered.label)} · {t(`function.${hovered.label.function}`)}
-              </text>
-              {previous && (
-                <text y={36} className="center-score">
-                  {"●".repeat(hovered.transition.score >= 1 ? 3 : hovered.transition.score >= 0.7 ? 2 : hovered.transition.score > 0 ? 1 : 0) || "○"}
-                </text>
-              )}
-            </>
-          ) : (
-            <>
-              <text y={-6} className="center-key">
-                {keyRootName(key.root, key.scale.name, notation)}
-              </text>
-              <text y={20} className="center-sub">
-                {scaleLabel(key.scale.name)}
-              </text>
-            </>
-          )}
-        </g>
+        <WheelCenter
+          k={k}
+          tip={`mode.${key.scale.name}`}
+          lines={
+            hovered
+              ? [
+                  { text: chordSymbol(hovered.label, notation), className: "center-symbol", base: 34, min: 20, color: functionColor(hovered.label.function) },
+                  { text: `${romanSymbol(hovered.label)} · ${t(`function.${hovered.label.function}`)}`, className: "center-sub", base: 13, min: 10 },
+                  ...(previous ? [{ text: scoreDots(hovered.transition.score), className: "center-score", base: 12, min: 9 }] : []),
+                ]
+              : [
+                  { text: keyRootName(key.root, key.scale.name, notation), className: "center-key", base: 38, min: 20 },
+                  { text: scaleLabel(key.scale.name), className: "center-sub", base: 13, min: 10 },
+                ]
+          }
+        />
       </svg>
 
       {hovered && previous && hovered.transition.reason.kind !== "noContext" && (
@@ -275,11 +324,13 @@ function ChordSector({
   r0,
   r1,
   rotation,
+  k,
   text,
   sub,
   shared = false,
   small = false,
   isPrevious,
+  isPivot = false,
   onDown,
   onEnter,
   onLeave,
@@ -288,11 +339,13 @@ function ChordSector({
   r0: number;
   r1: number;
   rotation: number;
+  k: number;
   text: string;
   sub: string | null;
   shared?: boolean;
   small?: boolean;
   isPrevious: boolean;
+  isPivot?: boolean;
   onDown: (ev: React.PointerEvent, e: PaletteEntry) => void;
   onEnter: (e: PaletteEntry) => void;
   onLeave: () => void;
@@ -300,11 +353,21 @@ function ChordSector({
   const a = fifthsAngle(entry.chord.root);
   const [x, y] = polar(a, (r0 + r1) / 2);
   const score = entry.transition.score;
+  // Ancho útil de la casilla a media altura y tamaños de letra con su mínimo legible.
+  const width = 2 * ((r0 + r1) / 2) * Math.sin(rad(HALF)) * 0.88;
+  const designSize = text.length > 3 ? Math.max(11, (small ? 16 : 21) - (text.length - 3) * 2.2) : small ? 16 : 21;
+  const depth = r1 - r0;
+  const labelSize = fitWidth(text, fontSize(k, designSize, small ? 11 : 12, depth * 0.5), width);
+  const subSize = sub === null ? 0 : fitWidth(sub, fontSize(k, 12, 9, depth * 0.3), width);
+  // La línea secundaria solo si cabe en el grosor del anillo sin pisar el nombre.
+  const showSub = sub !== null && labelSize + subSize + 4 <= depth * 0.86 && subSize >= 8.5 * k;
+  const [labelY, subY] = showSub ? stackBaselines([labelSize, subSize], 5) : [labelSize * 0.36, 0];
   const classes = [
     "chord-sector",
     small ? "is-outer" : "",
     shared ? "is-shared" : "",
     isPrevious ? "is-previous" : "",
+    isPivot ? "is-pivot" : "",
     score >= 1 && entry.transition.reason.kind !== "noContext" ? "is-strong" : "",
   ].join(" ");
   return (
@@ -318,15 +381,36 @@ function ChordSector({
     >
       <path d={sectorPath(a - HALF, a + HALF, r0, r1)} />
       <g className="upright" style={{ transform: `translate(${x}px, ${y}px) rotate(${-rotation}deg)` }}>
-        <text y={sub ? -4 : 6} className="sector-label" style={text.length > 3 ? { fontSize: Math.max(11, (small ? 16 : 21) - (text.length - 3) * 2.2) } : undefined}>
+        <text y={labelY} className="sector-label" style={{ fontSize: labelSize }} {...fitProps(text, labelSize, width)}>
           {text}
         </text>
-        {sub && (
-          <text y={16} className="sector-sub">
+        {showSub && sub !== null && (
+          <text y={subY} className="sector-sub" style={{ fontSize: subSize }} {...fitProps(sub, subSize, width)}>
             {sub}
           </text>
         )}
       </g>
+    </g>
+  );
+}
+
+const scoreDots = (score: number) => "●".repeat(score >= 1 ? 3 : score >= 0.7 ? 2 : score > 0 ? 1 : 0) || "○";
+
+type CenterLine = { text: string; className: string; base: number; min: number; color?: string };
+
+/** Centro de la rueda: la tonalidad, o el acorde bajo el ratón (en grande, para leerlo bien). */
+function WheelCenter({ k, tip, lines }: { k: number; tip: string; lines: CenterLine[] }) {
+  const sizes = lines.map((l, i) => fitWidth(l.text, fontSize(k, l.base, l.min, i === 0 ? R.center * 0.6 : R.center * 0.3), R.center * 1.8));
+  const baselines = stackBaselines(sizes, 8);
+  const width = R.center * 1.8;
+  return (
+    <g className="wheel-center" data-tip={tip}>
+      <circle r={R.center} fill="transparent" />
+      {lines.map((l, i) => (
+        <text key={l.className} y={baselines[i]} className={l.className} style={{ fontSize: sizes[i], fill: l.color }} {...fitProps(l.text, sizes[i], width)}>
+          {l.text}
+        </text>
+      ))}
     </g>
   );
 }

@@ -12,6 +12,7 @@ import { useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";
 import { sameRef, useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
+import { ModulationMarks } from "./ModulationMarks";
 import { gridStep, pxPerTick, snap, tickToX, xToTick } from "./geometry";
 import { VoiceLines } from "./VoiceLines";
 
@@ -56,7 +57,7 @@ export function ChordRibbon() {
   const { t } = useTranslation();
   const view = useSong((s) => s.view) as SongView;
   const edit = useSong((s) => s.edit);
-  const { pxPerBar, notation, symbols, level, grid, selected, select, showVoices } = useUi();
+  const { pxPerBar, notation, symbols, level, gridDivisions, selected, select, showVoices } = useUi();
   const payload = useDrag((s) => s.payload);
   const dragX = useDrag((s) => s.x);
   const dragY = useDrag((s) => s.y);
@@ -113,10 +114,11 @@ export function ChordRibbon() {
     e.stopPropagation();
     if (e.button !== 0) return;
     const startX = e.clientX;
-    const step = gridStep(grid);
+    // En modo libre, un acorde no baja de una semicorchea.
+    const step = gridDivisions > 0 ? gridStep(gridDivisions) : gridStep(16);
     let length = c.length;
     const move = (ev: PointerEvent) => {
-      length = Math.max(step, snap(c.length + (ev.clientX - startX) / ppt, grid));
+      length = Math.max(step, snap(c.length + (ev.clientX - startX) / ppt, gridDivisions));
       setResize({ section: c.section, index: c.index, length });
     };
     const up = () => {
@@ -156,6 +158,8 @@ export function ChordRibbon() {
         })}
       </svg>
 
+      <ModulationMarks />
+
       <div className={`ribbon-lane ${payload ? "is-drop-zone" : ""}`} ref={laneRef} data-tip="concept.tension">
         {view.chords.length === 0 && <EmptyRibbon />}
 
@@ -181,6 +185,12 @@ export function ChordRibbon() {
                 ["--tension" as string]: c.label.tension,
               }}
               onPointerDown={(e) => onBlockDown(e, c)}
+              onDoubleClick={(e) => {
+                // Doble clic: extensiones y voces al lado del acorde.
+                const r = e.currentTarget.getBoundingClientRect();
+                select({ section: c.section, index: c.index });
+                useUi.getState().set({ chordTools: { tab: "extensions", anchor: { left: r.left, right: r.right, top: r.top } } });
+              }}
             >
               <div className="block-glow" />
               <div className="block-body">

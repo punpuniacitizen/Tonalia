@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { isMinorLike, keyName, keyRootName, SCALE_CHOICES, scaleSteps } from "../../lib/music";
@@ -22,11 +22,31 @@ export function Header() {
   const playing = useTransport((s) => s.playing);
   const { toggle, rewind } = useTransport();
 
+  const headerRef = useRef<HTMLElement>(null);
+  // Si no entra todo, se compacta por pasos (ver Header.css) hasta que entre: así los botones
+  // de la derecha (deshacer, rehacer, sonido) nunca quedan fuera de la ventana.
+  // 4 = notación y nombres/romanos pasan al menú de nivel · 5 = sin el nombre «Tonalia».
+  useLayoutEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const fit = () => {
+      for (let level = 0; level <= 5; level++) {
+        el.dataset.compact = String(level);
+        if (el.scrollWidth <= el.clientWidth) break;
+      }
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    for (const child of el.children) ro.observe(child);
+    return () => ro.disconnect();
+  }, [view !== null]);
+
   if (!view) return <header className="header" />;
   const song = view.song;
 
   return (
-    <header className="header">
+    <header className="header" ref={headerRef}>
       <div className="brand">
         <span className="brand-orb" aria-hidden="true" />
         <span className="brand-name">Tonalia</span>
@@ -88,6 +108,30 @@ export function Header() {
         >
           {() => (
             <div className="settings-panel">
+              <label className="setting compact-only">
+                <span>{t("view.notation")}</span>
+                <Segmented<Notation>
+                  label={t("view.notation")}
+                  value={ui.notation}
+                  onChange={(notation) => ui.set({ notation })}
+                  options={[
+                    { value: "letters", label: t("view.letters") },
+                    { value: "solfege", label: t("view.solfege") },
+                  ]}
+                />
+              </label>
+              <label className="setting compact-only">
+                <span>{t("view.symbols")}</span>
+                <Segmented<SymbolMode>
+                  label={t("view.symbols")}
+                  value={ui.symbols}
+                  onChange={(symbols) => ui.set({ symbols })}
+                  options={[
+                    { value: "names", label: t("view.names") },
+                    { value: "roman", label: t("view.roman") },
+                  ]}
+                />
+              </label>
               <label className="setting">
                 <span>{t("view.level")}</span>
                 <Segmented<Level>
@@ -133,6 +177,13 @@ export function Header() {
           title={t("training.title")}
         >
           <Icon name="ear" size={16} /> <span className="learn-button-label">{t("training.short")}</span>
+        </button>
+        <button
+          className={`learn-button ${ui.panel === "learn" ? "is-on" : ""}`}
+          onClick={() => ui.set({ panel: ui.panel === "learn" ? null : "learn" })}
+          title={t("learn.title")}
+        >
+          <Icon name="cap" size={16} /> <span className="learn-button-label">{t("learn.short")}</span>
         </button>
       </div>
 

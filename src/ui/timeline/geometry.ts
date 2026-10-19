@@ -1,4 +1,3 @@
-import type { Grid } from "../../bindings/Grid";
 import { TICKS_PER_BAR } from "../../lib/music";
 
 /** Margen izquierdo del contenido de la línea de tiempo (deja sitio a la tira de teclado). */
@@ -16,23 +15,12 @@ export function xToTick(x: number, pxPerBar: number): number {
   return (x - PAD) / pxPerTick(pxPerBar);
 }
 
-const GRID_TICKS: Record<Grid, number> = {
-  off: 1,
-  bar: 10368,
-  half: 5184,
-  beat: 2592,
-  eighth: 1296,
-  sixteenth: 648,
-  thirtySecond: 324,
-  eighthTriplet: 864,
-  sixteenthTriplet: 432,
-};
-
-export function gridStep(grid: Grid): number {
-  return GRID_TICKS[grid];
+/** Ticks de cada división de la cuadrícula: el compás partido en `divisions` (0 = libre). */
+export function gridStep(divisions: number): number {
+  return divisions > 0 ? TICKS_PER_BAR / divisions : 1;
 }
 
-export function snap(ticks: number, grid: Grid): number {
-  const step = gridStep(grid);
+export function snap(ticks: number, divisions: number): number {
+  const step = gridStep(divisions);
   return Math.round(ticks / step) * step;
 }

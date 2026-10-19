@@ -105,7 +105,7 @@ pub fn tensions_labeled(chord: &Chord, key: &Key) -> Vec<TensionView> {
 pub fn substitutes_labeled(chord: &Chord, key: &Key, previous: Option<&Chord>) -> Vec<SubstituteView> {
     crate::reharm::substitutes(chord, key)
         .into_iter()
-        .map(|s| SubstituteView { label: describe(&s.chord, key), transition: score(previous, &s.chord, key.root), kind: s.kind, chord: s.chord })
+        .map(|s| SubstituteView { label: describe(&s.chord, key), transition: score(previous, &s.chord, key), kind: s.kind, chord: s.chord })
         .collect()
 }
 
@@ -194,7 +194,7 @@ pub fn song_view(song: &Song, can_undo: bool, can_redo: bool) -> SongView {
             length: c.entry.length,
             chord: chord.clone(),
             label: describe(chord, &c.key),
-            transition: score(previous, chord, c.key.root),
+            transition: score(previous, chord, &c.key),
             voicing: c.entry.voicing.iter().map(|n| Note { position: n.position + c.start, ..n.clone() }).collect(),
             key: c.key.clone(),
         });
