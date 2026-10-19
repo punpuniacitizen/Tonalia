@@ -99,6 +99,23 @@
     "preview": "Listen",
     "tension": "Tension"
   },
+  "sections": {
+    "name": "Section name",
+    "key": "Section key",
+    "inherit": "Song key",
+    "keyHint": "A section with its own key is a modulation: the wheel and piano roll adapt.",
+    "addAfter": "Section after",
+    "addSub": "Subsection",
+    "subSuffix": "1",
+    "wrap": "Wrap",
+    "delete": "Delete",
+    "add": "Add section at the end",
+    "editHint": "Click to edit the section"
+  },
+  "timeline": {
+    "rulerHint": "Click: move the playhead · Drag: set the loop region",
+    "loopHint": "Loop region (double-click to remove)"
+  },
   "file": {
     "untitled": "Untitled",
     "unsaved": "Unsaved changes",

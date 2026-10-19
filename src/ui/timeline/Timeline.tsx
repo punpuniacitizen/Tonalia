@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { TICKS_PER_BAR } from "../../lib/music";
+import { keyRootName, TICKS_PER_BAR } from "../../lib/music";
+import { Icon } from "../common/Icon";
+import { nextSectionName, SectionEditor } from "./SectionEditor";
 import { INSTRUMENTS } from "../../lib/instruments";
 import { TrackLanes } from "../tracks/TrackLanes";
 import { useNotes } from "../../stores/notes";
@@ -9,7 +11,7 @@ import { useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";
 import { useUi } from "../../stores/ui";
 import { ChordRibbon } from "./ChordRibbon";
-import { PAD, tickToX, xToTick } from "./geometry";
+import { gridStep, PAD, tickToX, xToTick } from "./geometry";
 import "./Timeline.css";
 
 export function Timeline() {
@@ -17,6 +19,11 @@ export function Timeline() {
   const pxPerBar = useUi((s) => s.pxPerBar);
   const seek = useTransport((s) => s.seek);
   const hasRoll = useNotes((s) => s.expandedTrack !== null);
+  const edit = useSong((s) => s.edit);
+  const notation = useUi((s) => s.notation);
+  const { t } = useTranslation();
+  const [loopDraft, setLoopDraft] = useState<{ start: number; end: number } | null>(null);
+  const [editing, setEditing] = useState<{ id: number; x: number; y: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState(1200);
   const ready = view !== null;
@@ -49,16 +56,55 @@ export function Timeline() {
   const width = PAD * 2 + bars * pxPerBar;
   const maxDepth = Math.max(0, ...view.sections.map((s) => s.depth));
 
-  const onRulerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Regla: clic = mover el cursor; arrastrar = definir la región de bucle.
+  const onRulerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    seek(Math.max(0, xToTick(e.clientX - rect.left, pxPerBar)));
+    const tickAt = (clientX: number) => Math.max(0, xToTick(clientX - rect.left, pxPerBar));
+    const step = gridStep(useUi.getState().grid);
+    const start = tickAt(e.clientX);
+    const startX = e.clientX;
+    let dragging = false;
+    let region: { start: number; end: number } | null = null;
+    const move = (ev: PointerEvent) => {
+      if (!dragging && Math.abs(ev.clientX - startX) > 4) dragging = true;
+      if (dragging) {
+        const a = Math.floor(Math.min(start, tickAt(ev.clientX)) / step) * step;
+        const b = Math.ceil(Math.max(start, tickAt(ev.clientX)) / step) * step;
+        region = { start: a, end: Math.max(b, a + step) };
+        setLoopDraft(region);
+      }
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      setLoopDraft(null);
+      if (!dragging || !region) {
+        seek(start);
+        return;
+      }
+      void edit({ type: "batch", commands: [{ type: "setLoopRegion", region }, { type: "setLooping", looping: true }] });
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
   };
+
+  const loop = loopDraft ?? view.song.loopRegion;
 
   return (
     <section className={`timeline ${hasRoll ? "has-roll" : ""}`}>
       <div className="timeline-scroll" ref={scrollRef}>
         <div className="timeline-content" style={{ width, ["--bar" as string]: `${pxPerBar}px`, ["--pad" as string]: `${PAD}px` }}>
-          <div className="ruler" onClick={onRulerClick}>
+          <div className="ruler" onPointerDown={onRulerDown} title={t("timeline.rulerHint")}>
+            {loop && (
+              <div
+                className={`loop-band ${view.song.looping ? "is-on" : ""}`}
+                style={{ left: tickToX(loop.start, pxPerBar), width: (loop.end - loop.start) * (pxPerBar / TICKS_PER_BAR) }}
+                title={t("timeline.loopHint")}
+                onPointerDown={(e) => e.stopPropagation()}
+                onDoubleClick={() => edit({ type: "setLoopRegion", region: null })}
+              />
+            )}
             {Array.from({ length: bars }, (_, i) => (
               <span key={i} className="ruler-bar" style={{ left: tickToX(i * TICKS_PER_BAR, pxPerBar) }}>
                 {i + 1}
@@ -68,19 +114,33 @@ export function Timeline() {
 
           <div className="section-bar" style={{ height: (maxDepth + 1) * 24 }}>
             {view.sections.map((s) => (
-              <div
+              <button
                 key={s.id}
-                className={`section-pill ${s.isLeaf ? "is-leaf" : ""}`}
+                className={`section-pill ${s.isLeaf ? "is-leaf" : ""} ${editing?.id === s.id ? "is-editing" : ""}`}
                 style={{
                   left: tickToX(s.start, pxPerBar),
                   width: s.length * (pxPerBar / TICKS_PER_BAR) - 4,
                   top: s.depth * 24,
                   ["--section-color" as string]: s.color,
                 }}
+                title={t("sections.editHint")}
+                onClick={(e) => {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setEditing({ id: s.id, x: r.left, y: r.bottom + 6 });
+                }}
               >
                 {s.name}
-              </div>
+                {s.hasOwnKey && <span className="section-key">{keyRootName(s.key.root, s.key.scale.name, notation)}</span>}
+              </button>
             ))}
+            <button
+              className="section-add"
+              style={{ left: tickToX(view.length, pxPerBar) + 4 }}
+              title={t("sections.add")}
+              onClick={() => edit({ type: "addSection", parent: null, index: view.song.sections.length, name: nextSectionName(view) })}
+            >
+              <Icon name="plus" size={12} />
+            </button>
           </div>
 
           <ChordTrackHead />
@@ -90,6 +150,7 @@ export function Timeline() {
           <Playhead />
         </div>
       </div>
+      {editing && <SectionEditor id={editing.id} x={editing.x} y={editing.y} onClose={() => setEditing(null)} />}
     </section>
   );
 }

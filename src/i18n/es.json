@@ -99,6 +99,23 @@
     "preview": "Escuchar",
     "tension": "Tensión"
   },
+  "sections": {
+    "name": "Nombre de la sección",
+    "key": "Tonalidad de la sección",
+    "inherit": "La de la canción",
+    "keyHint": "Una sección con tonalidad propia es una modulación: la rueda y el piano roll se adaptan.",
+    "addAfter": "Sección después",
+    "addSub": "Subsección",
+    "subSuffix": "1",
+    "wrap": "Envolver",
+    "delete": "Borrar",
+    "add": "Añadir sección al final",
+    "editHint": "Clic para editar la sección"
+  },
+  "timeline": {
+    "rulerHint": "Clic: mover el cursor · Arrastrar: definir la región de bucle",
+    "loopHint": "Región de bucle (doble clic para quitarla)"
+  },
   "file": {
     "untitled": "Sin título",
     "unsaved": "Cambios sin guardar",

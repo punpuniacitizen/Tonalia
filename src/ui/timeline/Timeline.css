@@ -45,7 +45,24 @@
   border-bottom: 1px solid var(--line);
 }
 
+.loop-band {
+  position: absolute;
+  top: 3px;
+  height: 18px;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--text-2) 25%, transparent);
+  border: 1px solid var(--line-strong);
+  cursor: pointer;
+}
+
+.loop-band.is-on {
+  background: color-mix(in oklab, var(--accent-2) 22%, transparent);
+  border-color: var(--accent-2);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--accent-2) 40%, transparent);
+}
+
 .ruler-bar {
+  pointer-events: none;
   position: absolute;
   top: 6px;
   padding-left: 6px;
@@ -75,6 +92,112 @@
   border: 1px solid color-mix(in oklab, var(--section-color) 45%, transparent);
   overflow: hidden;
   white-space: nowrap;
+  cursor: pointer;
+  gap: 6px;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.section-pill:hover,
+.section-pill.is-editing {
+  background: color-mix(in oklab, var(--section-color) 30%, transparent);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--section-color) 40%, transparent);
+}
+
+.section-key {
+  padding: 0 5px;
+  border-radius: 4px;
+  font-weight: 500;
+  background: color-mix(in oklab, var(--section-color) 35%, transparent);
+}
+
+.section-add {
+  position: absolute;
+  top: 0;
+  width: 22px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--text-2);
+  border: 1px dashed var(--line-strong);
+}
+
+.section-add:hover {
+  color: var(--text-0);
+  border-color: var(--accent);
+}
+
+.section-editor {
+  position: fixed;
+  z-index: 60;
+  width: 300px;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  animation: pop-in 0.18s var(--ease-out);
+}
+
+.section-name-input {
+  padding: 6px 10px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+
+.swatches {
+  display: flex;
+  gap: 6px;
+}
+
+.swatches button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.swatches button.is-active {
+  border-color: var(--text-0);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+.key-row {
+  display: flex;
+  gap: 6px;
+}
+
+.key-row select {
+  flex: 1;
+  padding: 4px 6px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+}
+
+.section-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.section-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-s);
+  background: var(--bg-3);
+  font-size: 12px;
+}
+
+.section-actions button:hover {
+  background: var(--bg-4);
+}
+
+.section-actions button.danger:hover {
+  background: color-mix(in oklab, var(--danger) 40%, var(--bg-3));
 }
 
 /* ---------- Cinta de acordes ---------- */
