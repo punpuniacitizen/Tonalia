@@ -3,6 +3,7 @@
 
 import type { Chord } from "../bindings/Chord";
 import type { Key } from "../bindings/Key";
+import { tonicIntervals } from "./music";
 
 export type Triad = { chord: Chord; degree: number };
 export type Distance = "same" | "relative" | "parallel" | "neighbor" | "close" | "far";
@@ -12,16 +13,20 @@ export type BridgePlan = { kind: "pivot" | "dominant" | "direct"; chords: Chord[
 const mod12 = (n: number) => ((n % 12) + 12) % 12;
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
 
-/** Las 7 notas de la tonalidad, desde la tónica. */
+/** Las notas de la tonalidad, desde la tónica (7 en las tonalidades de siempre). */
 export function scalePcs(key: Key): number[] {
   const out = [mod12(key.root)];
-  for (const step of key.scale.steps.slice(0, 6)) out.push(mod12(out[out.length - 1] + step));
+  for (const step of key.scale.steps.slice(0, -1)) out.push(mod12(out[out.length - 1] + step));
   return out;
 }
 
-/** Tríada sobre cada grado, solo con notas de la escala. */
+/**
+ * Tríada sobre cada grado, solo con notas de la escala. En escalas que no tienen siete notas
+ * (pentatónicas, blues…) apilar terceras no tiene sentido: solo cuenta la tríada de la tónica.
+ */
 export function diatonicTriads(key: Key): Triad[] {
   const pcs = scalePcs(key);
+  if (pcs.length !== 7) return [{ degree: 0, chord: { root: pcs[0], intervals: tonicIntervals(key.scale.steps) } }];
   return pcs.map((root, degree) => ({
     degree,
     chord: { root, intervals: [mod12(pcs[(degree + 2) % 7] - root), mod12(pcs[(degree + 4) % 7] - root)] },
@@ -41,11 +46,13 @@ export const sameKey = (a: Key, b: Key) => mod12(a.root) === mod12(b.root) && JS
 /** Distancia entre tonalidades según cuántas notas comparten (y si comparten tónica). */
 export function keyDistance(a: Key, b: Key): { kind: Distance; shared: number } {
   const pa = new Set(scalePcs(a));
-  const shared = scalePcs(b).filter((p) => pa.has(p)).length;
+  const pb = scalePcs(b);
+  const shared = pb.filter((p) => pa.has(p)).length;
   if (sameKey(a, b)) return { kind: "same", shared };
   if (mod12(a.root) === mod12(b.root)) return { kind: "parallel", shared };
-  if (shared === 7) return { kind: "relative", shared };
-  if (shared === 6) return { kind: "neighbor", shared };
+  // Mismas notas, otra tónica (Do mayor ↔ La menor, o sus pentatónicas).
+  if (shared === pa.size && shared === pb.length) return { kind: "relative", shared };
+  if (shared === 6 && pa.size === 7 && pb.length === 7) return { kind: "neighbor", shared };
   if (shared >= 4) return { kind: "close", shared };
   return { kind: "far", shared };
 }

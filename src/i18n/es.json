@@ -95,7 +95,12 @@
   "key": {
     "title": "Tonalidad",
     "home": "Tonalidad de la canción",
-    "rotate": "Gira el anillo exterior para cambiar de tonalidad"
+    "rotate": "Gira el anillo exterior para cambiar de tonalidad",
+    "groups": {
+      "modes": "Modos y menores",
+      "world": "Del mundo · 7 notas",
+      "other": "Pentatónicas, blues y simétricas"
+    }
   },
   "scale": {
     "major": "mayor",
@@ -109,7 +114,35 @@
     "locrian": "locrio",
     "harmonicMinor": "menor armónica",
     "melodicMinor": "menor melódica",
+    "phrygianDominant": "Hijaz",
+    "doubleHarmonic": "doble armónica",
+    "hungarianMinor": "húngara menor",
+    "persian": "persa",
+    "neapolitanMinor": "napolitana menor",
+    "neapolitanMajor": "napolitana mayor",
+    "majorPentatonic": "pentatónica mayor",
+    "minorPentatonic": "pentatónica menor",
+    "blues": "blues",
+    "majorBlues": "blues mayor",
+    "wholeTone": "tonos enteros",
+    "hirajoshi": "hirajoshi",
+    "diminished": "disminuida",
     "chromatic": "cromática"
+  },
+  "scaleHint": {
+    "phrygianDominant": "árabe · flamenco",
+    "doubleHarmonic": "árabe · bizantina",
+    "hungarianMinor": "gitana",
+    "persian": "Medio Oriente",
+    "neapolitanMinor": "ópera · clásica",
+    "neapolitanMajor": "clásica · jazz",
+    "majorPentatonic": "folk · country",
+    "minorPentatonic": "rock · blues",
+    "blues": "con blue note",
+    "majorBlues": "country · soul",
+    "wholeTone": "Debussy · sueños",
+    "hirajoshi": "japonesa",
+    "diminished": "semitono-tono · jazz"
   },
   "wheel": {
     "title": "Rueda armónica",
@@ -261,11 +294,25 @@
   "library": {
     "title": "Biblioteca de progresiones",
     "short": "Biblioteca",
-    "subtitle": "Escucha y añade progresiones famosas en {{key}}",
+    "subtitle": "Escucha y añade progresiones en {{key}}. Haz clic en una para saber más.",
     "listen": "Escuchar",
     "add": "Añadir a la canción",
     "relativeMinor": "Progresión menor: se toca en la relativa, {{key}} menor.",
-    "relativeMajor": "Progresión mayor: se toca en la relativa, {{key}} mayor."
+    "relativeMajor": "Progresión mayor: se toca en la relativa, {{key}} mayor.",
+    "fromScale": "Sale de {{key}}: algunos acordes quedan fuera de tu tonalidad.",
+    "fromScaleFits": "Sale de {{key}}, pero todos sus acordes caben en tu tonalidad.",
+    "useScale": "Cambiar la tonalidad a {{key}}",
+    "empty": "Ninguna progresión de la biblioteca encaja en {{key}}. Prueba otro filtro.",
+    "filters": {
+      "all": "Todas",
+      "fits": "Encajan ({{count}})",
+      "pop": "Pop",
+      "rock": "Rock y blues",
+      "jazz": "Jazz",
+      "classic": "Clásico",
+      "modal": "Modal y cine",
+      "world": "Del mundo"
+    }
   },
   "training": {
     "title": "Entrenamiento auditivo",

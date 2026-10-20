@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { isMinorLike, keyName, keyRootName, SCALE_CHOICES, scaleSteps } from "../../lib/music";
+import { isMinorLike, keyName, keyRootName, SCALE_GROUPS, scaleSteps } from "../../lib/music";
 import { useSong } from "../../stores/song";
 import { useTransport } from "../../stores/transport";
 import { useUi, type Language, type Level, type SymbolMode } from "../../stores/ui";
@@ -289,13 +289,19 @@ function KeyPill() {
               </button>
             ))}
           </div>
-          <div className="key-scales">
-            {SCALE_CHOICES.map((s) => (
-              <button key={s} data-tip={`mode.${s}`} className={s === key.scale.name ? "is-active" : ""} onClick={() => setKey(key.root, s)}>
-                {scaleLabel(s)}
-              </button>
-            ))}
-          </div>
+          {SCALE_GROUPS.map((g) => (
+            <div key={g.id} className="key-scale-group">
+              <span className="key-group-title">{t(`key.groups.${g.id}`)}</span>
+              <div className={`key-scales ${g.id === "modes" ? "" : "is-world"}`}>
+                {g.scales.map((s) => (
+                  <button key={s} data-tip={`mode.${s}`} className={s === key.scale.name ? "is-active" : ""} onClick={() => setKey(key.root, s)}>
+                    {scaleLabel(s)}
+                    {g.id !== "modes" && <small>{t(`scaleHint.${s}`)}</small>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </Popover>

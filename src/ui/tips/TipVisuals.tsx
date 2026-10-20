@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 
 import { BRIGHTNESS, CHARACTERISTIC, type TipVisual } from "../../tips/tips";
-import { scaleSteps } from "../../lib/music";
+import { scaleOffsets, scaleSteps } from "../../lib/music";
 
 const FN = { tonic: "var(--fn-tonic)", subdominant: "var(--fn-subdominant)", dominant: "var(--fn-dominant)" } as const;
 
@@ -43,6 +43,8 @@ export function TipVisualView({ visual, lang }: { visual: TipVisual; lang: "es" 
       return <Subdivision lang={lang} />;
     case "modulation":
       return <Modulation lang={lang} />;
+    case "worldScales":
+      return <WorldScales lang={lang} />;
   }
 }
 
@@ -234,7 +236,7 @@ const BLACK: [number, number][] = [
   [8, 4],
   [10, 5],
 ];
-const DEGREE_LABEL: Record<number, string> = { 1: "♭2", 6: "♯4 / ♭5", 8: "♭6", 9: "6", 10: "♭7", 11: "7" };
+const DEGREE_LABEL: Record<number, string> = { 1: "♭2", 3: "♭3", 6: "♯4 / ♭5", 8: "♭6", 9: "6", 10: "♭7", 11: "7" };
 
 /** Teclado de una octava desde Do con las notas del modo y su nota característica. */
 function ModeKeys({ scale, lang }: { scale: string; lang: string }) {
@@ -683,6 +685,47 @@ function Modulation({ lang }: { lang: string }) {
       ))}
       <text x={160} y={118} className="tip-caption">
         {es ? "pivotes: acordes en común" : "pivots: shared chords"}
+      </text>
+    </svg>
+  );
+}
+
+/** Cuatro escalas como recortes de las 12 notas: cada tradición elige las suyas. */
+function WorldScales({ lang }: { lang: string }) {
+  const es = lang === "es";
+  const rows = [
+    { scale: "majorPentatonic", label: es ? "pentatónica" : "pentatonic" },
+    { scale: "phrygianDominant", label: "Hijaz" },
+    { scale: "blues", label: "blues" },
+    { scale: "wholeTone", label: es ? "tonos enteros" : "whole tone" },
+  ];
+  return (
+    <svg viewBox="0 0 320 124" className="tip-svg">
+      {rows.map((r, row) => {
+        const on = new Set(scaleOffsets(scaleSteps(r.scale)));
+        const y = 18 + row * 28;
+        return (
+          <g key={r.scale}>
+            <text x={92} y={y + 4} className="tip-small" style={{ textAnchor: "end" }}>
+              {r.label}
+            </text>
+            {Array.from({ length: 12 }, (_, pc) => (
+              <motion.circle
+                key={pc}
+                cx={104 + pc * 17}
+                cy={y}
+                r={6}
+                fill={on.has(pc) ? (pc === 0 ? "var(--fn-tonic)" : "var(--accent-2)") : "#2a2f45"}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: row * 0.12 + pc * 0.02 }}
+              />
+            ))}
+          </g>
+        );
+      })}
+      <text x={204} y={120} className="tip-caption">
+        {es ? "las 12 notas, cuatro recortes" : "12 notes, four selections"}
       </text>
     </svg>
   );

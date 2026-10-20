@@ -5,7 +5,7 @@ import { api } from "../../api";
 import type { Chord } from "../../bindings/Chord";
 import type { ChordView } from "../../bindings/ChordView";
 import type { SongView } from "../../bindings/SongView";
-import { chordSymbol, functionColor, isMinorLike, romanSymbol } from "../../lib/music";
+import { chordSymbol, exampleProgression, functionColor, romanSymbol } from "../../lib/music";
 import { reasonText } from "../../lib/reason";
 import { onDrop, pointerGesture, useDrag, type DropTarget } from "../../stores/drag";
 import { useSong } from "../../stores/song";
@@ -222,11 +222,8 @@ function EmptyRibbon() {
   const section = view.sections.filter((s) => s.isLeaf)[0].id;
 
   const tryExample = () => {
-    // I–V–vi–IV en mayor; i–VI–III–VII en menor.
-    const degrees: [number, number[]][] = isMinorLike(key.scale.name)
-      ? [[0, [3, 7]], [8, [4, 7]], [3, [4, 7]], [10, [4, 7]]]
-      : [[0, [4, 7]], [7, [4, 7]], [9, [3, 7]], [5, [4, 7]]];
-    const commands = degrees.map(([deg, intervals], index) => {
+    // I–V–vi–IV en mayor, i–VI–III–VII en menor; las escalas del mundo tienen la suya.
+    const commands = exampleProgression(key.scale.name).map(([deg, intervals], index) => {
       const chord: Chord = { root: (key.root + deg) % 12, intervals };
       return { type: "insertChord" as const, section, index, chord, length: null };
     });

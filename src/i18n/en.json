@@ -95,7 +95,12 @@
   "key": {
     "title": "Key",
     "home": "Song key",
-    "rotate": "Turn the outer ring to change key"
+    "rotate": "Turn the outer ring to change key",
+    "groups": {
+      "modes": "Modes and minors",
+      "world": "World · 7 notes",
+      "other": "Pentatonic, blues and symmetric"
+    }
   },
   "scale": {
     "major": "major",
@@ -109,7 +114,35 @@
     "locrian": "Locrian",
     "harmonicMinor": "harmonic minor",
     "melodicMinor": "melodic minor",
+    "phrygianDominant": "Hijaz",
+    "doubleHarmonic": "double harmonic",
+    "hungarianMinor": "Hungarian minor",
+    "persian": "Persian",
+    "neapolitanMinor": "Neapolitan minor",
+    "neapolitanMajor": "Neapolitan major",
+    "majorPentatonic": "major pentatonic",
+    "minorPentatonic": "minor pentatonic",
+    "blues": "blues",
+    "majorBlues": "major blues",
+    "wholeTone": "whole tone",
+    "hirajoshi": "hirajoshi",
+    "diminished": "diminished",
     "chromatic": "chromatic"
+  },
+  "scaleHint": {
+    "phrygianDominant": "Arabic · flamenco",
+    "doubleHarmonic": "Arabic · Byzantine",
+    "hungarianMinor": "Gypsy",
+    "persian": "Middle East",
+    "neapolitanMinor": "opera · classical",
+    "neapolitanMajor": "classical · jazz",
+    "majorPentatonic": "folk · country",
+    "minorPentatonic": "rock · blues",
+    "blues": "with blue note",
+    "majorBlues": "country · soul",
+    "wholeTone": "Debussy · dreams",
+    "hirajoshi": "Japanese",
+    "diminished": "half-whole · jazz"
   },
   "wheel": {
     "title": "Harmony wheel",
@@ -261,11 +294,25 @@
   "library": {
     "title": "Progression library",
     "short": "Library",
-    "subtitle": "Listen to and add famous progressions in {{key}}",
+    "subtitle": "Listen to and add progressions in {{key}}. Click one to learn more.",
     "listen": "Listen",
     "add": "Add to song",
     "relativeMinor": "Minor progression: played in the relative, {{key}} minor.",
-    "relativeMajor": "Major progression: played in the relative, {{key}} major."
+    "relativeMajor": "Major progression: played in the relative, {{key}} major.",
+    "fromScale": "It comes from {{key}}: some chords fall outside your key.",
+    "fromScaleFits": "It comes from {{key}}, but all its chords fit your key.",
+    "useScale": "Switch the key to {{key}}",
+    "empty": "No library progression fits {{key}}. Try another filter.",
+    "filters": {
+      "all": "All",
+      "fits": "Fit ({{count}})",
+      "pop": "Pop",
+      "rock": "Rock & blues",
+      "jazz": "Jazz",
+      "classic": "Classical",
+      "modal": "Modal & film",
+      "world": "World"
+    }
   },
   "training": {
     "title": "Ear training",

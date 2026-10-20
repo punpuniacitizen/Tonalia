@@ -2,7 +2,7 @@
 // Cada tip tiene texto (es/en), un visual y, opcionalmente, un ejemplo sonoro.
 
 import { chordsSequence, melodySequence, type SequenceNote } from "../api";
-import { scaleSteps } from "../lib/music";
+import { scaleSteps, tonicIntervals } from "../lib/music";
 
 export type TipVisual =
   | { kind: "gravity"; focus: "tonic" | "subdominant" | "dominant" | null }
@@ -21,7 +21,8 @@ export type TipVisual =
   | { kind: "triad" }
   | { kind: "diatonic" }
   | { kind: "subdivision" }
-  | { kind: "modulation" };
+  | { kind: "modulation" }
+  | { kind: "worldScales" };
 
 type Text = { title: string; kicker: string; mood: string[]; body: string; useWhen: string[]; examples?: string };
 
@@ -36,12 +37,12 @@ const C = [60, 64, 67];
 const scaleFromC = (name: string) => {
   const out = [60];
   for (const step of scaleSteps(name)) out.push(out[out.length - 1] + step);
-  return out.slice(0, 8);
+  return out;
 };
 const modeSound = (name: string) => () => {
   const s = scaleFromC(name);
   const scale = melodySequence(s);
-  const tonic = [s[0], s[2], s[4]];
+  const tonic = [60, ...tonicIntervals(scaleSteps(name)).map((i) => 60 + i)];
   return [...scale, ...chordsSequence([tonic], 1.2).map((n) => ({ ...n, delay: n.delay + s.length * 0.28 + 0.2 }))];
 };
 
@@ -58,6 +59,19 @@ export const BRIGHTNESS: Record<string, number> = {
   harmonicMinor: 3,
   phrygian: 2,
   locrian: 1,
+  majorPentatonic: 6,
+  wholeTone: 6,
+  majorBlues: 5,
+  phrygianDominant: 3,
+  doubleHarmonic: 3,
+  neapolitanMajor: 3,
+  minorPentatonic: 3,
+  blues: 3,
+  hungarianMinor: 2,
+  persian: 2,
+  neapolitanMinor: 2,
+  hirajoshi: 2,
+  diminished: 2,
 };
 
 /** La nota que da carácter al modo (semitonos sobre la tónica). */
@@ -73,6 +87,17 @@ export const CHARACTERISTIC: Record<string, number> = {
   locrian: 6,
   harmonicMinor: 11,
   melodicMinor: 9,
+  phrygianDominant: 1,
+  doubleHarmonic: 1,
+  hungarianMinor: 6,
+  persian: 6,
+  neapolitanMinor: 1,
+  neapolitanMajor: 1,
+  blues: 6,
+  majorBlues: 3,
+  wholeTone: 6,
+  hirajoshi: 8,
+  diminished: 1,
 };
 
 const majorText = {
@@ -304,6 +329,252 @@ export const TIPS: Record<string, Tip> = {
       mood: ["sophistication", "smoothness", "ambiguity", "elegance"],
       body: "Minor with raised sixth and seventh: it starts minor and ends major. It smooths out harmonic minor's jump and is a huge source of jazz chords.",
       useWhen: ["Minor melodic lines rising to the tonic", "Jazz and bossa nova", "Minor sounds without drama"],
+    },
+  },
+  "mode.phrygianDominant": {
+    visual: { kind: "mode", scale: "phrygianDominant" },
+    sound: modeSound("phrygianDominant"),
+    es: {
+      title: "Hijaz (frigio dominante)",
+      kicker: "El sonido de Medio Oriente y el flamenco",
+      mood: ["exótico", "apasionado", "ceremonial", "tenso"],
+      body: "Es el 5.º modo de la menor armónica: un frigio con la tercera mayor. El salto entre ♭2 y 3 (una segunda aumentada) es lo que el oído reconoce como árabe o andaluz. El maqam Hijaz de la música árabe tiene esta forma.",
+      useWhen: ["Melodías con aire árabe, klezmer o flamenco", "Riffs de surf rock y metal", "Vaivenes entre la tónica y el ♭II mayor"],
+      examples: "«Misirlou»; el final de la cadencia andaluza; mucha música klezmer.",
+    },
+    en: {
+      title: "Hijaz (Phrygian dominant)",
+      kicker: "The sound of the Middle East and flamenco",
+      mood: ["exotic", "passionate", "ceremonial", "tense"],
+      body: "It's the 5th mode of harmonic minor: Phrygian with a major third. The jump between ♭2 and 3 (an augmented second) is what the ear hears as Arabic or Andalusian. The Arabic maqam Hijaz has this shape.",
+      useWhen: ["Arabic, klezmer or flamenco flavored melodies", "Surf rock and metal riffs", "Rocking between the tonic and the major ♭II"],
+      examples: "'Misirlou'; the end of the Andalusian cadence; lots of klezmer.",
+    },
+  },
+  "mode.doubleHarmonic": {
+    visual: { kind: "mode", scale: "doubleHarmonic" },
+    sound: modeSound("doubleHarmonic"),
+    es: {
+      title: "Doble armónica (árabe)",
+      kicker: "Dos saltos exóticos, simétrica",
+      mood: ["misterioso", "místico", "dramático", "oriental"],
+      body: "Tiene dos segundas aumentadas (♭2 → 3 y ♭6 → 7): es un Hijaz con sensible. Se la llama árabe o bizantina (maqam Hijaz Kar). Es simétrica: sus dos mitades tienen la misma forma.",
+      useWhen: ["Bandas sonoras de desierto, templos o antiguo Egipto", "Solos «orientales» sin cuartos de tono", "Alternar I y ♭II mayor sobre un bajo fijo"],
+      examples: "Versiones surf de «Misirlou»; música de películas de época.",
+    },
+    en: {
+      title: "Double harmonic (Arabic)",
+      kicker: "Two exotic leaps, symmetrical",
+      mood: ["mysterious", "mystical", "dramatic", "Eastern"],
+      body: "It has two augmented seconds (♭2 → 3 and ♭6 → 7): a Hijaz with a leading tone. It's called Arabic or Byzantine (maqam Hijaz Kar). It's symmetrical: both halves have the same shape.",
+      useWhen: ["Desert, temple or ancient Egypt soundtracks", "'Eastern' solos without quarter tones", "Alternating I and major ♭II over a pedal bass"],
+      examples: "Surf versions of 'Misirlou'; period film scores.",
+    },
+  },
+  "mode.hungarianMinor": {
+    visual: { kind: "mode", scale: "hungarianMinor" },
+    sound: modeSound("hungarianMinor"),
+    es: {
+      title: "Húngara menor (gitana)",
+      kicker: "Menor armónica con ♯4",
+      mood: ["gitano", "dramático", "nocturno", "virtuoso"],
+      body: "La menor armónica con la cuarta elevada: aparecen dos segundas aumentadas (♭3 → ♯4 y ♭6 → 7). Suena a música gitana de Europa del Este y a romanticismo exaltado.",
+      useWhen: ["Música gitana, csárdás y folclore balcánico", "Neoclásico y metal virtuoso", "Melodías menores con más tensión que la armónica"],
+      examples: "Liszt, «Rapsodias húngaras»; mucho metal neoclásico.",
+    },
+    en: {
+      title: "Hungarian minor (Gypsy)",
+      kicker: "Harmonic minor with ♯4",
+      mood: ["Gypsy", "dramatic", "nocturnal", "virtuosic"],
+      body: "Harmonic minor with a raised fourth: two augmented seconds appear (♭3 → ♯4 and ♭6 → 7). It sounds like Eastern European Gypsy music and heated Romanticism.",
+      useWhen: ["Gypsy music, csárdás and Balkan folk", "Neoclassical and virtuosic metal", "Minor melodies with more tension than harmonic minor"],
+      examples: "Liszt, 'Hungarian Rhapsodies'; lots of neoclassical metal.",
+    },
+  },
+  "mode.persian": {
+    visual: { kind: "mode", scale: "persian" },
+    sound: modeSound("persian"),
+    es: {
+      title: "Persa",
+      kicker: "Inquieta y antigua",
+      mood: ["arcano", "inquieto", "ritual", "denso"],
+      body: "Tiene ♭2, 3 mayor, ♭5, ♭6 y 7: muchas notas a un semitono y una tónica con la quinta disminuida. Se usa más como color melódico que para armar progresiones.",
+      useWhen: ["Climas rituales o de misterio", "Solos sobre un bajo pedal", "Fantasía oscura y videojuegos"],
+    },
+    en: {
+      title: "Persian",
+      kicker: "Restless and ancient",
+      mood: ["arcane", "restless", "ritual", "dense"],
+      body: "It has ♭2, major 3, ♭5, ♭6 and 7: many notes a half step apart and a tonic with a diminished fifth. It's used more as a melodic color than for building progressions.",
+      useWhen: ["Ritual or mysterious moods", "Solos over a pedal bass", "Dark fantasy and video games"],
+    },
+  },
+  "mode.neapolitanMinor": {
+    visual: { kind: "mode", scale: "neapolitanMinor" },
+    sound: modeSound("neapolitanMinor"),
+    es: {
+      title: "Napolitana menor",
+      kicker: "Menor armónica con ♭2",
+      mood: ["sombrío", "operístico", "trágico", "solemne"],
+      body: "La menor armónica con la segunda bajada: la tónica queda rodeada de semitonos (♭2 arriba, la sensible abajo). Su nombre viene del acorde napolitano (♭II) de la ópera italiana.",
+      useWhen: ["Pasajes trágicos y solemnes", "Cadencias ♭II → V → i", "Metal sinfónico"],
+    },
+    en: {
+      title: "Neapolitan minor",
+      kicker: "Harmonic minor with ♭2",
+      mood: ["somber", "operatic", "tragic", "solemn"],
+      body: "Harmonic minor with a lowered second: the tonic is surrounded by half steps (♭2 above, the leading tone below). It's named after the Neapolitan chord (♭II) of Italian opera.",
+      useWhen: ["Tragic, solemn passages", "♭II → V → i cadences", "Symphonic metal"],
+    },
+  },
+  "mode.neapolitanMajor": {
+    visual: { kind: "mode", scale: "neapolitanMajor" },
+    sound: modeSound("neapolitanMajor"),
+    es: {
+      title: "Napolitana mayor",
+      kicker: "Menor que sube a la luz",
+      mood: ["ambiguo", "elegante", "luminoso", "extraño"],
+      body: "Como la menor melódica pero con ♭2: empieza oscura y termina brillante (6.ª y 7.ª mayores). Pese al nombre, su tónica es menor.",
+      useWhen: ["Melodías que pasan de la sombra a la luz", "Jazz moderno y música de cine", "Colores menores poco transitados"],
+    },
+    en: {
+      title: "Neapolitan major",
+      kicker: "Minor rising into light",
+      mood: ["ambiguous", "elegant", "luminous", "strange"],
+      body: "Like melodic minor but with ♭2: it starts dark and ends bright (major 6th and 7th). Despite the name, its tonic is minor.",
+      useWhen: ["Melodies moving from shadow to light", "Modern jazz and film music", "Less-traveled minor colors"],
+    },
+  },
+  "mode.majorPentatonic": {
+    visual: { kind: "mode", scale: "majorPentatonic" },
+    sound: modeSound("majorPentatonic"),
+    es: {
+      title: "Pentatónica mayor",
+      kicker: "Cinco notas que nunca chocan",
+      mood: ["alegre", "sencillo", "abierto", "folk"],
+      body: "La mayor sin la 4.ª ni la 7.ª: sin semitonos, ninguna nota roza a otra y casi cualquier combinación suena bien. Está en el folk de todo el mundo, del country a la música china. Como no hay terceras para apilar, sus acordes son sobre todo sus y cuartales.",
+      useWhen: ["Melodías fáciles de cantar", "Improvisar sin miedo a «pisar» notas", "Riffs de country, rock y pop"],
+      examples: "«My Girl»; muchas canciones infantiles y folclóricas.",
+    },
+    en: {
+      title: "Major pentatonic",
+      kicker: "Five notes that never clash",
+      mood: ["happy", "simple", "open", "folk"],
+      body: "Major without the 4th and 7th: with no half steps, no note rubs against another and almost any combination sounds good. It's in folk music everywhere, from country to Chinese music. With no thirds to stack, its chords are mostly sus and quartal.",
+      useWhen: ["Easy-to-sing melodies", "Improvising without fear of 'wrong' notes", "Country, rock and pop riffs"],
+      examples: "'My Girl'; many children's and folk songs.",
+    },
+  },
+  "mode.minorPentatonic": {
+    visual: { kind: "mode", scale: "minorPentatonic" },
+    sound: modeSound("minorPentatonic"),
+    es: {
+      title: "Pentatónica menor",
+      kicker: "La escala del rock y el blues",
+      mood: ["crudo", "rockero", "bluesero", "directo"],
+      body: "La menor sin la 2.ª ni la 6.ª. Es la primera escala que aprende casi todo guitarrista: los solos de rock y blues viven aquí. Tiene las mismas notas que la pentatónica mayor de su relativa (La menor = Do mayor).",
+      useWhen: ["Solos de rock, blues y funk", "Riffs sobre un solo acorde", "Melodías vocales con actitud"],
+      examples: "Casi todos los solos del rock clásico.",
+    },
+    en: {
+      title: "Minor pentatonic",
+      kicker: "The scale of rock and blues",
+      mood: ["raw", "rocking", "bluesy", "direct"],
+      body: "Minor without the 2nd and 6th. It's the first scale almost every guitarist learns: rock and blues solos live here. It has the same notes as its relative's major pentatonic (A minor = C major).",
+      useWhen: ["Rock, blues and funk solos", "Riffs over a single chord", "Vocal melodies with attitude"],
+      examples: "Almost every classic rock solo.",
+    },
+  },
+  "mode.blues": {
+    visual: { kind: "mode", scale: "blues" },
+    sound: modeSound("blues"),
+    es: {
+      title: "Blues",
+      kicker: "Pentatónica menor + la blue note",
+      mood: ["sucio", "expresivo", "melancólico", "con swing"],
+      body: "La pentatónica menor con una nota de paso entre la 4.ª y la 5.ª: la ♭5, o «blue note». Esa nota no forma acordes (por eso la rueda la saltea): se toca de paso, se arrastra o se dobla. La armonía del blues usa tres acordes de séptima: I7, IV7 y V7.",
+      useWhen: ["Solos de blues, rock y jazz", "Melodías con «quejido»", "Sobre un blues de 12 compases"],
+    },
+    en: {
+      title: "Blues",
+      kicker: "Minor pentatonic + the blue note",
+      mood: ["gritty", "expressive", "melancholic", "swinging"],
+      body: "Minor pentatonic with a passing note between the 4th and 5th: the ♭5, or 'blue note'. That note doesn't form chords (so the wheel skips it): it's passed through, slid or bent. Blues harmony uses three seventh chords: I7, IV7 and V7.",
+      useWhen: ["Blues, rock and jazz solos", "Melodies that 'cry'", "Over a 12-bar blues"],
+    },
+  },
+  "mode.majorBlues": {
+    visual: { kind: "mode", scale: "majorBlues" },
+    sound: modeSound("majorBlues"),
+    es: {
+      title: "Blues mayor",
+      kicker: "Pentatónica mayor + ♭3",
+      mood: ["alegre", "sureño", "juguetón", "country"],
+      body: "La pentatónica mayor con la ♭3 de paso hacia la 3.ª mayor: ese roce es el sonido del country, el soul y el rock and roll.",
+      useWhen: ["Country, rockabilly y soul", "Solos sobre acordes mayores", "Frases que «resbalan» de ♭3 a 3"],
+    },
+    en: {
+      title: "Major blues",
+      kicker: "Major pentatonic + ♭3",
+      mood: ["happy", "Southern", "playful", "country"],
+      body: "Major pentatonic with the ♭3 passing up to the major 3rd: that rub is the sound of country, soul and rock and roll.",
+      useWhen: ["Country, rockabilly and soul", "Solos over major chords", "Phrases that 'slide' from ♭3 to 3"],
+    },
+  },
+  "mode.wholeTone": {
+    visual: { kind: "mode", scale: "wholeTone" },
+    sound: modeSound("wholeTone"),
+    es: {
+      title: "Tonos enteros",
+      kicker: "Sin centro: flota",
+      mood: ["onírico", "flotante", "irreal", "suspendido"],
+      body: "Seis notas separadas todas por un tono. Al ser simétrica, ninguna nota se siente casa, y todos sus acordes son aumentados. Debussy la usó para crear brumas; el cine, para sueños y recuerdos.",
+      useWhen: ["Escenas de sueño, magia o recuerdo", "Pasar de un acorde aumentado a otro", "Dominantes alteradas (7♯5) en jazz"],
+      examples: "Debussy, «Voiles»; transiciones de sueño en cine y TV.",
+    },
+    en: {
+      title: "Whole tone",
+      kicker: "No center: it floats",
+      mood: ["dreamlike", "floating", "unreal", "suspended"],
+      body: "Six notes, all a whole step apart. Being symmetrical, no note feels like home, and all its chords are augmented. Debussy used it to paint mist; film uses it for dreams and memories.",
+      useWhen: ["Dream, magic or flashback scenes", "Moving between augmented chords", "Altered dominants (7♯5) in jazz"],
+      examples: "Debussy, 'Voiles'; dream transitions in film and TV.",
+    },
+  },
+  "mode.hirajoshi": {
+    visual: { kind: "mode", scale: "hirajoshi" },
+    sound: modeSound("hirajoshi"),
+    es: {
+      title: "Hirajoshi (japonesa)",
+      kicker: "Cinco notas con semitonos",
+      mood: ["sereno", "melancólico", "oriental", "austero"],
+      body: "Pentatónica japonesa que se usa al afinar el koto. A diferencia de las pentatónicas occidentales tiene dos semitonos (2 → ♭3 y 5 → ♭6), que le dan su aire melancólico y austero.",
+      useWhen: ["Climas japoneses o zen", "Melodías tristes y contenidas", "Riffs con otro color en rock y metal"],
+    },
+    en: {
+      title: "Hirajoshi (Japanese)",
+      kicker: "Five notes with half steps",
+      mood: ["serene", "melancholic", "Eastern", "austere"],
+      body: "A Japanese pentatonic used to tune the koto. Unlike Western pentatonics it has two half steps (2 → ♭3 and 5 → ♭6), which give it its melancholic, austere feel.",
+      useWhen: ["Japanese or zen moods", "Sad, restrained melodies", "Riffs with a different color in rock and metal"],
+    },
+  },
+  "mode.diminished": {
+    visual: { kind: "mode", scale: "diminished" },
+    sound: modeSound("diminished"),
+    es: {
+      title: "Disminuida (semitono-tono)",
+      kicker: "Simétrica y tensa",
+      mood: ["tenso", "jazzero", "misterioso", "inestable"],
+      body: "Ocho notas que alternan semitono y tono. Se repite cada tres semitonos, así que solo hay tres distintas. Alterna acordes mayores y disminuidos, y es la escala del acorde 7♭9 en jazz.",
+      useWhen: ["Improvisar sobre dominantes 7♭9", "Suspenso en bandas sonoras", "Líneas simétricas que suben por terceras menores"],
+    },
+    en: {
+      title: "Diminished (half-whole)",
+      kicker: "Symmetrical and tense",
+      mood: ["tense", "jazzy", "mysterious", "unstable"],
+      body: "Eight notes alternating half and whole steps. It repeats every three half steps, so there are only three distinct ones. It alternates major and diminished chords, and it's the scale of the 7♭9 chord in jazz.",
+      useWhen: ["Improvising over 7♭9 dominants", "Suspense in film scores", "Symmetrical lines rising by minor thirds"],
     },
   },
   "concept.majorMinor": {

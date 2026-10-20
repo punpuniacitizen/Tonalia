@@ -14,6 +14,7 @@ const PATHS = {
   chevronLeft: "M15 6l-6 6 6 6",
   chevronRight: "M9 6l6 6-6 6",
   plus: "M12 5v14M5 12h14",
+  check: "M5 12.5l4.5 4.5L19 7",
   minus: "M5 12h14",
   sparkle: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6",
   folder: "M3 6h6l2 2h10v11H3z",

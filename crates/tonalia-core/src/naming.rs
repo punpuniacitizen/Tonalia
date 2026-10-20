@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::chord::Chord;
 use crate::pitch::{Notation, PitchClass};
-use crate::scale::{Key, Scale};
+use crate::scale::Key;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -265,7 +265,8 @@ const MAJOR_REFERENCE_DEGREE: [usize; 12] = [0, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6]
 /// Grado de la fundamental en la tonalidad: alteración (`""`, `"b"`, `"#"`) e índice 0..=6.
 pub fn degree_label(root: PitchClass, key: &Key) -> (String, usize) {
     let rel = key.root.up_to(root);
-    let offsets = if key.scale.is_heptatonic() { key.scale.offsets() } else { Scale::major().offsets() };
+    // Sin siete grados (pentatónicas, blues…), los grados se cuentan en la mayor o la menor de la misma tónica.
+    let offsets = if key.scale.is_heptatonic() { key.scale.offsets() } else { key.parent().scale.offsets() };
     if let Some(i) = offsets.iter().position(|&o| o == rel) {
         return (String::new(), i);
     }
@@ -395,5 +396,13 @@ mod tests {
         assert_eq!(roman(&Chord::major(PitchClass::G), &key), "VII");
         assert_eq!(roman(&Chord::diminished(PitchClass::new(8)), &key), "vii°");
         assert_eq!(roman(&Chord::diminished(PitchClass::new(6)), &key), "#vi°");
+    }
+
+    #[test]
+    fn numeros_romanos_en_pentatonica_menor() {
+        let key = Key::new(PitchClass::A, crate::scale::Scale::builtin("minorPentatonic").unwrap());
+        assert_eq!(roman(&Chord::minor(PitchClass::A), &key), "i");
+        assert_eq!(roman(&Chord::major(PitchClass::C), &key), "III");
+        assert_eq!(roman(&Chord::major(PitchClass::G), &key), "VII");
     }
 }

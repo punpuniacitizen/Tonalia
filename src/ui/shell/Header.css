@@ -368,7 +368,44 @@
 .key-picker {
   display: grid;
   gap: 12px;
-  width: 320px;
+  width: 340px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  white-space: normal;
+}
+
+/* Con tantas escalas el selector tapa media pantalla: fondo opaco para que no se lea lo de atrás. */
+.popover.key-popover {
+  background: var(--bg-1);
+}
+
+.key-scale-group {
+  display: grid;
+  gap: 6px;
+}
+
+.key-group-title {
+  margin: 2px 2px 0;
+  color: var(--text-2);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.key-scales.is-world {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.key-scales button small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-2);
+  font-size: 10px;
+}
+
+.key-scales button.is-active small {
+  color: inherit;
+  opacity: 0.75;
 }
 
 .key-roots {

@@ -380,6 +380,47 @@ export const LESSONS: Lesson[] = [
     },
   },
   {
+    id: "worldScales",
+    group: "beyond",
+    visual: { kind: "worldScales" },
+    // Mi Hijaz subiendo y la vuelta típica: F (♭II) → E.
+    sound: () => [
+      ...melodySequence([64, 65, 68, 69, 71, 72, 74, 76]),
+      ...after(chordsSequence([[53, 57, 60, 65], [52, 56, 59, 64]], 1.1), 8 * 0.28 + 0.3),
+    ],
+    tip: "mode.phrygianDominant",
+    es: {
+      title: "Escalas del mundo",
+      kicker: "Más allá de mayor y menor",
+      body: [
+        "No toda la música usa las siete notas de la mayor. Cada tradición elige su propio recorte de las 12 notas, y ese recorte es lo que la hace reconocible: el Hijaz suena a Medio Oriente por el salto entre ♭2 y 3; la pentatónica suena a folk y a rock porque no tiene semitonos.",
+        "Las de siete notas (Hijaz, doble armónica, húngara…) funcionan como cualquier tonalidad: sus acordes salen apilando terceras. Las de cinco, seis u ocho notas no tienen terceras para apilar, así que sus acordes se eligen por forma: sus, cuartales o aumentados.",
+      ],
+      takeaway: "Una escala es una elección de notas, y cada elección tiene su color: cambia la escala y cambia el lugar del mundo.",
+      inApp: "En la tonalidad (arriba) están los grupos «Del mundo» y «Pentatónicas, blues y simétricas». Al elegir una, la rueda muestra sus acordes y la progresión de ejemplo de la cinta vacía es una típica de esa escala.",
+      more: [
+        "El árabe de verdad: los maqam (Rast, Bayati, Saba) usan cuartos de tono, notas que no existen en el piano. Tonalia trabaja con las 12 notas, así que incluye los que se tocan sin ellos: Hijaz y la doble armónica (Hijaz Kar).",
+        "Blues: la «blue note» (♭5) no arma acordes, es una nota de paso; por eso a la rueda le falta ese grado. La armonía del blues usa I7, IV7 y V7, que mezclan lo mayor y lo menor.",
+        "Tonos enteros y disminuida son simétricas: se repiten cada 2 o cada 3 semitonos, así que ninguna nota se siente casa. Por eso suenan a sueño o a suspenso.",
+      ],
+    },
+    en: {
+      title: "Scales of the world",
+      kicker: "Beyond major and minor",
+      body: [
+        "Not all music uses the seven notes of the major scale. Each tradition picks its own selection of the 12 notes, and that selection is what makes it recognizable: Hijaz sounds Middle Eastern because of the jump between ♭2 and 3; the pentatonic sounds folk and rock because it has no half steps.",
+        "Seven-note ones (Hijaz, double harmonic, Hungarian…) work like any key: their chords come from stacking thirds. Five-, six- or eight-note ones have no thirds to stack, so their chords are chosen by shape: sus, quartal or augmented.",
+      ],
+      takeaway: "A scale is a choice of notes, and each choice has its color: change the scale and you change the place in the world.",
+      inApp: "In the key (top) you'll find the 'World' and 'Pentatonic, blues and symmetric' groups. Pick one and the wheel shows its chords, and the empty ribbon's example progression is a typical one for that scale.",
+      more: [
+        "Real Arabic: the maqams (Rast, Bayati, Saba) use quarter tones, notes that don't exist on the piano. Tonalia works with the 12 notes, so it includes the ones played without them: Hijaz and the double harmonic (Hijaz Kar).",
+        "Blues: the 'blue note' (♭5) doesn't build chords, it's a passing note; that's why the wheel is missing that degree. Blues harmony uses I7, IV7 and V7, which mix major and minor.",
+        "Whole tone and diminished are symmetrical: they repeat every 2 or 3 half steps, so no note feels like home. That's why they sound like dreams or suspense.",
+      ],
+    },
+  },
+  {
     id: "modulation",
     group: "beyond",
     visual: { kind: "modulation" },

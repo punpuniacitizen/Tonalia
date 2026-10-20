@@ -1,10 +1,23 @@
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { api, type SequenceNote } from "../../api";
+import type { Key } from "../../bindings/Key";
 import type { SongView } from "../../bindings/SongView";
-import { PROGRESSIONS, chordPitches, degreeFunction, progressionRoot, type Progression } from "../../library/progressions";
-import { isMinorLike, keyRootName } from "../../lib/music";
+import {
+  CATEGORIES,
+  PROGRESSIONS,
+  chordName,
+  chordPitches,
+  degreeFunction,
+  fitsKey,
+  progressionKey,
+  progressionRoot,
+  type Category,
+  type Progression,
+} from "../../library/progressions";
+import { keyRootName } from "../../lib/music";
 import { insertionPoint, useSelectedChord, useSong } from "../../stores/song";
 import { useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
@@ -12,30 +25,57 @@ import "./library.css";
 
 const BAR = 10368;
 
-/** Panel lateral con progresiones famosas para escuchar y añadir. */
+type Filter = "all" | "fits" | Category;
+
+/** Cuánto dura cada acorde al escucharlo (segundos) y cuándo empieza. */
+function timeline(p: Progression): { delay: number; seconds: number }[] {
+  let time = 0;
+  return p.chords.map((c) => {
+    const seconds = Math.min(2, (c.bars ?? 1) * 0.9);
+    const slot = { delay: time, seconds };
+    time += seconds;
+    return slot;
+  });
+}
+
+/**
+ * Panel lateral con progresiones para escuchar y añadir. Cada una ocupa una línea (acordes y
+ * nombre); la explicación se despliega al hacer clic. Los filtros separan estilos y escalas.
+ */
 export function LibraryDrawer({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const view = useSong((s) => s.view) as SongView;
   const edit = useSong((s) => s.edit);
   const selected = useSelectedChord();
-  const { language, notation } = useUi();
+  const { language, notation, symbols } = useUi();
   const key = selected?.key ?? view.song.homeKey;
-  const minor = isMinorLike(key.scale.name);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [open, setOpen] = useState<string | null>(null);
+  const [playing, setPlaying] = useState<{ id: string; token: number } | null>(null);
+  const [added, setAdded] = useState<string | null>(null);
+  const timers = useRef<number[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  const later = (ms: number, fn: () => void) => timers.current.push(window.setTimeout(fn, ms));
+
+  const keyLabel = (k: Key) => `${keyRootName(k.root, k.scale.name, notation)} ${t(`scale.${k.scale.name}`)}`;
+  const fitting = PROGRESSIONS.filter((p) => fitsKey(p, key));
+  const shown = filter === "all" ? PROGRESSIONS : filter === "fits" ? fitting : PROGRESSIONS.filter((p) => p.category === filter);
 
   const listen = (p: Progression) => {
-    const root = progressionRoot(p, key.root, minor);
-    let time = 0;
-    const notes: SequenceNote[] = [];
-    for (const c of p.chords) {
-      const seconds = Math.min(2, (c.bars ?? 1) * 0.9);
-      for (const pitch of chordPitches(root, c)) notes.push({ pitch, delay: time, duration: seconds * 0.95, velocity: 0.7 });
-      time += seconds;
-    }
+    const root = progressionRoot(p, key);
+    const slots = timeline(p);
+    const notes: SequenceNote[] = p.chords.flatMap((c, i) =>
+      chordPitches(root, c).map((pitch) => ({ pitch, delay: slots[i].delay, duration: slots[i].seconds * 0.95, velocity: 0.7 })),
+    );
     void api.previewSequence(notes, view.song.chordTrack.instrument);
+    const token = Date.now();
+    setPlaying({ id: p.id, token });
+    const end = slots[slots.length - 1];
+    later((end.delay + end.seconds) * 1000, () => setPlaying((cur) => (cur?.token === token ? null : cur)));
   };
 
   const add = (p: Progression) => {
-    const root = progressionRoot(p, key.root, minor);
+    const root = progressionRoot(p, key);
     const at = insertionPoint(view, selected);
     const commands = p.chords.map((c, i) => ({
       type: "insertChord" as const,
@@ -45,7 +85,28 @@ export function LibraryDrawer({ onClose }: { onClose: () => void }) {
       length: (c.bars ?? 1) * BAR,
     }));
     void edit({ type: "batch", commands });
+    setAdded(p.id);
+    later(1400, () => setAdded((cur) => (cur === p.id ? null : cur)));
   };
+
+  const switchToScale = (p: Progression) => edit({ type: "setHomeKey", key: progressionKey(p, key) });
+
+  const chipText = (p: Progression, root: number, c: Progression["chords"][number]) =>
+    symbols === "names" ? chordName(p, root, c, notation) : c.roman;
+
+  /** Qué pasa con la tonalidad: se toca en la relativa, o pertenece a otra escala. */
+  const note = (p: Progression, root: number) => {
+    if (root !== key.root) {
+      return { text: t(p.scale === "minor" ? "library.relativeMinor" : "library.relativeMajor", { key: keyRootName(root, p.scale, notation) }), target: key, offer: false };
+    }
+    if (p.scale !== key.scale.name && !["major", "minor"].includes(p.scale)) {
+      const target = progressionKey(p, key);
+      return { text: t(fitsKey(p, key) ? "library.fromScaleFits" : "library.fromScale", { key: keyLabel(target) }), target, offer: true };
+    }
+    return null;
+  };
+
+  const filters: Filter[] = ["all", "fits", ...CATEGORIES];
 
   return (
     <motion.aside
@@ -57,47 +118,88 @@ export function LibraryDrawer({ onClose }: { onClose: () => void }) {
       <header className="library-head">
         <div>
           <h2>{t("library.title")}</h2>
-          <p>{t("library.subtitle", { key: `${keyRootName(key.root, key.scale.name, notation)} ${t(`scale.${key.scale.name}`)}` })}</p>
+          <p>{t("library.subtitle", { key: keyLabel(key) })}</p>
         </div>
         <button className="icon-button" onClick={onClose} title={t("tips.close")}>
           <Icon name="plus" size={18} />
         </button>
       </header>
+
+      <div className="library-filters" role="tablist">
+        {filters.map((f) => (
+          <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? "is-active" : ""} onClick={() => setFilter(f)}>
+            {f === "fits" ? t("library.filters.fits", { count: fitting.length }) : t(`library.filters.${f}`)}
+          </button>
+        ))}
+      </div>
+
       <div className="library-list">
-        {PROGRESSIONS.map((p) => {
+        {shown.length === 0 && <p className="library-empty">{t("library.empty", { key: keyLabel(key) })}</p>}
+        {shown.map((p) => {
           const text = p[language];
-          const relative = (p.mode === "minor") !== minor;
+          const root = progressionRoot(p, key);
+          const isOpen = open === p.id;
+          const hit = playing?.id === p.id ? playing.token : null;
+          const slots = timeline(p);
+          const info = isOpen ? note(p, root) : null;
+          const exotic = !["major", "minor"].includes(p.scale);
           return (
-            <article key={p.id} className="prog-card">
-              <div className="prog-ribbon">
-                {p.chords.map((c, i) => {
-                  const fn = degreeFunction(c.deg, c.iv);
-                  return (
-                    <span key={i} className="prog-chip" style={{ flex: c.bars ?? 1, ["--fn" as string]: `var(--fn-${fn})` }}>
-                      {c.roman}
-                    </span>
-                  );
-                })}
-              </div>
-              <h3>{text.name}</h3>
-              <span className="prog-mood">{text.mood}</span>
-              <p>{text.desc}</p>
-              {relative && (
-                <small className="prog-note">
-                  {t(p.mode === "minor" ? "library.relativeMinor" : "library.relativeMajor", {
-                    key: keyRootName(progressionRoot(p, key.root, minor), p.mode, notation),
-                  })}
-                </small>
-              )}
-              <div className="prog-actions">
-                <button className="ghost-button small" onClick={() => listen(p)}>
-                  <Icon name="play" size={13} filled /> {t("library.listen")}
+            <motion.article key={p.id} layout="position" className={`prog-card ${isOpen ? "is-open" : ""}`}>
+              <div className="prog-row">
+                <button className="prog-play" onClick={() => listen(p)} title={t("library.listen")} aria-label={t("library.listen")}>
+                  <Icon name="play" size={13} filled />
                 </button>
-                <button className="ghost-button small" onClick={() => add(p)}>
-                  <Icon name="plus" size={13} /> {t("library.add")}
+                <button className="prog-main" onClick={() => setOpen(isOpen ? null : p.id)} aria-expanded={isOpen}>
+                  <span className="prog-ribbon">
+                    {p.chords.map((c, i) => (
+                      <span
+                        key={`${hit ?? 0}-${i}`}
+                        className={`prog-chip ${hit ? "is-hit" : ""}`}
+                        style={{
+                          flex: c.bars ?? 1,
+                          ["--fn" as string]: `var(--fn-${degreeFunction(c.deg, c.iv)})`,
+                          ["--hit-delay" as string]: `${slots[i].delay}s`,
+                          ["--hit-dur" as string]: `${slots[i].seconds}s`,
+                        }}
+                      >
+                        {chipText(p, root, c)}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="prog-title">
+                    <span className="prog-name">{text.name}</span>
+                    {exotic && <span className="prog-scale">{t(`scale.${p.scale}`)}</span>}
+                  </span>
+                  <span className="prog-mood">{text.mood}</span>
+                </button>
+                <button className={`prog-add ${added === p.id ? "is-done" : ""}`} onClick={() => add(p)} title={t("library.add")} aria-label={t("library.add")}>
+                  <Icon name={added === p.id ? "check" : "plus"} size={15} />
                 </button>
               </div>
-            </article>
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    className="prog-more"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                  >
+                    <p>{text.desc}</p>
+                    {info && (
+                      <div className="prog-note">
+                        <span>{info.text}</span>
+                        {info.offer && (
+                          <button className="ghost-button small" onClick={() => void switchToScale(p)}>
+                            {t("library.useScale", { key: keyLabel(info.target) })}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.article>
           );
         })}
       </div>

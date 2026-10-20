@@ -59,10 +59,10 @@ const MINOR_KEY_ROOTS: SpelledNote[] = MAJOR_KEY_ROOTS.map((n, pc) =>
   pc === 1 ? { letter: 0, accidental: 1 } : pc === 8 ? { letter: 4, accidental: 1 } : n,
 ); // C# y G# en lugar de Db y Ab
 
-const MINOR_LIKE = new Set(["minor", "aeolian", "dorian", "phrygian", "locrian", "harmonicMinor", "melodicMinor"]);
-
+/** De color menor: tiene tercera menor y no mayor (menor, dórico, blues, hirajoshi…). */
 export function isMinorLike(scaleName: string): boolean {
-  return MINOR_LIKE.has(scaleName);
+  const offsets = scaleOffsets(scaleSteps(scaleName));
+  return offsets.includes(3) && !offsets.includes(4);
 }
 
 export function keyRootName(root: number, scaleName: string, notation: Notation): string {
@@ -99,11 +99,91 @@ export const SCALE_CHOICES = [
   "melodicMinor",
 ];
 
+/** Escalas de otras tradiciones con siete notas: funcionan como cualquier tonalidad. */
+export const WORLD_SCALES = ["phrygianDominant", "doubleHarmonic", "hungarianMinor", "persian", "neapolitanMinor", "neapolitanMajor"];
+/** Cinco, seis u ocho notas: sus acordes se eligen por forma (ver `palette.rs`). */
+export const OTHER_SCALES = ["majorPentatonic", "minorPentatonic", "blues", "majorBlues", "wholeTone", "hirajoshi", "diminished"];
+
+/** Grupos del selector de escala. `key.groups.<id>` es su título. */
+export const SCALE_GROUPS = [
+  { id: "modes", scales: SCALE_CHOICES },
+  { id: "world", scales: WORLD_SCALES },
+  { id: "other", scales: OTHER_SCALES },
+] as const;
+
+/** Pasos de las escalas del mundo (los mismos que `WORLD_SCALES` en `scale.rs`). */
+const WORLD_STEPS: Record<string, number[]> = {
+  phrygianDominant: [1, 3, 1, 2, 1, 2, 2],
+  doubleHarmonic: [1, 3, 1, 2, 1, 3, 1],
+  hungarianMinor: [2, 1, 3, 1, 1, 3, 1],
+  persian: [1, 3, 1, 1, 2, 3, 1],
+  neapolitanMinor: [1, 2, 2, 2, 1, 3, 1],
+  neapolitanMajor: [1, 2, 2, 2, 2, 2, 1],
+  majorPentatonic: [2, 2, 3, 2, 3],
+  minorPentatonic: [3, 2, 2, 3, 2],
+  blues: [3, 2, 1, 1, 3, 2],
+  majorBlues: [2, 1, 1, 3, 2, 3],
+  wholeTone: [2, 2, 2, 2, 2, 2],
+  hirajoshi: [2, 1, 4, 1, 4],
+  diminished: [1, 2, 1, 2, 1, 2, 1, 2],
+};
+
+type Progression = [degree: number, intervals: number[]][];
+
+/** Progresión típica de cada escala del mundo (grado en semitonos e intervalos). */
+export const EXAMPLE_PROGRESSIONS: Record<string, Progression> = {
+  // I – ♭II – iv – ♭II: el vaivén de la tónica con su ♭II.
+  phrygianDominant: [[0, [4, 7]], [1, [4, 7]], [5, [3, 7]], [1, [4, 7]]],
+  doubleHarmonic: [[0, [4, 7]], [1, [4, 7]], [5, [3, 7]], [1, [4, 7]]],
+  hungarianMinor: [[0, [3, 7]], [8, [4, 7]], [7, [4, 7]], [0, [3, 7]]],
+  persian: [[0, [4, 6]], [1, [4, 7]], [5, [3, 7]], [1, [4, 7]]],
+  neapolitanMinor: [[0, [3, 7]], [1, [4, 7]], [7, [4, 7]], [0, [3, 7]]],
+  neapolitanMajor: [[0, [3, 7]], [5, [4, 7]], [7, [4, 7]], [0, [3, 7]]],
+  majorPentatonic: [[0, [4, 7]], [9, [3, 7]], [2, [5, 7]], [7, [5, 7]]],
+  minorPentatonic: [[0, [3, 7]], [3, [4, 7]], [5, [5, 7]], [10, [2, 7]]],
+  // El blues de siempre: I7 – IV7 – I7 – V7 (mezcla lo mayor y lo menor).
+  blues: [[0, [4, 7, 10]], [5, [4, 7, 10]], [0, [4, 7, 10]], [7, [4, 7, 10]]],
+  majorBlues: [[0, [4, 7]], [5, [4, 7]], [0, [4, 7]], [7, [4, 7]]],
+  wholeTone: [[0, [4, 8]], [2, [4, 8]], [4, [4, 8]], [2, [4, 8]]],
+  hirajoshi: [[0, [3, 7]], [8, [4, 7]], [7, [5, 7]], [0, [3, 7]]],
+  // Tríadas mayores a distancia de tercera menor: el ciclo de la disminuida.
+  diminished: [[0, [4, 7]], [3, [4, 7]], [6, [4, 7]], [9, [4, 7]]],
+};
+
+/** Progresión de ejemplo: la de la escala si tiene una; si no, I–V–vi–IV o i–VI–III–VII. */
+export function exampleProgression(scaleName: string): Progression {
+  return (
+    EXAMPLE_PROGRESSIONS[scaleName] ??
+    (isMinorLike(scaleName)
+      ? [[0, [3, 7]], [8, [4, 7]], [3, [4, 7]], [10, [4, 7]]]
+      : [[0, [4, 7]], [7, [4, 7]], [9, [3, 7]], [5, [4, 7]]])
+  );
+}
+
+/** Distancia de cada grado a la tónica, en semitonos. */
+export function scaleOffsets(steps: number[]): number[] {
+  let acc = 0;
+  return steps.map((s) => {
+    const o = acc % 12;
+    acc += s;
+    return o;
+  });
+}
+
+/** Tríada de la tónica que cabe en la escala: 3.ª mayor o menor (o sus) y 5.ª justa, aumentada o disminuida. */
+export function tonicIntervals(steps: number[]): [number, number] {
+  const has = new Set(scaleOffsets(steps));
+  const third = has.has(4) ? 4 : has.has(3) ? 3 : has.has(5) ? 5 : 2;
+  const fifth = has.has(7) ? 7 : has.has(8) ? 8 : has.has(6) ? 6 : 7;
+  return [third, fifth];
+}
+
 const MAJOR_STEPS = [2, 2, 1, 2, 2, 2, 1];
 const MODES = ["ionian", "dorian", "phrygian", "lydian", "mixolydian", "aeolian", "locrian"];
 
 /** Pasos de las escalas predefinidas (los mismos que en `scale.rs`). */
 export function scaleSteps(name: string): number[] {
+  if (WORLD_STEPS[name]) return WORLD_STEPS[name];
   switch (name) {
     case "major":
       return MAJOR_STEPS;

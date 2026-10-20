@@ -13,6 +13,27 @@ pub const MODE_NAMES: [&str; 7] = ["ionian", "dorian", "phrygian", "lydian", "mi
 
 const MAJOR_STEPS: [u8; 7] = [2, 2, 1, 2, 2, 2, 1];
 
+/// Escalas de otras tradiciones, en el orden en que se muestran. Las de siete notas
+/// (Hijaz, doble armónica…) funcionan como cualquier tonalidad; las demás (pentatónicas,
+/// blues, tonos enteros, disminuida) arman sus acordes con [`crate::palette::diatonic_chords`].
+pub const WORLD_SCALES: [(&str, &[u8]); 13] = [
+    // Siete notas.
+    ("phrygianDominant", &[1, 3, 1, 2, 1, 2, 2]),
+    ("doubleHarmonic", &[1, 3, 1, 2, 1, 3, 1]),
+    ("hungarianMinor", &[2, 1, 3, 1, 1, 3, 1]),
+    ("persian", &[1, 3, 1, 1, 2, 3, 1]),
+    ("neapolitanMinor", &[1, 2, 2, 2, 1, 3, 1]),
+    ("neapolitanMajor", &[1, 2, 2, 2, 2, 2, 1]),
+    // Cinco, seis u ocho notas.
+    ("majorPentatonic", &[2, 2, 3, 2, 3]),
+    ("minorPentatonic", &[3, 2, 2, 3, 2]),
+    ("blues", &[3, 2, 1, 1, 3, 2]),
+    ("majorBlues", &[2, 1, 1, 3, 2, 3]),
+    ("wholeTone", &[2, 2, 2, 2, 2, 2]),
+    ("hirajoshi", &[2, 1, 4, 1, 4]),
+    ("diminished", &[1, 2, 1, 2, 1, 2, 1, 2]),
+];
+
 /// Escala: nombre (identificador que la interfaz traduce) y pasos en semitonos.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
@@ -62,7 +83,11 @@ impl Scale {
             "harmonicMinor" => Some(Self::harmonic_minor()),
             "melodicMinor" => Some(Self::melodic_minor()),
             "chromatic" => Some(Self::chromatic()),
-            _ => MODE_NAMES.iter().position(|&m| m == name).map(Self::mode),
+            _ => MODE_NAMES
+                .iter()
+                .position(|&m| m == name)
+                .map(Self::mode)
+                .or_else(|| WORLD_SCALES.iter().find(|(n, _)| *n == name).map(|(n, steps)| Self::new(*n, steps.to_vec()))),
         }
     }
 
@@ -70,7 +95,9 @@ impl Scale {
     pub fn builtins() -> Vec<Self> {
         let mut all = vec![Self::major(), Self::minor()];
         all.extend((0..7).map(Self::mode));
-        all.extend([Self::harmonic_minor(), Self::melodic_minor(), Self::chromatic()]);
+        all.extend([Self::harmonic_minor(), Self::melodic_minor()]);
+        all.extend(WORLD_SCALES.iter().map(|(n, steps)| Self::new(*n, steps.to_vec())));
+        all.push(Self::chromatic());
         all
     }
 
@@ -97,6 +124,12 @@ impl Scale {
     /// Siete grados: se pueden escribir con siete letras distintas y construir acordes por terceras.
     pub fn is_heptatonic(&self) -> bool {
         self.steps.len() == 7
+    }
+
+    /// De color menor: tiene tercera menor y no mayor (menor, dórico, blues, hirajoshi…).
+    pub fn is_minor_like(&self) -> bool {
+        let offsets = self.offsets();
+        offsets.contains(&3) && !offsets.contains(&4)
     }
 
     /// Si es un modo de la escala mayor (o mayor/menor), su índice de modo.
@@ -159,7 +192,7 @@ impl Key {
     pub fn spelled_degrees(&self) -> Vec<SpelledNote> {
         let degrees = self.degrees();
         if !self.scale.is_heptatonic() {
-            let prefer = Key::major(self.root).accidentals();
+            let prefer = self.parent().accidentals();
             return degrees.into_iter().map(|pc| SpelledNote::simple(pc, prefer)).collect();
         }
         let mut best: Option<(i32, Vec<SpelledNote>)> = None;
@@ -181,12 +214,18 @@ impl Key {
         best.map(|(_, names)| names).unwrap_or_default()
     }
 
+    /// Para escalas que no tienen siete notas: la mayor o la menor natural de la misma
+    /// tónica, según su color. Da la ortografía y los números romanos (Am pentatónica → La menor).
+    pub fn parent(&self) -> Key {
+        if self.scale.is_minor_like() { Key::minor(self.root) } else { Key::major(self.root) }
+    }
+
     /// ¿Esta tonalidad se escribe con sostenidos o con bemoles?
     /// Sin alteraciones (Do mayor, La menor) preferimos bemoles: los acordes prestados
     /// típicos (Sib, Lab, Mib) se leen mejor así.
     pub fn accidentals(&self) -> Accidentals {
         if !self.scale.is_heptatonic() {
-            return Key::major(self.root).accidentals();
+            return self.parent().accidentals();
         }
         if self.spelled_degrees().iter().any(|n| n.accidental > 0) {
             Accidentals::Sharps
@@ -234,7 +273,32 @@ mod tests {
         assert_eq!(Scale::mode(5).steps, Scale::minor().steps); // eólico = menor natural
         assert_eq!(Scale::minor().mode_index(), Some(5));
         assert_eq!(Scale::builtin("lydian"), Some(Scale::mode(3)));
-        assert_eq!(Scale::builtins().len(), 12);
+        assert_eq!(Scale::builtins().len(), 12 + WORLD_SCALES.len());
+        assert_eq!(Scale::builtin("hirajoshi").map(|s| s.steps), Some(vec![2, 1, 4, 1, 4]));
+    }
+
+    #[test]
+    fn escalas_del_mundo_cierran_la_octava() {
+        for (name, steps) in WORLD_SCALES {
+            assert_eq!(steps.iter().map(|&s| s as u32).sum::<u32>(), 12, "{name}");
+        }
+        let minor_like: Vec<&str> =
+            WORLD_SCALES.iter().filter(|(_, s)| Scale::new("", s.to_vec()).is_minor_like()).map(|(n, _)| *n).collect();
+        assert_eq!(minor_like, ["hungarianMinor", "neapolitanMinor", "neapolitanMajor", "minorPentatonic", "blues", "hirajoshi"]);
+        assert!(Scale::minor().is_minor_like() && Scale::mode(1).is_minor_like() && !Scale::major().is_minor_like());
+    }
+
+    #[test]
+    fn ortografia_de_escalas_del_mundo() {
+        let hijaz = |root: PitchClass| Key::new(root, Scale::builtin("phrygianDominant").unwrap());
+        assert_eq!(names(&hijaz(PitchClass::E)), ["E", "F", "G#", "A", "B", "C", "D"]);
+        let double = Key::new(PitchClass::C, Scale::builtin("doubleHarmonic").unwrap());
+        assert_eq!(names(&double), ["C", "Db", "E", "F", "G", "Ab", "B"]);
+        // Sin siete notas: la escala madre decide (blues de La se escribe como La menor).
+        let blues = Key::new(PitchClass::A, Scale::builtin("blues").unwrap());
+        assert_eq!(names(&blues), ["A", "C", "D", "Eb", "E", "G"]);
+        let pent = Key::new(PitchClass::E, Scale::builtin("majorPentatonic").unwrap());
+        assert_eq!(names(&pent), ["E", "F#", "G#", "B", "C#"]);
     }
 
     #[test]

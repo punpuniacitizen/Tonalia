@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { SongView } from "../../bindings/SongView";
-import { keyRootName, SCALE_CHOICES, scaleSteps } from "../../lib/music";
+import { keyRootName, SCALE_GROUPS, scaleSteps } from "../../lib/music";
 import { useSong } from "../../stores/song";
 import { useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
@@ -85,10 +85,14 @@ export function SectionEditor({ id, x, y, onClose }: { id: number; x: number; y:
           </select>
           {ownKey && (
             <select value={ownKey.scale.name} onChange={(e) => setKey(ownKey.root, e.target.value)}>
-              {SCALE_CHOICES.map((s) => (
-                <option key={s} value={s}>
-                  {t(`scale.${s}`)}
-                </option>
+              {SCALE_GROUPS.map((g) => (
+                <optgroup key={g.id} label={t(`key.groups.${g.id}`)}>
+                  {g.scales.map((s) => (
+                    <option key={s} value={s}>
+                      {t(`scale.${s}`)}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           )}
