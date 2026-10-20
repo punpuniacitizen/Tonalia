@@ -74,6 +74,8 @@ pub struct ProjectInfo {
     pub path: Option<String>,
     pub name: Option<String>,
     pub dirty: bool,
+    /// Cada cambio se guarda también en el archivo del proyecto.
+    pub autosave_file: bool,
 }
 
 fn project_info_of(state: &AppState) -> ProjectInfo {
@@ -82,7 +84,92 @@ fn project_info_of(state: &AppState) -> ProjectInfo {
         name: project::display_name(path.as_deref()),
         path: path.map(|p| p.to_string_lossy().into_owned()),
         dirty: *state.dirty.lock().unwrap_or_else(|p| p.into_inner()),
+        autosave_file: state.prefs().autosave_file,
     }
+}
+
+/// El archivo pasa a ser el proyecto abierto: primero en recientes y retomado al volver.
+fn remember_project(state: &AppState, path: &std::path::Path) {
+    state.update_prefs(|p| {
+        p.push_recent(path);
+        p.last_project = Some(path.to_path_buf());
+    });
+}
+
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct RecentProject {
+    pub path: String,
+    pub name: String,
+}
+
+/// Proyectos abiertos o guardados hace poco que todavía existen (más reciente primero).
+#[tauri::command]
+pub fn recent_projects(state: State<AppState>) -> Vec<RecentProject> {
+    state
+        .prefs()
+        .recent
+        .iter()
+        .filter(|p| p.exists())
+        .map(|p| RecentProject { path: p.to_string_lossy().into_owned(), name: project::display_name(Some(p)).unwrap_or_default() })
+        .collect()
+}
+
+#[tauri::command]
+pub fn clear_recent_projects(state: State<AppState>) {
+    state.update_prefs(|p| p.recent.clear());
+}
+
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct EmergencyCopy {
+    pub path: String,
+    /// Hora de la copia, en segundos Unix.
+    pub time: u64,
+}
+
+/// Copias de emergencia disponibles, la más nueva primero.
+#[tauri::command]
+pub fn emergency_copies(state: State<AppState>) -> Vec<EmergencyCopy> {
+    let Some(dir) = &state.emergency_dir else { return Vec::new() };
+    project::emergency_copies(dir).into_iter().map(|(p, time)| EmergencyCopy { path: p.to_string_lossy().into_owned(), time }).collect()
+}
+
+/// Abre en el explorador la carpeta de las copias de emergencia.
+#[tauri::command]
+pub fn emergency_folder(app: tauri::AppHandle, state: State<AppState>) -> CmdResult<()> {
+    use tauri_plugin_opener::OpenerExt;
+    let dir = state.emergency_dir.as_ref().ok_or("no hay carpeta de datos")?;
+    std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    app.opener().open_path(dir.to_string_lossy(), None::<&str>).map_err(|e| e.to_string())
+}
+
+/// Recupera una copia de emergencia como proyecto nuevo sin guardar: la copia no se toca.
+#[tauri::command]
+pub fn restore_emergency(state: State<AppState>, path: String) -> CmdResult<SongView> {
+    let song = project::read_song(&PathBuf::from(path))?;
+    // Antes de reemplazar, lo actual también queda a salvo como copia de emergencia.
+    state.write_emergency();
+    let mut doc = state.doc();
+    doc.replace(song);
+    *state.project_path.lock().unwrap_or_else(|p| p.into_inner()) = None;
+    state.update_prefs(|p| p.last_project = None);
+    state.sync_audio(doc.song());
+    state.write_autosave(doc.song());
+    *state.dirty.lock().unwrap_or_else(|p| p.into_inner()) = true;
+    Ok(AppState::view_of(&doc))
+}
+
+/// Activa o desactiva el autoguardado en el archivo. Al activarlo, guarda ya los cambios pendientes.
+#[tauri::command]
+pub fn set_autosave_file(state: State<AppState>, enabled: bool) -> CmdResult<ProjectInfo> {
+    state.update_prefs(|p| p.autosave_file = enabled);
+    let path = state.project_path.lock().unwrap_or_else(|p| p.into_inner()).clone();
+    if let (true, Some(path)) = (enabled, path) {
+        project::write_song(&path, state.doc().song())?;
+        *state.dirty.lock().unwrap_or_else(|p| p.into_inner()) = false;
+    }
+    Ok(project_info_of(&state))
 }
 
 #[tauri::command]
@@ -95,6 +182,7 @@ pub fn new_project(state: State<AppState>) -> SongView {
     let mut doc = state.doc();
     doc.replace(new_song());
     *state.project_path.lock().unwrap_or_else(|p| p.into_inner()) = None;
+    state.update_prefs(|p| p.last_project = None);
     state.sync_audio(doc.song());
     state.write_autosave(doc.song());
     *state.dirty.lock().unwrap_or_else(|p| p.into_inner()) = false;
@@ -104,7 +192,15 @@ pub fn new_project(state: State<AppState>) -> SongView {
 #[tauri::command]
 pub fn open_project(state: State<AppState>, path: String) -> CmdResult<SongView> {
     let path = PathBuf::from(path);
-    let song = project::read_song(&path)?;
+    let song = match project::read_song(&path) {
+        Ok(song) => song,
+        Err(e) => {
+            // Un reciente que ya no se puede abrir sale de la lista.
+            state.update_prefs(|p| p.recent.retain(|r| *r != path));
+            return Err(e);
+        }
+    };
+    remember_project(&state, &path);
     let mut doc = state.doc();
     doc.replace(song);
     *state.project_path.lock().unwrap_or_else(|p| p.into_inner()) = Some(path);
@@ -128,6 +224,7 @@ pub fn save_project(state: State<AppState>, path: Option<String>) -> CmdResult<P
         None => state.project_path.lock().unwrap_or_else(|p| p.into_inner()).clone().ok_or("el proyecto no tiene archivo todavía")?,
     };
     project::write_song(&target, state.doc().song())?;
+    remember_project(&state, &target);
     *state.project_path.lock().unwrap_or_else(|p| p.into_inner()) = Some(target);
     *state.dirty.lock().unwrap_or_else(|p| p.into_inner()) = false;
     Ok(project_info_of(&state))

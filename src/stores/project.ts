@@ -11,16 +11,25 @@ import { useNotes } from "./notes";
 import { onSongChanged, useSong } from "./song";
 import { useUi } from "./ui";
 
-export type ProjectInfo = { path: string | null; name: string | null; dirty: boolean };
+export type ProjectInfo = { path: string | null; name: string | null; dirty: boolean; autosaveFile: boolean };
+export type RecentProject = { path: string; name: string };
+export type EmergencyCopy = { path: string; time: number };
 
 const FILTER = [{ name: "Tonalia", extensions: ["tonalia"] }];
 
 interface ProjectState {
   info: ProjectInfo;
+  recent: RecentProject[];
+  emergency: EmergencyCopy[];
+  restoreEmergency: (path: string) => Promise<void>;
+  showEmergencyFolder: () => Promise<void>;
   refresh: () => Promise<void>;
   markDirty: () => void;
   newProject: () => Promise<void>;
   openProject: () => Promise<void>;
+  openRecent: (path: string) => Promise<void>;
+  clearRecent: () => Promise<void>;
+  setAutosaveFile: (enabled: boolean) => Promise<void>;
   saveProject: () => Promise<boolean>;
   saveProjectAs: () => Promise<boolean>;
   exportMidi: (region?: { start: number; end: number }) => Promise<void>;
@@ -38,9 +47,35 @@ function loadView(view: SongView) {
 }
 
 export const useProject = create<ProjectState>()((set, get) => ({
-  info: { path: null, name: null, dirty: false },
-  refresh: async () => set({ info: await invoke<ProjectInfo>("project_info") }),
-  markDirty: () => !get().info.dirty && set({ info: { ...get().info, dirty: true } }),
+  info: { path: null, name: null, dirty: false, autosaveFile: false },
+  recent: [],
+  emergency: [],
+  refresh: async () => {
+    const [info, recent, emergency] = await Promise.all([
+      invoke<ProjectInfo>("project_info"),
+      invoke<RecentProject[]>("recent_projects"),
+      invoke<EmergencyCopy[]>("emergency_copies"),
+    ]);
+    set({ info, recent, emergency });
+  },
+  restoreEmergency: async (path) => {
+    if (!(await confirmDiscard())) return;
+    try {
+      loadView(await invoke<SongView>("restore_emergency", { path }));
+    } catch (e) {
+      useSong.setState({ error: String(e) });
+    }
+    await get().refresh();
+  },
+  showEmergencyFolder: async () => {
+    await invoke("emergency_folder").catch((e) => useSong.setState({ error: String(e) }));
+  },
+  // Con el autoguardado en el archivo, el cambio ya quedó guardado.
+  markDirty: () => {
+    const { info } = get();
+    if (info.dirty || (info.autosaveFile && info.path)) return;
+    set({ info: { ...info, dirty: true } });
+  },
   newProject: async () => {
     if (!(await confirmDiscard())) return;
     loadView(await invoke<SongView>("new_project"));
@@ -50,9 +85,19 @@ export const useProject = create<ProjectState>()((set, get) => ({
     if (!(await confirmDiscard())) return;
     const path = await open({ filters: FILTER, multiple: false, directory: false });
     if (typeof path !== "string") return;
+    await openProjectPath(path);
+  },
+  openRecent: async (path) => {
+    if (!(await confirmDiscard())) return;
+    await openProjectPath(path);
+  },
+  clearRecent: async () => {
+    await invoke("clear_recent_projects");
+    set({ recent: [] });
+  },
+  setAutosaveFile: async (enabled) => {
     try {
-      loadView(await invoke<SongView>("open_project", { path }));
-      await get().refresh();
+      set({ info: await invoke<ProjectInfo>("set_autosave_file", { enabled }) });
     } catch (e) {
       useSong.setState({ error: String(e) });
     }
@@ -60,6 +105,7 @@ export const useProject = create<ProjectState>()((set, get) => ({
   saveProject: async () => {
     if (!get().info.path) return get().saveProjectAs();
     set({ info: await invoke<ProjectInfo>("save_project", { path: null }) });
+    await get().refresh();
     return true;
   },
   saveProjectAs: async () => {
@@ -67,6 +113,7 @@ export const useProject = create<ProjectState>()((set, get) => ({
     if (!path) return false;
     try {
       set({ info: await invoke<ProjectInfo>("save_project", { path }) });
+      await get().refresh();
       return true;
     } catch (e) {
       useSong.setState({ error: String(e) });
@@ -87,6 +134,15 @@ export const useProject = create<ProjectState>()((set, get) => ({
     }
   },
 }));
+
+async function openProjectPath(path: string) {
+  try {
+    loadView(await invoke<SongView>("open_project", { path }));
+  } catch (e) {
+    useSong.setState({ error: String(e) });
+  }
+  await useProject.getState().refresh();
+}
 
 onSongChanged(() => useProject.getState().markDirty());
 

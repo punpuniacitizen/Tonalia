@@ -33,6 +33,22 @@ fn spawn_transport_emitter(app: AppHandle, shared: Arc<Shared>) {
         .expect("no se pudo crear el hilo de transporte");
 }
 
+/// Cada cuánto se hace una copia de emergencia.
+const EMERGENCY_INTERVAL: Duration = Duration::from_secs(3 * 60);
+
+/// Copias de emergencia periódicas, aparte del autoguardado (ver `project::write_emergency`).
+fn spawn_emergency_saver(app: AppHandle) {
+    thread::Builder::new()
+        .name("tonalia-emergencia".into())
+        .spawn(move || {
+            loop {
+                thread::sleep(EMERGENCY_INTERVAL);
+                app.state::<AppState>().write_emergency();
+            }
+        })
+        .expect("no se pudo crear el hilo de copias de emergencia");
+}
+
 const SOUNDFONT: &str = "GeneralUser-GS.sf2";
 
 /// Dónde está el banco de sonidos: junto a la app instalada o en `assets/` al desarrollar.
@@ -71,6 +87,7 @@ pub fn run() {
             spawn_transport_emitter(app.handle().clone(), state.audio.shared.clone());
             app.manage(state);
             spawn_soundfont_loader(app.handle().clone());
+            spawn_emergency_saver(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -98,6 +115,12 @@ pub fn run() {
             commands::new_project,
             commands::open_project,
             commands::save_project,
+            commands::recent_projects,
+            commands::clear_recent_projects,
+            commands::set_autosave_file,
+            commands::emergency_copies,
+            commands::restore_emergency,
+            commands::emergency_folder,
             commands::export_midi,
             commands::prepare_midi_drag,
         ])

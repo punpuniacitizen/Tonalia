@@ -222,6 +222,65 @@
   font-size: 11px;
 }
 
+.menu-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 8px 10px 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  color: var(--text-2);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.menu-list .menu-link {
+  display: inline;
+  padding: 0;
+  color: var(--text-2);
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.menu-list .menu-link:hover {
+  background: none;
+  color: var(--text-0);
+}
+
+.menu-list button.is-current {
+  color: var(--accent);
+}
+
+.menu-recent-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-list .menu-recent-dir {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 8px 10px 2px;
+  border-top: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  color: var(--text-0);
+  cursor: pointer;
+}
+
+.menu-toggle input {
+  accent-color: var(--accent);
+}
+
 .menu-note {
   margin: 6px 10px 0;
   color: var(--text-2);

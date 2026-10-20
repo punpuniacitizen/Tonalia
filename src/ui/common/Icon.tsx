@@ -20,6 +20,7 @@ const PATHS = {
   save: "M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6",
   download: "M12 4v11M7 10l5 5 5-5M5 20h14",
   file: "M6 3h9l4 4v14H6zM14 3v5h5",
+  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
   book: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7",
   ear: "M7 10a5 5 0 0 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0M10 10a2 2 0 0 1 4 0",
   wand: "M4 20 15 9M14 4v3M18 8h3M17 5l2-2M19 11l2 2",
