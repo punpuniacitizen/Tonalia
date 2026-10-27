@@ -15,6 +15,7 @@ import { gridLineDivisions } from "../tracks/drawPianoRoll";
 import { gridStep, PAD, tickToX, xToTick } from "./geometry";
 import { GridPicker } from "./GridPicker";
 import "./Timeline.css";
+import { PanKnob } from "../tracks/PanKnob";
 
 export function Timeline() {
   const view = useSong((s) => s.view);
@@ -171,11 +172,12 @@ function ChordTrackHead() {
   const setUi = useUi((s) => s.set);
   if (!view) return null;
   const ct = view.song.chordTrack;
-  const update = (patch: { instrument?: string; volume?: number; muted?: boolean; solo?: boolean }) =>
+  const update = (patch: { instrument?: string; volume?: number; pan?: number; muted?: boolean; solo?: boolean }) =>
     edit({
       type: "updateChordTrack",
       instrument: patch.instrument ?? null,
       volume: patch.volume ?? null,
+      pan: patch.pan ?? null,
       muted: patch.muted ?? null,
       solo: patch.solo ?? null,
     });
@@ -208,6 +210,7 @@ function ChordTrackHead() {
           title={`${t("tracks.volume")} ${Math.round(ct.volume * 100)}%`}
           onPointerUp={(e) => update({ volume: Number((e.target as HTMLInputElement).value) })}
         />
+        <PanKnob value={ct.pan} onChange={(pan) => update({ pan })} />
         <span className="head-sep" />
         <button
           className={`ghost-button small ${showVoices ? "is-on" : ""}`}

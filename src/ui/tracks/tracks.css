@@ -253,3 +253,41 @@
   background: var(--accent);
   color: var(--bg-0);
 }
+
+/* Perilla de paneo */
+.pan-knob {
+  flex: none;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.pan-knob .pan-track {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.pan-knob .pan-value {
+  fill: none;
+  stroke: var(--track, var(--accent));
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.pan-knob .pan-cap {
+  fill: var(--bg-3);
+  stroke: var(--line);
+  transition: fill 0.15s;
+}
+
+.pan-knob:hover .pan-cap,
+.pan-knob.is-dragging .pan-cap {
+  fill: var(--bg-4);
+}
+
+.pan-knob .pan-pointer {
+  stroke: var(--text-0);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}

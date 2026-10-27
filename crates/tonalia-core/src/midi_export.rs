@@ -55,7 +55,12 @@ fn velocity_to_midi(v: f32) -> u8 {
     (v * 127.0).round().clamp(1.0, 127.0) as u8
 }
 
-fn note_events<'a>(name: &'a [u8], channel: u8, notes: &[Note]) -> Vec<TrackEvent<'a>> {
+/// Paneo (-1..1) como valor del controlador 10 (0 = izquierda, 64 = centro, 127 = derecha).
+fn pan_to_midi(pan: f32) -> u8 {
+    (64.0 + pan.clamp(-1.0, 1.0) * 63.5).round().clamp(0.0, 127.0) as u8
+}
+
+fn note_events<'a>(name: &'a [u8], channel: u8, pan: f32, notes: &[Note]) -> Vec<TrackEvent<'a>> {
     // (tick, orden, evento): en un mismo tick, los note-off van antes que los note-on.
     let mut timed: Vec<(Ticks, u8, MidiMessage)> = Vec::with_capacity(notes.len() * 2);
     for n in notes {
@@ -65,7 +70,16 @@ fn note_events<'a>(name: &'a [u8], channel: u8, notes: &[Note]) -> Vec<TrackEven
     }
     timed.sort_by_key(|(t, order, _)| (*t, *order));
 
-    let mut events = vec![TrackEvent { delta: u28::new(0), kind: TrackEventKind::Meta(MetaMessage::TrackName(name)) }];
+    let mut events = vec![
+        TrackEvent { delta: u28::new(0), kind: TrackEventKind::Meta(MetaMessage::TrackName(name)) },
+        TrackEvent {
+            delta: u28::new(0),
+            kind: TrackEventKind::Midi {
+                channel: u4::new(channel),
+                message: MidiMessage::Controller { controller: u7::new(10), value: u7::new(pan_to_midi(pan)) },
+            },
+        },
+    ];
     let mut last = 0;
     for (t, _, message) in timed {
         let t = t.max(0);
@@ -78,9 +92,9 @@ fn note_events<'a>(name: &'a [u8], channel: u8, notes: &[Note]) -> Vec<TrackEven
 
 pub fn export_smf(song: &Song, options: &ExportOptions) -> Result<Vec<u8>, ExportError> {
     // Primero reunimos (nombre, notas) con datos propios; los eventos MIDI los toman prestados.
-    let mut parts: Vec<(String, Vec<Note>)> = Vec::new();
+    let mut parts: Vec<(String, f32, Vec<Note>)> = Vec::new();
     if options.include_chords && !song.chord_track.muted {
-        parts.push(("Chords".to_string(), clip_to_region(chord_track_notes(song), options.region)));
+        parts.push(("Chords".to_string(), song.chord_track.pan, clip_to_region(chord_track_notes(song), options.region)));
     }
     for track in &song.tracks {
         let selected = match &options.tracks {
@@ -88,7 +102,7 @@ pub fn export_smf(song: &Song, options: &ExportOptions) -> Result<Vec<u8>, Expor
             None => !track.muted,
         };
         if selected {
-            parts.push((track.name.clone(), clip_to_region(track_notes(song, track.id), options.region)));
+            parts.push((track.name.clone(), track.pan, clip_to_region(track_notes(song, track.id), options.region)));
         }
     }
 
@@ -99,8 +113,8 @@ pub fn export_smf(song: &Song, options: &ExportOptions) -> Result<Vec<u8>, Expor
         TrackEvent { delta: u28::new(0), kind: TrackEventKind::Meta(MetaMessage::TimeSignature(4, 2, 24, 8)) },
         TrackEvent { delta: u28::new(0), kind: TrackEventKind::Meta(MetaMessage::EndOfTrack) },
     ]];
-    for (i, (name, notes)) in parts.iter().enumerate() {
-        tracks.push(note_events(name.as_bytes(), channel_for(i), notes));
+    for (i, (name, pan, notes)) in parts.iter().enumerate() {
+        tracks.push(note_events(name.as_bytes(), channel_for(i), *pan, notes));
     }
 
     let smf = Smf { header: Header::new(Format::Parallel, Timing::Metrical(u15::new(QUARTER as u16))), tracks };

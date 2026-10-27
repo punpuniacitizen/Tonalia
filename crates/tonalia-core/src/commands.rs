@@ -57,10 +57,11 @@ pub enum EditCommand {
         name: Option<String>,
         instrument: Option<String>,
         volume: Option<f32>,
+        pan: Option<f32>,
         muted: Option<bool>,
         solo: Option<bool>,
     },
-    UpdateChordTrack { instrument: Option<String>, volume: Option<f32>, muted: Option<bool>, solo: Option<bool> },
+    UpdateChordTrack { instrument: Option<String>, volume: Option<f32>, pan: Option<f32>, muted: Option<bool>, solo: Option<bool> },
     /// Reemplaza todas las notas de una pista. Las posiciones son absolutas; cada nota
     /// se guarda en la sección donde empieza.
     SetTrackNotes { track: TrackId, notes: Vec<Note> },
@@ -227,7 +228,7 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
             }
             song.for_each_leaf_mut(|_, clips| clips.retain(|c| c.track != *track));
         }
-        UpdateTrack { track, name, instrument, volume, muted, solo } => {
+        UpdateTrack { track, name, instrument, volume, pan, muted, solo } => {
             let t = song.track_mut(*track).ok_or(EditError::TrackNotFound(*track))?;
             if let Some(v) = name {
                 t.name = v.clone();
@@ -238,6 +239,9 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
             if let Some(v) = volume {
                 t.volume = v.clamp(0.0, 1.0);
             }
+            if let Some(v) = pan {
+                t.pan = v.clamp(-1.0, 1.0);
+            }
             if let Some(v) = muted {
                 t.muted = *v;
             }
@@ -245,13 +249,16 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
                 t.solo = *v;
             }
         }
-        UpdateChordTrack { instrument, volume, muted, solo } => {
+        UpdateChordTrack { instrument, volume, pan, muted, solo } => {
             let t = &mut song.chord_track;
             if let Some(v) = instrument {
                 t.instrument = v.clone();
             }
             if let Some(v) = volume {
                 t.volume = v.clamp(0.0, 1.0);
+            }
+            if let Some(v) = pan {
+                t.pan = v.clamp(-1.0, 1.0);
             }
             if let Some(v) = muted {
                 t.muted = *v;

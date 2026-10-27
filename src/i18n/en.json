@@ -457,6 +457,11 @@
     "mute": "Mute",
     "solo": "Solo",
     "volume": "Volume",
+    "pan": "Pan",
+    "panLeft": "L",
+    "panRight": "R",
+    "panCenter": "center",
+    "panHint": "drag up/down or scroll; double-click to center",
     "emptyHint": "No notes yet: click to open the piano roll and draw a melody"
   },
   "instruments": {
@@ -466,7 +471,8 @@
     "pluck": "Harp",
     "bass": "Bass",
     "strings": "Strings",
-    "pad": "Pad"
+    "pad": "Pad",
+    "musicbox": "Music box"
   },
   "engine": {
     "title": "Sound",

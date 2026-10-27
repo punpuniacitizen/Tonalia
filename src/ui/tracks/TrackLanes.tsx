@@ -16,6 +16,7 @@ import { Segmented } from "../common/Segmented";
 import { tickToX } from "../timeline/geometry";
 import { PianoRoll } from "./PianoRoll";
 import "./tracks.css";
+import { PanKnob } from "./PanKnob";
 
 const PIANO_HEIGHT = 288;
 const MINI_HEIGHT = 40;
@@ -48,13 +49,14 @@ function TrackLane({ track, width }: { track: Track; width: number }) {
   const edit = useSong((s) => s.edit);
   const expanded = useNotes((s) => s.expandedTrack === track.id);
   const toggleExpanded = useNotes((s) => s.toggleExpanded);
-  const update = (patch: Partial<Pick<Track, "name" | "instrument" | "volume" | "muted" | "solo">>) =>
+  const update = (patch: Partial<Pick<Track, "name" | "instrument" | "volume" | "pan" | "muted" | "solo">>) =>
     edit({
       type: "updateTrack",
       track: track.id,
       name: patch.name ?? null,
       instrument: patch.instrument ?? null,
       volume: patch.volume ?? null,
+      pan: patch.pan ?? null,
       muted: patch.muted ?? null,
       solo: patch.solo ?? null,
     });
@@ -94,6 +96,7 @@ function TrackLane({ track, width }: { track: Track; width: number }) {
             title={`${t("tracks.volume")} ${Math.round(track.volume * 100)}%`}
             onPointerUp={(e) => update({ volume: Number((e.target as HTMLInputElement).value) })}
           />
+          <PanKnob value={track.pan} onChange={(pan) => update({ pan })} />
           {expanded && <PianoToolbar track={track} />}
           <button className="icon-button lane-delete" onClick={() => edit({ type: "removeTrack", track: track.id })} title={t("tracks.delete")}>
             <Icon name="trash" size={15} />

@@ -17,10 +17,11 @@ pub enum Instrument {
     Bass,
     Strings,
     Pad,
+    MusicBox,
 }
 
 impl Instrument {
-    pub const ALL: [Instrument; 7] = [
+    pub const ALL: [Instrument; 8] = [
         Instrument::Piano,
         Instrument::EPiano,
         Instrument::Guitar,
@@ -28,6 +29,7 @@ impl Instrument {
         Instrument::Bass,
         Instrument::Strings,
         Instrument::Pad,
+        Instrument::MusicBox,
     ];
 
     pub fn from_name(name: &str) -> Self {
@@ -38,6 +40,7 @@ impl Instrument {
             "bass" => Instrument::Bass,
             "strings" => Instrument::Strings,
             "pad" => Instrument::Pad,
+            "musicbox" => Instrument::MusicBox,
             _ => Instrument::Piano,
         }
     }
@@ -56,6 +59,7 @@ impl Instrument {
             Instrument::Bass => 33,
             Instrument::Strings => 48,
             Instrument::Pad => 89,
+            Instrument::MusicBox => 10,
         }
     }
 
@@ -67,6 +71,10 @@ impl Instrument {
             Instrument::Bass => Params { attack: 0.006, decay: 0.9, sustain: 0.55, release: 0.12, ratio: 1.0, index: 1.3, index_decay: 0.15, gain: 1.1, detune: 0.0 },
             Instrument::Guitar | Instrument::Pluck => {
                 Params { attack: 0.002, decay: 0.35, sustain: 0.0, release: 0.2, ratio: 2.0, index: 3.0, index_decay: 0.12, gain: 0.8, detune: 0.0 }
+            }
+            // Cajita musical: ataque seco, cola larga y armónico agudo (modulador ×3.5, como una lengüeta de metal).
+            Instrument::MusicBox => {
+                Params { attack: 0.001, decay: 0.9, sustain: 0.0, release: 0.6, ratio: 3.5, index: 1.6, index_decay: 0.08, gain: 0.7, detune: 0.0 }
             }
             Instrument::Strings | Instrument::Pad => {
                 Params { attack: 0.35, decay: 2.5, sustain: 0.75, release: 0.9, ratio: 1.0, index: 0.6, index_decay: 3.0, gain: 0.55, detune: 0.006 }
@@ -114,6 +122,9 @@ struct Voice {
     phase: f32,
     mod_phase: f32,
     phase2: f32,
+    /// Ganancia de cada canal según el paneo (1 y 1 en el centro).
+    gain_l: f32,
+    gain_r: f32,
     env: f32,
     mod_env: f32,
     attack_step: f32,
@@ -132,6 +143,8 @@ const SILENT: Voice = Voice {
     phase: 0.0,
     mod_phase: 0.0,
     phase2: 0.0,
+    gain_l: 1.0,
+    gain_r: 1.0,
     env: 0.0,
     mod_env: 0.0,
     attack_step: 1.0,
@@ -149,6 +162,12 @@ pub struct Synth {
     clock: u64,
 }
 
+/// Paneo de potencia constante, normalizado para que el centro deje la señal igual (1, 1).
+pub fn pan_gains(pan: f32) -> (f32, f32) {
+    let angle = (pan.clamp(-1.0, 1.0) + 1.0) * std::f32::consts::FRAC_PI_4;
+    (angle.cos() * std::f32::consts::SQRT_2, angle.sin() * std::f32::consts::SQRT_2)
+}
+
 fn coef(seconds: f32, sample_rate: f32) -> f32 {
     (-1.0 / (seconds.max(1e-4) * sample_rate)).exp()
 }
@@ -158,7 +177,7 @@ impl Synth {
         Self { voices: vec![SILENT; MAX_VOICES], sample_rate, clock: 0 }
     }
 
-    pub fn note_on(&mut self, id: u64, pitch: u8, velocity: f32, instrument: Instrument) {
+    pub fn note_on(&mut self, id: u64, pitch: u8, velocity: f32, instrument: Instrument, pan: f32) {
         // Voz libre; si no hay, robamos la más antigua (preferimos una que ya se esté apagando).
         let slot = self.voices.iter().position(|v| v.stage == Stage::Idle).unwrap_or_else(|| {
             let (i, _) = self
@@ -176,6 +195,7 @@ impl Synth {
         }
         let sr = self.sample_rate;
         self.clock += 1;
+        let (gain_l, gain_r) = pan_gains(pan);
         self.voices[slot] = Voice {
             id,
             stage: Stage::Attack,
@@ -186,6 +206,8 @@ impl Synth {
             phase: 0.0,
             mod_phase: 0.0,
             phase2: 0.25,
+            gain_l,
+            gain_r,
             env: 0.0,
             mod_env: 1.0,
             attack_step: 1.0 / (p.attack.max(1e-4) * sr),
@@ -212,9 +234,10 @@ impl Synth {
         }
     }
 
-    pub fn next_sample(&mut self) -> f32 {
+    /// Muestra estéreo (izquierda, derecha).
+    pub fn next_sample(&mut self) -> (f32, f32) {
         let sr = self.sample_rate;
-        let mut sum = 0.0;
+        let (mut left, mut right) = (0.0, 0.0);
         for v in &mut self.voices {
             match v.stage {
                 Stage::Idle => continue,
@@ -248,12 +271,14 @@ impl Synth {
                 s = 0.6 * s + 0.4 * (TAU * v.phase2).sin();
                 v.phase2 = (v.phase2 + v.freq * (1.0 + v.params.detune) / sr).fract();
             }
-            sum += s * v.env * v.velocity * v.params.gain;
+            let out = s * v.env * v.velocity * v.params.gain;
+            left += out * v.gain_l;
+            right += out * v.gain_r;
             v.phase = (v.phase + v.freq / sr).fract();
             v.mod_phase = (v.mod_phase + v.freq * v.params.ratio / sr).fract();
         }
         // Saturación suave: muchos acordes juntos nunca recortan de golpe.
-        (sum * MASTER_GAIN).tanh()
+        ((left * MASTER_GAIN).tanh(), (right * MASTER_GAIN).tanh())
     }
 
     #[cfg(test)]
@@ -269,8 +294,8 @@ mod tests {
     #[test]
     fn suena_y_se_apaga() {
         let mut s = Synth::new(48_000.0);
-        s.note_on(1, 60, 1.0, Instrument::EPiano);
-        let peak = (0..4800).map(|_| s.next_sample().abs()).fold(0.0f32, f32::max);
+        s.note_on(1, 60, 1.0, Instrument::EPiano, 0.0);
+        let peak = (0..4800).map(|_| s.next_sample().0.abs()).fold(0.0f32, f32::max);
         assert!(peak > 0.05, "pico {peak}");
         s.note_off(1);
         for _ in 0..48_000 {
@@ -283,9 +308,9 @@ mod tests {
     fn roba_voces_sin_desbordar() {
         let mut s = Synth::new(48_000.0);
         for i in 0..(MAX_VOICES as u64 + 10) {
-            s.note_on(i, 40 + (i % 40) as u8, 0.8, Instrument::Pad);
+            s.note_on(i, 40 + (i % 40) as u8, 0.8, Instrument::Pad, 0.0);
         }
         assert_eq!(s.active_voices(), MAX_VOICES);
-        assert!(s.next_sample().abs() <= 1.0);
+        assert!(s.next_sample().0.abs() <= 1.0);
     }
 }

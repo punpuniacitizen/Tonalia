@@ -73,13 +73,16 @@ pub struct Track {
     pub instrument: String,
     pub color: String,
     pub volume: f32,
+    /// Paneo: -1 = izquierda, 0 = centro, 1 = derecha.
+    #[serde(default)]
+    pub pan: f32,
     pub muted: bool,
     pub solo: bool,
 }
 
 impl Track {
     pub fn new(id: TrackId, name: impl Into<String>, instrument: impl Into<String>, color: String) -> Self {
-        Self { id, name: name.into(), instrument: instrument.into(), color, volume: 0.8, muted: false, solo: false }
+        Self { id, name: name.into(), instrument: instrument.into(), color, volume: 0.8, pan: 0.0, muted: false, solo: false }
     }
 }
 
@@ -89,13 +92,16 @@ impl Track {
 pub struct ChordTrackSettings {
     pub instrument: String,
     pub volume: f32,
+    /// Paneo: -1 = izquierda, 0 = centro, 1 = derecha.
+    #[serde(default)]
+    pub pan: f32,
     pub muted: bool,
     pub solo: bool,
 }
 
 impl Default for ChordTrackSettings {
     fn default() -> Self {
-        Self { instrument: "piano".into(), volume: 0.7, muted: false, solo: false }
+        Self { instrument: "piano".into(), volume: 0.7, pan: 0.0, muted: false, solo: false }
     }
 }
 

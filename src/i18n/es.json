@@ -457,6 +457,11 @@
     "mute": "Silenciar",
     "solo": "Solo",
     "volume": "Volumen",
+    "pan": "Paneo",
+    "panLeft": "I",
+    "panRight": "D",
+    "panCenter": "centro",
+    "panHint": "arrastra arriba/abajo o usa la rueda; doble clic para centrar",
     "emptyHint": "Sin notas todavía: haz clic para abrir el piano roll y dibujar una melodía"
   },
   "instruments": {
@@ -466,7 +471,8 @@
     "pluck": "Arpa",
     "bass": "Bajo",
     "strings": "Cuerdas",
-    "pad": "Colchón"
+    "pad": "Colchón",
+    "musicbox": "Cajita musical"
   },
   "engine": {
     "title": "Sonido",

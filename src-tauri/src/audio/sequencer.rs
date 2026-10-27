@@ -29,6 +29,8 @@ pub struct SeqEvent {
     pub pitch: u8,
     pub velocity: f32,
     pub instrument: Instrument,
+    /// Paneo de la pista (-1 izquierda … 1 derecha).
+    pub pan: f32,
 }
 
 #[derive(Debug, Default)]
@@ -46,24 +48,24 @@ pub fn compile(song: &Song) -> Schedule {
 
     let mut events = Vec::new();
     let mut next_id = 1u64;
-    let mut push = |notes: Vec<tonalia_core::Note>, volume: f32, instrument: Instrument| {
+    let mut push = |notes: Vec<tonalia_core::Note>, volume: f32, pan: f32, instrument: Instrument| {
         for n in notes {
             let id = next_id;
             next_id += 1;
             let velocity = n.velocity * volume;
             let (start, end) = (n.position as f64, n.end() as f64);
-            events.push(SeqEvent { tick: start, end, on: true, id, pitch: n.pitch, velocity, instrument });
-            events.push(SeqEvent { tick: end, end, on: false, id, pitch: n.pitch, velocity: 0.0, instrument });
+            events.push(SeqEvent { tick: start, end, on: true, id, pitch: n.pitch, velocity, instrument, pan });
+            events.push(SeqEvent { tick: end, end, on: false, id, pitch: n.pitch, velocity: 0.0, instrument, pan });
         }
     };
 
     let ct = &song.chord_track;
     if audible(ct.muted, ct.solo) {
-        push(chord_track_notes(song), ct.volume, Instrument::from_name(&ct.instrument));
+        push(chord_track_notes(song), ct.volume, ct.pan, Instrument::from_name(&ct.instrument));
     }
     for t in &song.tracks {
         if audible(t.muted, t.solo) {
-            push(track_notes(song, t.id), t.volume, Instrument::from_name(&t.instrument));
+            push(track_notes(song, t.id), t.volume, t.pan, Instrument::from_name(&t.instrument));
         }
     }
     // En el mismo instante, primero los note-off: una nota repetida se re-ataca limpia.
@@ -190,16 +192,16 @@ impl Engine {
         if self.use_sf2 { self.sf2.as_deref_mut() } else { None }
     }
 
-    fn voice_on(&mut self, id: u64, pitch: u8, velocity: f32, instrument: Instrument) {
+    fn voice_on(&mut self, id: u64, pitch: u8, velocity: f32, instrument: Instrument, pan: f32) {
         match self.sampled() {
-            Some(sf) => sf.note_on(pitch, velocity, instrument, id & PREVIEW_BIT != 0),
-            None => self.synth.note_on(id, pitch, velocity, instrument),
+            Some(sf) => sf.note_on(pitch, velocity, instrument, id & PREVIEW_BIT != 0, pan),
+            None => self.synth.note_on(id, pitch, velocity, instrument, pan),
         }
     }
 
-    fn voice_off(&mut self, id: u64, pitch: u8, instrument: Instrument) {
+    fn voice_off(&mut self, id: u64, pitch: u8, instrument: Instrument, pan: f32) {
         match self.sampled() {
-            Some(sf) => sf.note_off(pitch, instrument, id & PREVIEW_BIT != 0),
+            Some(sf) => sf.note_off(pitch, instrument, id & PREVIEW_BIT != 0, pan),
             None => self.synth.note_off(id),
         }
     }
@@ -283,7 +285,7 @@ impl Engine {
         for i in 0..self.next_event {
             let e = self.schedule.events[i];
             if e.on && e.end > self.position {
-                self.voice_on(e.id, e.pitch, e.velocity, e.instrument);
+                self.voice_on(e.id, e.pitch, e.velocity, e.instrument, e.pan);
             }
         }
     }
@@ -314,9 +316,9 @@ impl Engine {
                 }
                 self.next_event += 1;
                 if e.on {
-                    self.voice_on(e.id, e.pitch, e.velocity, e.instrument);
+                    self.voice_on(e.id, e.pitch, e.velocity, e.instrument, e.pan);
                 } else {
-                    self.voice_off(e.id, e.pitch, e.instrument);
+                    self.voice_off(e.id, e.pitch, e.instrument, e.pan);
                 }
             }
             let (bpm, loop_range, length) = (self.schedule.bpm, self.schedule.loop_range, self.schedule.length);
@@ -341,12 +343,12 @@ impl Engine {
             if !p.started {
                 if p.start_in <= 0 {
                     self.pending[i].started = true;
-                    self.voice_on(p.id, p.note.pitch, p.note.velocity, p.note.instrument);
+                    self.voice_on(p.id, p.note.pitch, p.note.velocity, p.note.instrument, 0.0);
                 } else {
                     self.pending[i].start_in -= 1;
                 }
             } else if p.stop_in <= 1 {
-                self.voice_off(p.id, p.note.pitch, p.note.instrument);
+                self.voice_off(p.id, p.note.pitch, p.note.instrument, 0.0);
                 self.pending.swap_remove(i);
                 continue;
             } else {
@@ -355,13 +357,13 @@ impl Engine {
             i += 1;
         }
 
-        let fm = self.synth.next_sample();
+        let (fl, fr) = self.synth.next_sample();
         match self.sf2.as_deref_mut() {
             Some(sf) => {
                 let (l, r) = sf.next_sample();
-                (l + fm, r + fm)
+                (l + fl, r + fr)
             }
-            None => (fm, fm),
+            None => (fl, fr),
         }
     }
 
