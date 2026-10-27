@@ -129,6 +129,13 @@
     "diminished": "disminuida",
     "chromatic": "cromática"
   },
+  "scalePiano": {
+    "hint": "Clic derecho: ver la escala en un teclado",
+    "subtitle": "Las teclas de la escala para tocarla en el piano. Clic en una tecla para escucharla.",
+    "play": "Escuchar la escala",
+    "tonic": "tónica",
+    "inScale": "en la escala"
+  },
   "scaleHint": {
     "phrygianDominant": "árabe · flamenco",
     "doubleHarmonic": "árabe · bizantina",

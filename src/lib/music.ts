@@ -65,6 +65,31 @@ export function isMinorLike(scaleName: string): boolean {
   return offsets.includes(3) && !offsets.includes(4);
 }
 
+const NATURAL_PCS = [0, 2, 4, 5, 7, 9, 11];
+const sp = (letter: number, accidental: number): SpelledNote => ({ letter, accidental });
+const SHARP_SPELLING = [sp(0, 0), sp(0, 1), sp(1, 0), sp(1, 1), sp(2, 0), sp(3, 0), sp(3, 1), sp(4, 0), sp(4, 1), sp(5, 0), sp(5, 1), sp(6, 0)];
+const FLAT_SPELLING = [sp(0, 0), sp(1, -1), sp(1, 0), sp(2, -1), sp(2, 0), sp(3, 0), sp(4, -1), sp(4, 0), sp(5, -1), sp(5, 0), sp(6, -1), sp(6, 0)];
+
+/**
+ * Nombres de las notas de la escala, desde la tónica. Con siete notas, una letra por grado
+ * (Mi mayor: Mi Fa♯ Sol♯ La Si Do♯ Re♯); con otra cantidad, sostenidos o bemoles según la
+ * armadura de la mayor (o la relativa mayor) de esa tónica.
+ */
+export function scaleNoteNames(key: Key, notation: Notation): string[] {
+  const offsets = scaleOffsets(key.scale.steps);
+  const minor = isMinorLike(key.scale.name);
+  const tonic = (minor ? MINOR_KEY_ROOTS : MAJOR_KEY_ROOTS)[key.root % 12];
+  return offsets.map((o, i) => {
+    const pc = (key.root + o) % 12;
+    if (offsets.length === 7) {
+      const letter = (tonic.letter + i) % 7;
+      return spelledName(sp(letter, ((pc - NATURAL_PCS[letter] + 18) % 12) - 6), notation);
+    }
+    const parent = minor ? (key.root + 3) % 12 : key.root;
+    return spelledName(([2, 4, 6, 7, 9, 11].includes(parent) ? SHARP_SPELLING : FLAT_SPELLING)[pc], notation);
+  });
+}
+
 export function keyRootName(root: number, scaleName: string, notation: Notation): string {
   const table = isMinorLike(scaleName) ? MINOR_KEY_ROOTS : MAJOR_KEY_ROOTS;
   return spelledName(table[root % 12], notation);

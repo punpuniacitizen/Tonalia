@@ -793,3 +793,123 @@
   color: var(--text-2);
   background: var(--bg-4);
 }
+
+/* Clic derecho en el nombre de la escala: abre su teclado. */
+.scale-shape .scale-name {
+  cursor: context-menu;
+}
+
+.scale-piano {
+  position: fixed;
+  z-index: 90;
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px 12px;
+  background: var(--bg-1);
+}
+
+.scale-piano header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.scale-piano header div {
+  display: grid;
+  gap: 2px;
+}
+
+.scale-piano header strong {
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.scale-piano header small {
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.scale-piano header .icon-button svg {
+  transform: rotate(45deg);
+}
+
+.sp-key {
+  cursor: pointer;
+  transition: fill 0.12s, filter 0.12s;
+}
+
+.sp-key.is-white {
+  fill: #d9dcea;
+  stroke: #0b0d16;
+}
+
+.sp-key.is-black {
+  fill: #10131f;
+  stroke: #0b0d16;
+}
+
+.sp-key.is-white.is-on {
+  fill: color-mix(in oklab, var(--accent-2) 55%, #ffffff);
+}
+
+.sp-key.is-black.is-on {
+  fill: color-mix(in oklab, var(--accent-2) 70%, #10131f);
+}
+
+.sp-key.is-tonic {
+  fill: var(--fn-tonic);
+}
+
+.sp-key.is-lit {
+  filter: brightness(1.35) drop-shadow(0 0 6px var(--accent));
+}
+
+.sp-label text {
+  text-anchor: middle;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  fill: #10131f;
+}
+
+.sp-label.is-black text {
+  font-size: 9px;
+  fill: #ffffff;
+}
+
+.sp-label .sp-degree {
+  font-size: 9px;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.scale-piano footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.sp-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.sp-legend i {
+  width: 10px;
+  height: 10px;
+  margin-left: 6px;
+  border-radius: 3px;
+}
+
+.sp-legend i.is-tonic {
+  background: var(--fn-tonic);
+}
+
+.sp-legend i.is-on {
+  background: color-mix(in oklab, var(--accent-2) 55%, #ffffff);
+}

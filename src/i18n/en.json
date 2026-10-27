@@ -129,6 +129,13 @@
     "diminished": "diminished",
     "chromatic": "chromatic"
   },
+  "scalePiano": {
+    "hint": "Right-click: show the scale on a keyboard",
+    "subtitle": "The scale's keys to play it on a piano. Click a key to hear it.",
+    "play": "Play the scale",
+    "tonic": "tonic",
+    "inScale": "in the scale"
+  },
   "scaleHint": {
     "phrygianDominant": "Arabic · flamenco",
     "doubleHarmonic": "Arabic · Byzantine",

@@ -217,6 +217,9 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 }
 
 /** Dibuja la tira de teclado (columna fija a la izquierda). */
+/** Largo de las teclas negras respecto de las blancas (en un piano real, cerca de 2/3). */
+const BLACK_KEY_RATIO = 0.62;
+
 export function drawKeyboard(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -236,17 +239,23 @@ export function drawKeyboard(
     const pitch = topPitch - i;
     const y = i * ROW_HEIGHT;
     const black = isBlack(pitch);
+    // Como en un piano: la tecla negra es más corta y detrás asoma la blanca.
+    const keyWidth = black ? Math.round(width * BLACK_KEY_RATIO) : width;
+    if (black) {
+      ctx.fillStyle = "#c9cee3";
+      ctx.fillRect(keyWidth, y - 1, width - keyWidth, ROW_HEIGHT + 1);
+    }
     ctx.fillStyle = black ? "#10131f" : "#c9cee3";
-    ctx.fillRect(0, y, width, ROW_HEIGHT - 1);
+    ctx.fillRect(0, y, keyWidth, ROW_HEIGHT - 1);
     if (highlight.has(pitch % 12) && fn) {
       ctx.fillStyle = alpha(p[fn], black ? 0.55 : 0.45);
-      ctx.fillRect(0, y, width, ROW_HEIGHT - 1);
+      ctx.fillRect(0, y, keyWidth, ROW_HEIGHT - 1);
     }
     if (sounding.has(pitch)) {
       ctx.fillStyle = fn ? p[fn] : p.accent;
       ctx.shadowColor = ctx.fillStyle;
       ctx.shadowBlur = 12;
-      ctx.fillRect(0, y, width, ROW_HEIGHT - 1);
+      ctx.fillRect(0, y, keyWidth, ROW_HEIGHT - 1);
       ctx.shadowBlur = 0;
     }
     if (pitch % 12 === 0) {
