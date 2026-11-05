@@ -291,3 +291,356 @@
   stroke-width: 1.6;
   stroke-linecap: round;
 }
+
+/* Zoom del piano roll: − ↕ +  − ↔ + */
+.piano-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.piano-zoom button {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  color: var(--text-1);
+  line-height: 1;
+}
+
+.piano-zoom button:hover:not(:disabled) {
+  color: var(--text-0);
+  background: var(--bg-4);
+}
+
+.piano-zoom button:disabled {
+  opacity: 0.35;
+}
+
+.piano-zoom span + button + button {
+  margin-left: 6px;
+}
+
+/* ---------- Añadir pista: ¿de acordes o de notas? ---------- */
+.popover.track-kind,
+.popover.arp-tool {
+  background: var(--bg-1);
+}
+
+.track-kind-panel {
+  display: grid;
+  gap: 8px;
+  width: 320px;
+}
+
+.track-kind-panel h4,
+.arp-panel h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.track-kind-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--bg-2);
+  color: var(--text-1);
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.track-kind-option:hover {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg-2));
+  color: var(--text-0);
+}
+
+.track-kind-option span {
+  display: grid;
+  gap: 3px;
+}
+
+.track-kind-option small {
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+/* ---------- Pista de acordes: vista de bloques ---------- */
+.chord-blocks {
+  position: relative;
+}
+
+.chord-chip {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in oklab, var(--fn) 55%, transparent);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--fn) 28%, transparent), color-mix(in oklab, var(--fn) 8%, transparent)), var(--bg-2);
+  cursor: pointer;
+  overflow: hidden;
+  transition: box-shadow 0.15s, filter 0.15s;
+}
+
+.chord-chip:hover {
+  filter: brightness(1.15);
+}
+
+.chord-chip.is-picked,
+.chord-box.is-picked {
+  box-shadow: 0 0 0 2px var(--text-0), 0 0 16px color-mix(in oklab, var(--fn) 60%, transparent);
+}
+
+.chord-chip-name,
+.chord-box-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-0);
+  white-space: nowrap;
+}
+
+.chord-chip-name {
+  position: absolute;
+  top: 2px;
+  left: 7px;
+}
+
+.chord-chip-note {
+  height: 3px;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+/* ---------- Pista de acordes: vista de piano roll ---------- */
+.chord-roll-boxes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.chord-box {
+  position: absolute;
+  border-radius: 6px;
+  border: 1.5px solid color-mix(in oklab, var(--fn) 75%, transparent);
+  background: color-mix(in oklab, var(--fn) 7%, transparent);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: box-shadow 0.15s, background 0.15s;
+}
+
+.chord-box:hover {
+  background: color-mix(in oklab, var(--fn) 14%, transparent);
+}
+
+.chord-box-label {
+  position: absolute;
+  bottom: calc(100% + 1px);
+  left: 2px;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--fn) 45%, var(--bg-1));
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.chord-box.label-inside .chord-box-label {
+  top: 2px;
+  bottom: auto;
+}
+
+.chord-roll .drop-indicator {
+  pointer-events: none;
+}
+
+.chord-roll-empty {
+  z-index: 3;
+  top: 40%;
+}
+
+/* ---------- Herramienta «Arpegiar» ---------- */
+.arp-panel {
+  display: grid;
+  gap: 10px;
+  width: 340px;
+}
+
+.arp-row {
+  display: grid;
+  gap: 5px;
+}
+
+.arp-row > span {
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.arp-checks {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+}
+
+.arp-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.arp-note {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.arp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.arp-actions .primary-button {
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: color-mix(in oklab, var(--accent) 35%, var(--bg-2));
+  color: var(--text-0);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.arp-actions .primary-button:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--accent) 55%, var(--bg-2));
+}
+
+.arp-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.track-kind-option svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.lane-head-sticky .ghost-button {
+  white-space: nowrap;
+}
+
+/* ---------- Botones de ícono en las cabeceras ---------- */
+.head-icon {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--text-1);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.head-icon:hover {
+  color: var(--text-0);
+  border-color: var(--line-strong);
+}
+
+.head-icon.is-on {
+  color: var(--text-0);
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 18%, var(--bg-2));
+}
+
+/* ---------- Menú de herramientas ---------- */
+.popover.tools-menu {
+  background: var(--bg-1);
+}
+
+.tools-list {
+  display: grid;
+  gap: 6px;
+  width: 290px;
+}
+
+.tools-list h4,
+.tools-open-head h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tools-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--bg-2);
+  color: var(--text-1);
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.tools-item svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tools-item:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg-2));
+  color: var(--text-0);
+}
+
+.tools-item:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tools-item span {
+  display: grid;
+  gap: 2px;
+}
+
+.tools-item small {
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.tools-open {
+  display: grid;
+  gap: 10px;
+}
+
+.tools-open-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tools-open-head .head-icon {
+  width: 24px;
+  height: 24px;
+}

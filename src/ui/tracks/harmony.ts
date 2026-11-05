@@ -38,7 +38,7 @@ export function harmonyRegions(view: SongView, contentEnd: number): Region[] {
       root: c.chord.root,
       scalePcs: keyPitchClasses(c.key),
       fn: c.label.function,
-      voicing: c.voicing,
+      voicing: c.played, // lo que suena (arpegiado si corresponde)
     });
     t = c.start + c.length;
   }

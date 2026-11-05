@@ -82,11 +82,11 @@ export const APP_STEPS: AppStep[] = [
     lesson: "voices",
     es: {
       title: "Pista de acordes",
-      body: "Instrumento, silencio (M), solo (S) y volumen. «Voces» dibuja cómo se mueve cada nota entre acordes y «Suavizar» elige inversiones para que se muevan lo mínimo.",
+      body: "Instrumento, silencio (M), solo (S) y volumen. Puedes verla como bloques o como piano roll, y la caja de herramientas arpegia los acordes. Las ondas dibujan cómo se mueve cada nota entre acordes y la varita elige inversiones para que se muevan lo mínimo.",
     },
     en: {
       title: "Chord track",
-      body: "Instrument, mute (M), solo (S) and volume. 'Voices' draws how each note moves between chords and 'Smooth' picks inversions so they move as little as possible.",
+      body: "Instrument, mute (M), solo (S) and volume. View it as blocks or as a piano roll, and the toolbox arpeggiates the chords. The wave draws how each note moves between chords and the wand picks inversions so they move as little as possible.",
     },
   },
   {

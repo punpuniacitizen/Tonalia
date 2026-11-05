@@ -1,5 +1,5 @@
-// Ventana flotante del acorde seleccionado con dos pestañas: Extensiones (constructor) y
-// Voces (voicing a mano). Se abre desde la lente o con doble clic sobre un bloque de la
+// Ventana flotante del acorde seleccionado con tres pestañas: Extensiones (constructor),
+// Voces (voicing a mano) y Ritmo (duración y silencio antes). Se abre desde la lente o con doble clic sobre un bloque de la
 // cinta (en ese caso aparece al lado del acorde). Se cierra con Esc o tocando fuera.
 
 import { useEffect, useLayoutEffect, useRef } from "react";
@@ -12,6 +12,7 @@ import { useUi, type ChordToolsTab } from "../../stores/ui";
 import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
 import { ChordBuilder } from "./ChordBuilder";
+import { RhythmPanel } from "./RhythmPanel";
 import { VoicingEditor } from "./VoicingEditor";
 import "./lenses.css";
 
@@ -81,13 +82,14 @@ export function ChordTools() {
           options={[
             { value: "extensions", label: t("builder.short"), title: t("builder.title") },
             { value: "voices", label: t("voicing.title"), title: t("voicing.hint") },
+            { value: "rhythm", label: t("rhythm.title"), title: t("rhythm.hint") },
           ]}
         />
         <button className="icon-button" onClick={() => set({ chordTools: null })} title={t("tips.close")}>
           <Icon name="plus" size={16} />
         </button>
       </header>
-      {tools.tab === "extensions" ? <ChordBuilder chord={chord} /> : <VoicingEditor chord={chord} />}
+      {tools.tab === "extensions" ? <ChordBuilder chord={chord} /> : tools.tab === "voices" ? <VoicingEditor chord={chord} /> : <RhythmPanel chord={chord} />}
     </section>,
     document.body,
   );

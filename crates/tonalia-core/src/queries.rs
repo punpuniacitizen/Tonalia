@@ -59,6 +59,7 @@ fn walk<'a>(sections: &'a [Section], parent: Option<SectionId>, depth: usize, mu
             SectionContent::Leaf { chords, .. } => {
                 let mut t = start;
                 for (index, entry) in chords.iter().enumerate() {
+                    t += entry.gap;
                     out.chords.push(PlacedChord { section: s.id, index, start: t, entry, key: key.clone() });
                     t += entry.length;
                 }
@@ -89,8 +90,18 @@ pub fn key_at(song: &Song, t: Ticks) -> Key {
         .unwrap_or_else(|| song.home_key.clone())
 }
 
-/// Todas las notas de una pista con posiciones absolutas, ordenadas.
+/// Todas las notas de una pista con posiciones absolutas, ordenadas. En una pista de acordes,
+/// lo que toca de cada acorde de la cinta.
 pub fn track_notes(song: &Song, track: TrackId) -> Vec<Note> {
+    if song.track(track).is_some_and(|t| t.is_chords()) {
+        let mut notes: Vec<Note> = layout(song)
+            .chords
+            .iter()
+            .flat_map(|c| c.entry.played_for(Some(track)).into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
+            .collect();
+        notes.sort_by_key(|n| (n.position, n.pitch));
+        return notes;
+    }
     let mut notes: Vec<Note> = layout(song)
         .sections
         .iter()
@@ -108,12 +119,13 @@ pub fn track_notes(song: &Song, track: TrackId) -> Vec<Note> {
     notes
 }
 
-/// Las notas de la pista de acordes (los voicings) con posiciones absolutas.
+/// Las notas que suenan en la pista de acordes (voicings, arpegiados si corresponde) con
+/// posiciones absolutas.
 pub fn chord_track_notes(song: &Song) -> Vec<Note> {
     layout(song)
         .chords
         .iter()
-        .flat_map(|c| c.entry.voicing.iter().map(move |n| Note { position: n.position + c.start, ..n.clone() }))
+        .flat_map(|c| c.entry.played().into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
         .collect()
 }
 
@@ -135,7 +147,7 @@ mod tests {
     use crate::time::{BAR, HALF};
 
     fn entry(root: u8, length: Ticks) -> ChordEntry {
-        ChordEntry { chord: Chord::major(PitchClass::from(root)), length, voicing: vec![Note::new(0, length, 60 + root, 0.8)] }
+        ChordEntry::new(Chord::major(PitchClass::from(root)), length, vec![Note::new(0, length, 60 + root, 0.8)])
     }
 
     /// A [C(1 compás) G(½)] · B [Am(1)] · C (tonalidad propia: La menor) { C1 [F(1)] }

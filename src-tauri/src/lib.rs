@@ -97,6 +97,7 @@ pub fn run() {
             commands::redo,
             commands::get_palette,
             commands::detect_chord,
+            commands::arpeggiate,
             commands::substitutes,
             commands::describe_chord,
             commands::tensions,

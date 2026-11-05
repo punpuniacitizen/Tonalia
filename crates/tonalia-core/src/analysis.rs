@@ -2,11 +2,12 @@
 //! de ella (posiciones, nombres, función, tensión, puntuación respecto al acorde anterior).
 //! Con esto la interfaz dibuja sin tener que volver a preguntar a Rust.
 
+use crate::voicing::Arpeggio;
 use serde::Serialize;
 
 use crate::chord::Chord;
 use crate::harmony::{Function, Transition, function_of, score, tension};
-use crate::model::{Note, SectionId, Song, TrackId};
+use crate::model::{ChordLayer, Note, SectionId, Song, TrackId};
 use crate::naming::{roman, suffix};
 use crate::pitch::SpelledNote;
 use crate::queries::{layout, track_notes};
@@ -140,6 +141,13 @@ pub struct ChordView {
     pub transition: Transition,
     /// Notas del voicing con posiciones absolutas.
     pub voicing: Vec<Note>,
+    /// Lo que suena (el voicing arpegiado si tiene arpegio), con posiciones absolutas.
+    pub played: Vec<Note>,
+    /// Silencio antes del acorde.
+    pub gap: Ticks,
+    pub arp: Option<Arpeggio>,
+    /// Arpegios en las otras pistas de acordes.
+    pub layers: Vec<ChordLayer>,
     pub key: Key,
 }
 
@@ -196,6 +204,10 @@ pub fn song_view(song: &Song, can_undo: bool, can_redo: bool) -> SongView {
             label: describe(chord, &c.key),
             transition: score(previous, chord, &c.key),
             voicing: c.entry.voicing.iter().map(|n| Note { position: n.position + c.start, ..n.clone() }).collect(),
+            played: c.entry.played().into_iter().map(|n| Note { position: n.position + c.start, ..n }).collect(),
+            gap: c.entry.gap,
+            arp: c.entry.arp,
+            layers: c.entry.layers.clone(),
             key: c.key.clone(),
         });
         previous = Some(chord);

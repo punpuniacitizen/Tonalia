@@ -95,3 +95,10 @@
   color: var(--text-0);
   cursor: pointer;
 }
+
+/* Opción con ícono: cuadrada y centrada. */
+.segmented button.has-icon {
+  display: inline-grid;
+  place-items: center;
+  padding: 3px 8px;
+}

@@ -4,11 +4,12 @@
 //! ([`crate::history::Document`]) aplica cada comando sobre una copia, así un error a mitad
 //! de camino nunca deja la canción a medio modificar.
 
+use crate::voicing::Arpeggio;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::chord::Chord;
-use crate::model::{ChordEntry, Clip, LoopRegion, Note, Section, SectionContent, SectionId, Song, Track, TrackId, palette_color};
+use crate::model::{ChordEntry, Clip, LoopRegion, Note, Section, SectionContent, SectionId, Song, Track, TrackId, TrackKind, palette_color};
 use crate::queries::layout;
 use crate::scale::Key;
 use crate::time::{BAR, SIXTY_FOURTH, Ticks};
@@ -45,12 +46,28 @@ pub enum EditCommand {
     /// Mueve un acorde; `to.index` es la posición de inserción antes de quitarlo.
     MoveChord { from: ChordRef, to: ChordRef },
     SetVoicing { at: ChordRef, voicing: Vec<Note> },
+    /// Silencio antes de un acorde (0 = pegado al anterior).
+    SetChordGap { at: ChordRef, gap: Ticks },
+    /// Arpegia (o deja en bloque, con `None`) uno o varios acordes en una pista de acordes
+    /// (`track: None` = la principal).
+    SetArpeggio {
+        #[serde(default)]
+        track: Option<TrackId>,
+        chords: Vec<ChordRef>,
+        arp: Option<Arpeggio>,
+    },
     /// Recalcula todos los voicings para que las voces se muevan lo mínimo.
     SmoothVoicings,
     /// Vuelve todos los voicings a la posición cerrada por defecto.
     ResetVoicings,
 
-    AddTrack { name: String, instrument: String },
+    /// Pista nueva de notas o de acordes.
+    AddTrack {
+        name: String,
+        instrument: String,
+        #[serde(default)]
+        kind: TrackKind,
+    },
     RemoveTrack { track: TrackId },
     UpdateTrack {
         track: TrackId,
@@ -147,7 +164,7 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
             let voicing = default_voicing(chord, length, &song.preview, key.root);
             let (chords, _) = leaf_mut(song, *section)?;
             let index = (*index).min(chords.len());
-            chords.insert(index, ChordEntry { chord: chord.clone(), length, voicing });
+            chords.insert(index, ChordEntry::new(chord.clone(), length, voicing));
         }
         ReplaceChord { at, chord } => {
             let key = key_of(song, at.section)?;
@@ -195,6 +212,19 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
             let entry = chord_mut(song, *at)?;
             entry.voicing = voicing.iter().map(sanitize_note).collect();
         }
+        SetChordGap { at, gap } => {
+            chord_mut(song, *at)?.gap = (*gap).max(0);
+        }
+        SetArpeggio { track, chords, arp } => {
+            if let Some(id) = track
+                && !song.track(*id).is_some_and(|t| t.is_chords())
+            {
+                return Err(EditError::TrackNotFound(*id));
+            }
+            for at in chords {
+                chord_mut(song, *at)?.set_arp_for(*track, arp.map(Arpeggio::sanitized));
+            }
+        }
         SmoothVoicings | ResetVoicings => {
             let smooth = matches!(cmd, SmoothVoicings);
             let preview = song.preview;
@@ -215,10 +245,10 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
             }
         }
 
-        AddTrack { name, instrument } => {
+        AddTrack { name, instrument, kind } => {
             let id = song.alloc_id();
             let color = palette_color(song.tracks.len() + 4);
-            song.tracks.push(Track::new(id, name.clone(), instrument.clone(), color));
+            song.tracks.push(Track { kind: *kind, ..Track::new(id, name.clone(), instrument.clone(), color) });
         }
         RemoveTrack { track } => {
             let before = song.tracks.len();
@@ -226,7 +256,12 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
             if song.tracks.len() == before {
                 return Err(EditError::TrackNotFound(*track));
             }
-            song.for_each_leaf_mut(|_, clips| clips.retain(|c| c.track != *track));
+            song.for_each_leaf_mut(|chords, clips| {
+                clips.retain(|c| c.track != *track);
+                for c in chords {
+                    c.layers.retain(|l| l.track != *track);
+                }
+            });
         }
         UpdateTrack { track, name, instrument, volume, pan, muted, solo } => {
             let t = song.track_mut(*track).ok_or(EditError::TrackNotFound(*track))?;
@@ -434,6 +469,64 @@ mod tests {
         assert_eq!(e.length, HALF);
         assert!(e.voicing.iter().all(|n| n.end() == HALF));
         assert_eq!(e.voicing[0].pitch, 55); // Sol3: la fundamental queda por encima de la tónica Do
+    }
+
+    #[test]
+    fn silencio_antes_de_un_acorde() {
+        let mut song = Song::default();
+        insert(&mut song, 0);
+        insert(&mut song, 7);
+        let s = song.sections[0].id;
+        apply(&mut song, &EditCommand::SetChordGap { at: ChordRef { section: s, index: 1 }, gap: HALF }).unwrap();
+        let l = layout(&song);
+        assert_eq!(l.chords[1].start, BAR + HALF);
+        assert_eq!(l.length, 2 * BAR + HALF);
+        // El silencio no suena: la pista de acordes salta de un acorde al otro.
+        let notes = crate::queries::chord_track_notes(&song);
+        assert!(notes.iter().all(|n| n.end() <= BAR || n.position >= BAR + HALF));
+    }
+
+    #[test]
+    fn arpegio_se_aplica_y_se_quita() {
+        use crate::voicing::{ArpPattern, Arpeggio};
+        let mut song = Song::default();
+        insert(&mut song, 0);
+        let at = ChordRef { section: song.sections[0].id, index: 0 };
+        let arp = Arpeggio { pattern: ArpPattern::Up, step: BAR / 8, octaves: 1, hold: false, keep_bass: false };
+        apply(&mut song, &EditCommand::SetArpeggio { track: None, chords: vec![at], arp: Some(arp) }).unwrap();
+        let notes = crate::queries::chord_track_notes(&song);
+        assert_eq!(notes.len(), 8);
+        assert!(notes.windows(2).all(|w| w[0].position < w[1].position));
+        // El voicing original se conserva: quitar el arpegio devuelve el acorde en bloque.
+        apply(&mut song, &EditCommand::SetArpeggio { track: None, chords: vec![at], arp: None }).unwrap();
+        let block = crate::queries::chord_track_notes(&song);
+        assert!(block.iter().all(|n| n.position == 0 && n.length == BAR));
+    }
+
+    #[test]
+    fn pista_de_acordes_con_su_propio_arpegio() {
+        use crate::model::TrackKind;
+        use crate::voicing::{ArpPattern, Arpeggio};
+        let mut song = Song::default();
+        insert(&mut song, 0);
+        insert(&mut song, 1);
+        apply(&mut song, &EditCommand::AddTrack { name: "Pad".into(), instrument: "pad".into(), kind: TrackKind::Chords }).unwrap();
+        let pad = song.tracks.last().unwrap().id;
+        // Sin arpegio, la pista de acordes toca lo mismo que la principal.
+        assert_eq!(track_notes(&song, pad), crate::queries::chord_track_notes(&song));
+        // Arpegiar el primer acorde solo en esa pista no toca la principal.
+        let at = ChordRef { section: song.sections[0].id, index: 0 };
+        let arp = Arpeggio { pattern: ArpPattern::Down, step: BAR / 8, octaves: 1, hold: false, keep_bass: false };
+        apply(&mut song, &EditCommand::SetArpeggio { track: Some(pad), chords: vec![at], arp: Some(arp) }).unwrap();
+        let first: Vec<Note> = track_notes(&song, pad).into_iter().filter(|n| n.position < BAR).collect();
+        assert_eq!(first.len(), 8);
+        assert!(first[0].pitch > first[1].pitch, "baja");
+        assert!(crate::queries::chord_track_notes(&song).iter().all(|n| n.position % BAR == 0));
+        // En una pista de notas no se puede, y al borrar la pista se olvida su arpegio.
+        let melody = song.tracks[0].id;
+        assert!(apply(&mut song, &EditCommand::SetArpeggio { track: Some(melody), chords: vec![at], arp: Some(arp) }).is_err());
+        apply(&mut song, &EditCommand::RemoveTrack { track: pad }).unwrap();
+        assert!(crate::queries::layout(&song).chords[0].entry.layers.is_empty());
     }
 
     #[test]

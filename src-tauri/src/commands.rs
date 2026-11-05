@@ -9,7 +9,8 @@ use tonalia_core::commands::EditCommand;
 use tonalia_core::palette::{ChordSize, Palette, build_palette};
 use tonalia_core::pitch::PitchClass;
 use tonalia_core::time::{BAR, QUARTER};
-use tonalia_core::voicing::default_voicing;
+use tonalia_core::model::Note;
+use tonalia_core::voicing::{Arpeggio, arpeggiate_notes, default_voicing};
 use tonalia_core::{Chord, Key};
 
 use std::path::PathBuf;
@@ -276,6 +277,12 @@ pub fn tensions(chord: Chord, key: Key) -> Vec<TensionView> {
 #[tauri::command]
 pub fn substitutes(chord: Chord, key: Key, previous: Option<Chord>) -> Vec<SubstituteView> {
     substitutes_labeled(&chord, &key, previous.as_ref())
+}
+
+/// Arpegia notas de un piano roll: las que empiezan juntas forman un acorde.
+#[tauri::command]
+pub fn arpeggiate(notes: Vec<Note>, arp: Arpeggio) -> Vec<Note> {
+    arpeggiate_notes(&notes, &arp)
 }
 
 /// Reconoce el acorde formado por unas notas (el más probable primero).

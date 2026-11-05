@@ -5,7 +5,9 @@ import { keyRootName, TICKS_PER_BAR } from "../../lib/music";
 import { Icon } from "../common/Icon";
 import { nextSectionName, SectionEditor } from "./SectionEditor";
 import { INSTRUMENTS } from "../../lib/instruments";
-import { TrackLanes } from "../tracks/TrackLanes";
+import { ChordLaneTools, PIANO_HEIGHT, TrackLanes } from "../tracks/TrackLanes";
+import { ChordPianoRoll } from "../tracks/ChordPianoRoll";
+import { useLaneView } from "../tracks/chordLane";
 import { useNotes } from "../../stores/notes";
 import { useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";
@@ -26,6 +28,7 @@ export function Timeline() {
   const edit = useSong((s) => s.edit);
   const notation = useUi((s) => s.notation);
   const showVoices = useUi((s) => s.showVoices);
+  const mainView = useLaneView("main");
   const { t } = useTranslation();
   const [loopDraft, setLoopDraft] = useState<{ start: number; end: number } | null>(null);
   const [editing, setEditing] = useState<{ id: number; x: number; y: number } | null>(null);
@@ -152,7 +155,7 @@ export function Timeline() {
           </div>
 
           <ChordTrackHead />
-          <ChordRibbon />
+          {mainView === "piano" ? <ChordPianoRoll lane="main" color={accentColor()} width={width} height={PIANO_HEIGHT} /> : <ChordRibbon />}
           <TrackLanes width={width} />
 
           <Playhead />
@@ -212,25 +215,40 @@ function ChordTrackHead() {
         />
         <PanKnob value={ct.pan} onChange={(pan) => update({ pan })} />
         <span className="head-sep" />
+        <ChordLaneTools lane="main" />
+        <span className="head-sep" />
         <button
-          className={`ghost-button small ${showVoices ? "is-on" : ""}`}
+          className={`head-icon ${showVoices ? "is-on" : ""}`}
           onClick={() => setUi({ showVoices: !showVoices })}
-          title={t("voices.showHint")}
+          title={`${t("voices.show")} — ${t("voices.showHint")}`}
+          aria-label={t("voices.show")}
+          aria-pressed={showVoices}
           data-tip="concept.voices"
         >
-          <Icon name="lines" size={14} /> {t("voices.show")}
+          <Icon name="lines" size={16} />
         </button>
-        <button className="ghost-button small" onClick={() => edit({ type: "smoothVoicings" })} title={t("voices.smoothHint")} data-tip="concept.voices">
-          <Icon name="wand" size={14} /> {t("voices.smooth")}
+        <button
+          className="head-icon"
+          onClick={() => edit({ type: "smoothVoicings" })}
+          title={`${t("voices.smooth")} — ${t("voices.smoothHint")}`}
+          aria-label={t("voices.smooth")}
+          data-tip="concept.voices"
+        >
+          <Icon name="wand" size={16} />
         </button>
-        <button className="ghost-button small" onClick={() => edit({ type: "resetVoicings" })} title={t("voices.resetHint")}>
-          {t("voices.reset")}
+        <button className="head-icon" onClick={() => edit({ type: "resetVoicings" })} title={`${t("voices.reset")} — ${t("voices.resetHint")}`} aria-label={t("voices.reset")}>
+          <Icon name="reset" size={16} />
         </button>
         <span className="head-sep" />
         <GridPicker />
       </div>
     </div>
   );
+}
+
+/** Color de acento del tema (el lienzo del piano roll necesita un color concreto). */
+function accentColor(): string {
+  return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#8b7bff";
 }
 
 /** Línea vertical que avanza con la música. Se mueve fuera de React (rAF) para ir fluida. */

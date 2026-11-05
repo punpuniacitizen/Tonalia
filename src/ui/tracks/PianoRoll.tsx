@@ -9,16 +9,19 @@ import { useSelectedChord, useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";
 import { useUi } from "../../stores/ui";
 import { gridStep, snap, tickToX, xToTick } from "../timeline/geometry";
-import { ROW_HEIGHT, drawKeyboard, drawPianoRoll, pitchToY, yToPitch } from "./drawPianoRoll";
+import { drawKeyboard, drawPianoRoll, pitchToY, yToPitch } from "./drawPianoRoll";
 import { harmonyRegions, regionAt } from "./harmony";
 
 export const KEYS_WIDTH = 48;
 const MIN_LENGTH = 162; // 1/64
 const MAX_CANVAS_WIDTH = 16000;
+/** Límites del zoom vertical (alto de fila en píxeles). */
+export const MIN_ROW = 6;
+export const MAX_ROW = 32;
 const EMPTY = new Set<string>();
 
 type Gesture =
-  | { kind: "create"; note: Note }
+  | { kind: "create"; note: Note; downX: number }
   | { kind: "move"; originals: Note[]; downTick: number; downPitch: number; lastDp: number }
   | { kind: "resizeEnd" | "resizeStart"; originals: Note[]; downTick: number }
   | { kind: "velocity"; originals: Note[]; downY: number }
@@ -36,7 +39,7 @@ const sortNotes = (notes: Note[]) => [...notes].sort((a, b) => a.position - b.po
 export function PianoRoll({ track, width, height }: { track: Track; width: number; height: number }) {
   const view = useSong((s) => s.view) as SongView;
   const edit = useSong((s) => s.edit);
-  const { pxPerBar, gridDivisions, notation, level } = useUi();
+  const { pxPerBar, gridDivisions, notation, level, noteLength, pianoRowHeight: rh } = useUi();
   const { tool, selection, selectionTrack, select, clearSelection } = useNotes();
   const playing = useTransport((s) => s.playing);
   const selectedChord = useSelectedChord();
@@ -54,7 +57,7 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
   const keysRef = useRef<HTMLCanvasElement>(null);
 
   const canvasWidth = Math.min(width, MAX_CANVAS_WIDTH);
-  const rows = Math.ceil(height / ROW_HEIGHT);
+  const rows = Math.ceil(height / rh);
   const regions = useMemo(() => harmonyRegions(view, xToTick(canvasWidth, pxPerBar)), [view, canvasWidth, pxPerBar]);
   const sel = selectionTrack === track.id ? selection : EMPTY;
   const step = gridDivisions > 0 ? gridStep(gridDivisions) : MIN_LENGTH;
@@ -93,8 +96,9 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
       lasso,
       hoverPitch,
       gridDivisions,
+      rowHeight: rh,
     });
-  }, [canvasWidth, height, topPitch, pxPerBar, regions, notes, sel, track.color, notation, level, lasso, hoverPitch, gridDivisions]);
+  }, [canvasWidth, height, topPitch, pxPerBar, regions, notes, sel, track.color, notation, level, lasso, hoverPitch, gridDivisions, rh]);
 
   // Teclado: resalta las notas del acorde en el instante de interés y lo que suena.
   useEffect(() => {
@@ -111,20 +115,25 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
       const region = regionAt(regions, focus);
       const sounding = new Set<number>();
       if (playing) for (const n of notes) if (focus >= n.position && focus < n.position + n.length) sounding.add(n.pitch);
-      drawKeyboard(ctx, KEYS_WIDTH, height, topPitch, region?.chordPcs ?? new Set(), sounding, region?.fn ?? null, notation);
+      drawKeyboard(ctx, KEYS_WIDTH, height, topPitch, region?.chordPcs ?? new Set(), sounding, region?.fn ?? null, notation, rh);
       if (playing) frame = requestAnimationFrame(paint);
     };
     paint();
     return () => cancelAnimationFrame(frame);
-  }, [playing, hoverTick, selectedChord, regions, notes, height, topPitch, notation]);
+  }, [playing, hoverTick, selectedChord, regions, notes, height, topPitch, notation, rh]);
 
-  // Rueda: desplaza las alturas (Mayús + rueda = desplazamiento horizontal normal).
+  // Rueda: desplaza las alturas (Mayús + rueda = desplazamiento horizontal normal,
+  // Ctrl + rueda = zoom horizontal, Alt + rueda = zoom vertical).
   useEffect(() => {
     const el = canvasRef.current?.parentElement;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       if (e.shiftKey || e.ctrlKey) return;
       e.preventDefault();
+      if (e.altKey) {
+        zoomRows(e.deltaY < 0 ? 1 : -1);
+        return;
+      }
       setTopPitch((p) => Math.min(127, Math.max(rows - 1, p + (e.deltaY < 0 ? 2 : -2))));
     };
     el.addEventListener("wheel", onWheel, { passive: false });
@@ -132,13 +141,19 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
   }, [rows]);
 
   // ---------- Interacción ----------
+  // Zoom vertical: filas más altas o más bajas, manteniendo arriba la misma nota.
+  function zoomRows(direction: number) {
+    const { pianoRowHeight, set } = useUi.getState();
+    set({ pianoRowHeight: Math.min(MAX_ROW, Math.max(MIN_ROW, pianoRowHeight + direction * 2)) });
+  }
+
   const local = (e: React.PointerEvent) => {
     const r = canvasRef.current!.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
 
   const hit = (x: number, y: number): Hit | null => {
-    const pitch = yToPitch(y, topPitch);
+    const pitch = yToPitch(y, topPitch, rh);
     for (let i = notes.length - 1; i >= 0; i--) {
       const n = notes[i];
       if (n.pitch !== pitch) continue;
@@ -161,7 +176,7 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
     if (e.altKey) e.preventDefault();
     const { x, y } = local(e);
     const tick = xToTick(x, pxPerBar);
-    const pitch = yToPitch(y, topPitch);
+    const pitch = yToPitch(y, topPitch, rh);
     const h = hit(x, y);
 
     if (e.button === 2) {
@@ -172,6 +187,8 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
     e.currentTarget.setPointerCapture(e.pointerId);
 
     if (h) {
+      // Como en FL Studio: las notas nuevas salen con el largo de la última que tocaste.
+      useUi.getState().set({ noteLength: h.note.length });
       const key = noteKey(h.note);
       const keys = e.shiftKey ? new Set([...sel, key]) : sel.has(key) ? sel : new Set([key]);
       select(track.id, keys);
@@ -188,8 +205,9 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
       if (!e.shiftKey) clearSelection();
     } else if (tool === "draw") {
       const position = Math.max(0, e.altKey ? Math.round(tick) : Math.floor(tick / step) * step);
-      const note: Note = { position, length: step, pitch, velocity: 0.8 };
-      gesture.current = { kind: "create", note };
+      // Las notas nuevas salen con el último largo usado (o un paso de la cuadrícula).
+      const note: Note = { position, length: noteLength > 0 ? noteLength : step, pitch, velocity: 0.8 };
+      gesture.current = { kind: "create", note, downX: x };
       setDraftNotes([...committed.filter((n) => noteKey(n) !== noteKey(note)), note]);
       select(track.id, [noteKey(note)]);
       preview(pitch);
@@ -201,7 +219,7 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const { x, y } = local(e);
     const tick = xToTick(x, pxPerBar);
-    const pitch = yToPitch(y, topPitch);
+    const pitch = yToPitch(y, topPitch, rh);
     setHoverPitch(pitch);
     setHoverTick(tick);
     const g = gesture.current;
@@ -227,6 +245,8 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
 
     switch (g.kind) {
       case "create": {
+        // Un clic sin arrastrar conserva el largo recordado.
+        if (Math.abs(x - g.downX) < 4) break;
         const end = e.altKey ? Math.max(g.note.position + MIN_LENGTH, Math.round(tick)) : Math.max(g.note.position + step, Math.ceil(tick / step) * step);
         const note = { ...g.note, length: end - g.note.position };
         setDraftNotes([...committed.filter((n) => noteKey(n) !== noteKey(note)), note]);
@@ -273,8 +293,8 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
         const inside = notes.filter((n) => {
           const nx0 = tickToX(n.position, pxPerBar);
           const nx1 = tickToX(n.position + n.length, pxPerBar);
-          const ny = pitchToY(n.pitch, topPitch);
-          return nx1 >= xa && nx0 <= xb && ny + ROW_HEIGHT >= ya && ny <= yb;
+          const ny = pitchToY(n.pitch, topPitch, rh);
+          return nx1 >= xa && nx0 <= xb && ny + rh >= ya && ny <= yb;
         });
         select(track.id, inside.map(noteKey), g.additive);
         break;
@@ -293,12 +313,16 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
     const before = new Set(committed.map(noteKey));
     const changed = next.filter((n) => !before.has(noteKey(n)) || sel.has(noteKey(n)));
     if (g.kind !== "velocity") select(track.id, changed.map(noteKey));
+    // Crear o estirar una nota fija el largo de las próximas.
+    if ((g.kind === "create" || g.kind === "resizeEnd" || g.kind === "resizeStart") && changed[0]) {
+      useUi.getState().set({ noteLength: changed[0].length });
+    }
     commit(next);
   };
 
   const onKeysDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    preview(yToPitch(e.clientY - r.top, topPitch));
+    preview(yToPitch(e.clientY - r.top, topPitch, rh));
   };
 
   return (

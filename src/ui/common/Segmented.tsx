@@ -1,6 +1,10 @@
+import { Icon, type IconName } from "./Icon";
 import "./common.css";
 
-/** Grupo de botones donde solo uno está activo (como un interruptor de varias posiciones). */
+/**
+ * Grupo de botones donde solo uno está activo (como un interruptor de varias posiciones).
+ * Una opción con `icon` muestra solo el ícono; su nombre (y su `title`) quedan en el tooltip.
+ */
 export function Segmented<T extends string>({
   value,
   options,
@@ -8,7 +12,7 @@ export function Segmented<T extends string>({
   label,
 }: {
   value: T;
-  options: { value: T; label: string; title?: string }[];
+  options: { value: T; label: string; title?: string; icon?: IconName }[];
   onChange: (v: T) => void;
   label: string;
 }) {
@@ -19,11 +23,12 @@ export function Segmented<T extends string>({
           key={o.value}
           role="radio"
           aria-checked={o.value === value}
-          className={o.value === value ? "is-active" : ""}
-          title={o.title}
+          aria-label={o.icon ? o.label : undefined}
+          className={`${o.value === value ? "is-active" : ""} ${o.icon ? "has-icon" : ""}`}
+          title={o.icon ? (o.title ? `${o.label} — ${o.title}` : o.label) : o.title}
           onClick={() => onChange(o.value)}
         >
-          {o.label}
+          {o.icon ? <Icon name={o.icon} size={15} /> : o.label}
         </button>
       ))}
     </div>

@@ -35,6 +35,18 @@ function keepSelectionValid(view: SongView) {
   if (selected && !view.chords.some((c) => sameRef(c, selected))) select(null);
 }
 
+/** Los acordes nuevos sin largo explícito salen con el último largo elegido. */
+function withDefaultLength(cmd: EditCommand): EditCommand {
+  if (cmd.type === "insertChord" && cmd.length === null) return { ...cmd, length: useUi.getState().newChordLength };
+  if (cmd.type === "batch") return { ...cmd, commands: cmd.commands.map(withDefaultLength) };
+  return cmd;
+}
+
+/** Cambiar el largo de un acorde lo vuelve el largo de los próximos. */
+function rememberLength(cmd: EditCommand) {
+  if (cmd.type === "resizeChord") useUi.getState().set({ newChordLength: cmd.length });
+}
+
 export const useSong = create<SongState>()((set) => ({
   view: null,
   error: null,
@@ -42,9 +54,11 @@ export const useSong = create<SongState>()((set) => ({
     const view = await api.getView();
     set({ view });
   },
-  edit: async (cmd) => {
+  edit: async (raw) => {
+    const cmd = withDefaultLength(raw);
     try {
       const view = await api.edit(cmd);
+      rememberLength(cmd);
       set({ view, error: null });
       keepSelectionValid(view);
       onChanged();

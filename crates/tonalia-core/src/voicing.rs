@@ -232,9 +232,169 @@ pub fn fit_voicing(voicing: &[Note], old_length: Ticks, new_length: Ticks) -> Ve
         .collect()
 }
 
+/// Orden en que se tocan las notas del arpegio.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub enum ArpPattern {
+    Up,
+    Down,
+    UpDown,
+    DownUp,
+    /// Al azar, pero siempre igual para el mismo acorde (no cambia al reproducir otra vez).
+    Random,
+}
+
+/// Cómo arpegiar un acorde.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct Arpeggio {
+    pub pattern: ArpPattern,
+    /// Distancia entre notas, en ticks (una corchea = `EIGHTH`).
+    pub step: Ticks,
+    /// Cuántas octavas recorre (1 a 3).
+    pub octaves: u8,
+    /// Cada nota sigue sonando hasta el final del acorde (como con pedal).
+    pub hold: bool,
+    /// La nota más grave queda sostenida todo el acorde y se arpegian las demás.
+    pub keep_bass: bool,
+}
+
+impl Arpeggio {
+    /// Valores dentro de rango: paso de al menos una fusa y de 1 a 3 octavas.
+    pub fn sanitized(self) -> Self {
+        Self { step: self.step.max(MIN_STRUM_LENGTH * 2), octaves: self.octaves.clamp(1, 3), ..self }
+    }
+}
+
+/// Arpegia un voicing: sus alturas se reparten una tras otra cada `step` hasta llenar `length`.
+pub fn arpeggiate(voicing: &[Note], length: Ticks, arp: &Arpeggio) -> Vec<Note> {
+    let arp = arp.sanitized();
+    let mut pitches: Vec<u8> = voicing.iter().map(|n| n.pitch).collect();
+    pitches.sort_unstable();
+    pitches.dedup();
+    if pitches.is_empty() || length <= 0 {
+        return Vec::new();
+    }
+    let velocity = voicing.iter().map(|n| n.velocity).sum::<f32>() / voicing.len() as f32;
+    let mut out = Vec::new();
+    if arp.keep_bass && pitches.len() > 1 {
+        out.push(Note::new(0, length, pitches.remove(0), velocity));
+    }
+    let base = pitches.clone();
+    for o in 1..arp.octaves {
+        pitches.extend(base.iter().map(|&p| p + 12 * o).filter(|&p| p <= 127));
+    }
+    let up = pitches.clone();
+    let down: Vec<u8> = up.iter().rev().copied().collect();
+    let inner = |v: &[u8]| if v.len() > 2 { v[1..v.len() - 1].to_vec() } else { Vec::new() };
+    let cycle: Vec<u8> = match arp.pattern {
+        ArpPattern::Up | ArpPattern::Random => up.clone(),
+        ArpPattern::Down => down.clone(),
+        ArpPattern::UpDown => [up.clone(), inner(&down)].concat(),
+        ArpPattern::DownUp => [down.clone(), inner(&up)].concat(),
+    };
+    // Generador fijo a partir de las notas: el «azar» se repite igual en cada reproducción.
+    let mut seed: u32 = cycle.iter().fold(2166136261u32, |h, &p| (h ^ p as u32).wrapping_mul(16777619));
+    let mut previous: Option<usize> = None;
+    let mut k = 0usize;
+    let mut t = 0;
+    while t < length {
+        let index = if arp.pattern == ArpPattern::Random && cycle.len() > 1 {
+            seed = seed.wrapping_mul(1664525).wrapping_add(1013904223);
+            let mut i = (seed >> 16) as usize % cycle.len();
+            if Some(i) == previous {
+                i = (i + 1) % cycle.len();
+            }
+            i
+        } else {
+            k % cycle.len()
+        };
+        previous = Some(index);
+        let accent = if k % cycle.len() == 0 { 0.08 } else { 0.0 };
+        let note_length = if arp.hold { length - t } else { arp.step.min(length - t) };
+        out.push(Note::new(t, note_length, cycle[index], (velocity + accent).min(1.0)));
+        k += 1;
+        t += arp.step;
+    }
+    out
+}
+
+/// Arpegia notas sueltas (las seleccionadas en un piano roll), como la herramienta de FL Studio:
+/// las que empiezan juntas (a menos de una fusa) forman un acorde, y cada acorde se arpegia
+/// hasta que termina su nota más larga o empieza el siguiente. Posiciones absolutas.
+pub fn arpeggiate_notes(notes: &[Note], arp: &Arpeggio) -> Vec<Note> {
+    let mut sorted = notes.to_vec();
+    sorted.sort_by_key(|n| (n.position, n.pitch));
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < sorted.len() {
+        let start = sorted[i].position;
+        let mut j = i;
+        while j < sorted.len() && sorted[j].position - start < crate::time::THIRTY_SECOND {
+            j += 1;
+        }
+        let group = &sorted[i..j];
+        let mut end = group.iter().map(Note::end).max().unwrap_or(start);
+        if let Some(next) = sorted.get(j) {
+            end = end.min(next.position);
+        }
+        let relative: Vec<Note> = group.iter().map(|n| Note { position: 0, ..n.clone() }).collect();
+        out.extend(arpeggiate(&relative, end - start, arp).into_iter().map(|n| Note { position: n.position + start, ..n }));
+        i = j;
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn arpegiar_notas_sueltas_por_acordes() {
+        use crate::time::{HALF, WHOLE};
+        // Do mayor (un compás) y luego Fa mayor (medio compás), con la tercera un poco tarde.
+        let notes = vec![
+            Note::new(0, WHOLE, 60, 0.8),
+            Note::new(0, WHOLE, 64, 0.8),
+            Note::new(20, WHOLE - 20, 67, 0.8),
+            Note::new(WHOLE, HALF, 65, 0.8),
+            Note::new(WHOLE, HALF, 69, 0.8),
+            Note::new(WHOLE, HALF, 72, 0.8),
+        ];
+        let out = arpeggiate_notes(&notes, &Arpeggio { pattern: ArpPattern::Up, step: crate::time::EIGHTH, octaves: 1, hold: false, keep_bass: false });
+        let first: Vec<u8> = out.iter().filter(|n| n.position < WHOLE).map(|n| n.pitch).collect();
+        let second: Vec<u8> = out.iter().filter(|n| n.position >= WHOLE).map(|n| n.pitch).collect();
+        assert_eq!(first, [60, 64, 67, 60, 64, 67, 60, 64]);
+        assert_eq!(second, [65, 69, 72, 65]);
+        assert!(out.iter().all(|n| n.end() <= WHOLE || n.position >= WHOLE), "no pisa el acorde siguiente");
+    }
+
+    fn arp(pattern: ArpPattern) -> Arpeggio {
+        Arpeggio { pattern, step: crate::time::EIGHTH, octaves: 1, hold: false, keep_bass: false }
+    }
+
+    #[test]
+    fn arpegios_basicos() {
+        let block = vec![Note::new(0, 9, 60, 0.8), Note::new(0, 9, 64, 0.8), Note::new(0, 9, 67, 0.8)];
+        let len = crate::time::HALF; // 4 corcheas
+        let pitches = |a: Arpeggio| arpeggiate(&block, len, &a).iter().map(|n| n.pitch).collect::<Vec<_>>();
+        assert_eq!(pitches(arp(ArpPattern::Up)), [60, 64, 67, 60]);
+        assert_eq!(pitches(arp(ArpPattern::Down)), [67, 64, 60, 67]);
+        assert_eq!(pitches(arp(ArpPattern::UpDown)), [60, 64, 67, 64]);
+        assert_eq!(pitches(Arpeggio { octaves: 2, ..arp(ArpPattern::Up) }), [60, 64, 67, 72]);
+        // Bajo sostenido: el Do dura todo el acorde y se arpegian Mi y Sol.
+        let held = arpeggiate(&block, len, &Arpeggio { keep_bass: true, ..arp(ArpPattern::Up) });
+        assert_eq!((held[0].pitch, held[0].length), (60, len));
+        assert_eq!(held[1..].iter().map(|n| n.pitch).collect::<Vec<_>>(), [64, 67, 64, 67]);
+        // Con pedal cada nota suena hasta el final.
+        assert!(arpeggiate(&block, len, &Arpeggio { hold: true, ..arp(ArpPattern::Up) }).iter().all(|n| n.end() == len));
+        // El azar es siempre el mismo y no repite la misma nota seguida.
+        let random = pitches(arp(ArpPattern::Random));
+        assert_eq!(random, pitches(arp(ArpPattern::Random)));
+        assert!(random.windows(2).all(|w| w[0] != w[1]));
+    }
     use crate::time::WHOLE;
 
     #[test]

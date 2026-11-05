@@ -16,6 +16,7 @@ import { noteKey } from "../../stores/notes";
 import { tickToX, xToTick } from "../timeline/geometry";
 import { regionAt, type Region } from "./harmony";
 
+/** Alto de fila por defecto; el piano roll lo cambia con el zoom vertical. */
 export const ROW_HEIGHT = 12;
 
 type Palette = Record<TonalFunction, string> & { danger: string; accent: string; text: string };
@@ -75,19 +76,22 @@ export type DrawState = {
   hoverPitch: number | null;
   /** Divisiones del compás de la cuadrícula (0 = libre: se dibujan los tiempos). */
   gridDivisions: number;
+  /** Alto de cada fila (zoom vertical). */
+  rowHeight: number;
 };
 
-export function pitchToY(pitch: number, topPitch: number): number {
-  return (topPitch - pitch) * ROW_HEIGHT;
+export function pitchToY(pitch: number, topPitch: number, rowHeight = ROW_HEIGHT): number {
+  return (topPitch - pitch) * rowHeight;
 }
 
-export function yToPitch(y: number, topPitch: number): number {
-  return topPitch - Math.floor(y / ROW_HEIGHT);
+export function yToPitch(y: number, topPitch: number, rowHeight = ROW_HEIGHT): number {
+  return topPitch - Math.floor(y / rowHeight);
 }
 
 export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
   const p = palette();
-  const rows = Math.ceil(s.height / ROW_HEIGHT) + 1;
+  const RH = s.rowHeight;
+  const rows = Math.ceil(s.height / RH) + 1;
   ctx.clearRect(0, 0, s.width, s.height);
 
   // 1. Filas por papel armónico, tramo a tramo.
@@ -97,18 +101,18 @@ export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
     const fnColor = r.fn ? p[r.fn] : p.accent;
     for (let i = 0; i < rows; i++) {
       const pitch = s.topPitch - i;
-      const y = i * ROW_HEIGHT;
+      const y = i * RH;
       const role = harmonicRole(pitch, r.chordPcs, r.root, r.scalePcs);
       if (role === "root") ctx.fillStyle = alpha(fnColor, 0.26);
       else if (role === "chord") ctx.fillStyle = alpha(fnColor, 0.15);
       else if (role === "scale") ctx.fillStyle = "rgba(255,255,255,0.035)";
       else ctx.fillStyle = "rgba(0,0,0,0.28)";
-      ctx.fillRect(x0, y, x1 - x0, ROW_HEIGHT);
+      ctx.fillRect(x0, y, x1 - x0, RH);
       if (role === "outside") {
         const pat = hatchPattern(ctx);
         if (pat) {
           ctx.fillStyle = pat;
-          ctx.fillRect(x0, y, x1 - x0, ROW_HEIGHT);
+          ctx.fillRect(x0, y, x1 - x0, RH);
         }
       }
     }
@@ -117,7 +121,7 @@ export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
   // Fila bajo el ratón.
   if (s.hoverPitch !== null) {
     ctx.fillStyle = "rgba(255,255,255,0.05)";
-    ctx.fillRect(0, pitchToY(s.hoverPitch, s.topPitch), s.width, ROW_HEIGHT);
+    ctx.fillRect(0, pitchToY(s.hoverPitch, s.topPitch, RH), s.width, RH);
   }
 
   // 2. Separadores de fila (más marcados en cada Do) y líneas de tiempo.
@@ -125,7 +129,7 @@ export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
     const pitch = s.topPitch - i;
     const isC = (pitch + 1) % 12 === 0; // la línea inferior de cada Do
     ctx.fillStyle = isC ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.025)";
-    ctx.fillRect(0, (i + 1) * ROW_HEIGHT - 1, s.width, 1);
+    ctx.fillRect(0, (i + 1) * RH - 1, s.width, 1);
   }
   const endTick = xToTick(s.width, s.pxPerBar);
   // Compás marcado, tiempos (en tercios si la división es ternaria) medios, subdivisiones suaves.
@@ -145,11 +149,11 @@ export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
     for (const n of r.voicing) {
       const x = tickToX(n.position, s.pxPerBar);
       const w = Math.max(2, n.length * (s.pxPerBar / TICKS_PER_BAR) - 2);
-      const y = pitchToY(n.pitch, s.topPitch);
+      const y = pitchToY(n.pitch, s.topPitch, RH);
       ctx.fillStyle = alpha(p[r.fn], 0.1);
       ctx.strokeStyle = alpha(p[r.fn], 0.35);
-      ctx.fillRect(x, y + 1, w, ROW_HEIGHT - 2);
-      ctx.strokeRect(x + 0.5, y + 1.5, w - 1, ROW_HEIGHT - 3);
+      ctx.fillRect(x, y + 1, w, RH - 2);
+      ctx.strokeRect(x + 0.5, y + 1.5, w - 1, RH - 3);
     }
   }
   ctx.setLineDash([]);
@@ -160,8 +164,8 @@ export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
   for (const n of s.notes) {
     const x = tickToX(n.position, s.pxPerBar);
     const w = Math.max(3, n.length * (s.pxPerBar / TICKS_PER_BAR) - 1);
-    const y = pitchToY(n.pitch, s.topPitch);
-    if (y + ROW_HEIGHT < 0 || y > s.height) continue;
+    const y = pitchToY(n.pitch, s.topPitch, RH);
+    if (y + RH < 0 || y > s.height) continue;
     const region = regionAt(s.regions, n.position);
     const role = region ? harmonicRole(n.pitch, region.chordPcs, region.root, region.scalePcs) : "scale";
     const selected = s.selection.has(noteKey(n));
@@ -175,7 +179,7 @@ export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
     const base = role === "outside" ? p.danger : s.trackColor;
     const strength = role === "scale" ? 0.25 + 0.55 * n.velocity : 0.35 + 0.65 * n.velocity;
     ctx.fillStyle = alpha(base, strength);
-    roundRect(ctx, x, y + 1, w, ROW_HEIGHT - 2, 3);
+    roundRect(ctx, x, y + 1, w, RH - 2, 3);
     ctx.fill();
     ctx.restore();
 
@@ -188,13 +192,13 @@ export function drawPianoRoll(ctx: CanvasRenderingContext2D, s: DrawState) {
         : role === "scale"
           ? alpha(s.trackColor, 0.9)
           : "rgba(255,255,255,0.85)";
-    roundRect(ctx, x + 0.5, y + 1.5, w - 1, ROW_HEIGHT - 3, 3);
+    roundRect(ctx, x + 0.5, y + 1.5, w - 1, RH - 3, 3);
     ctx.stroke();
     ctx.setLineDash([]);
 
     if (s.showLabels && w > 26) {
       ctx.fillStyle = "rgba(4,5,10,0.85)";
-      ctx.fillText(pitchName(n.pitch, s.notation), x + 4, y + ROW_HEIGHT / 2 + 0.5);
+      ctx.fillText(pitchName(n.pitch, s.notation), x + 4, y + RH / 2 + 0.5);
     }
   }
 
@@ -229,38 +233,39 @@ export function drawKeyboard(
   sounding: Set<number>,
   fn: TonalFunction | null,
   notation: Notation,
+  rowHeight = ROW_HEIGHT,
 ) {
   const p = palette();
-  const rows = Math.ceil(height / ROW_HEIGHT) + 1;
+  const rows = Math.ceil(height / rowHeight) + 1;
   ctx.clearRect(0, 0, width, height);
   ctx.font = "500 9px 'Inter Variable', sans-serif";
   ctx.textBaseline = "middle";
   for (let i = 0; i < rows; i++) {
     const pitch = topPitch - i;
-    const y = i * ROW_HEIGHT;
+    const y = i * rowHeight;
     const black = isBlack(pitch);
     // Como en un piano: la tecla negra es más corta y detrás asoma la blanca.
     const keyWidth = black ? Math.round(width * BLACK_KEY_RATIO) : width;
     if (black) {
       ctx.fillStyle = "#c9cee3";
-      ctx.fillRect(keyWidth, y - 1, width - keyWidth, ROW_HEIGHT + 1);
+      ctx.fillRect(keyWidth, y - 1, width - keyWidth, rowHeight + 1);
     }
     ctx.fillStyle = black ? "#10131f" : "#c9cee3";
-    ctx.fillRect(0, y, keyWidth, ROW_HEIGHT - 1);
+    ctx.fillRect(0, y, keyWidth, rowHeight - 1);
     if (highlight.has(pitch % 12) && fn) {
       ctx.fillStyle = alpha(p[fn], black ? 0.55 : 0.45);
-      ctx.fillRect(0, y, keyWidth, ROW_HEIGHT - 1);
+      ctx.fillRect(0, y, keyWidth, rowHeight - 1);
     }
     if (sounding.has(pitch)) {
       ctx.fillStyle = fn ? p[fn] : p.accent;
       ctx.shadowColor = ctx.fillStyle;
       ctx.shadowBlur = 12;
-      ctx.fillRect(0, y, keyWidth, ROW_HEIGHT - 1);
+      ctx.fillRect(0, y, keyWidth, rowHeight - 1);
       ctx.shadowBlur = 0;
     }
     if (pitch % 12 === 0) {
       ctx.fillStyle = "#10131f";
-      ctx.fillText(pitchName(pitch, notation), 4, y + ROW_HEIGHT / 2);
+      ctx.fillText(pitchName(pitch, notation), 4, y + rowHeight / 2);
     }
   }
 }

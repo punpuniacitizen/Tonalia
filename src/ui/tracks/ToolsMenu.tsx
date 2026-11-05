@@ -1,0 +1,87 @@
+// Menú de herramientas de una pista (la caja de herramientas de su cabecera). Se abre con un
+// clic: muestra las herramientas y, al elegir una, su panel dentro de la misma tarjeta.
+// Es aparte del selector Dibujar / Seleccionar / Intensidad porque estas herramientas no son
+// modos del clic: actúan sobre lo elegido.
+
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import type { Track } from "../../bindings/Track";
+import { useNotes, type ChordLane } from "../../stores/notes";
+import { Icon, type IconName } from "../common/Icon";
+import { Popover } from "../common/Popover";
+import { ArpPanel } from "./ArpTool";
+import { NotesToChordPanel } from "./NotesToChordPanel";
+
+export type ToolsTarget = { kind: "chords"; lane: ChordLane } | { kind: "notes"; track: Track };
+
+type ToolId = "arp" | "toChord";
+
+export function ToolsMenu({ target }: { target: ToolsTarget }) {
+  const { t } = useTranslation();
+  return (
+    <Popover
+      className="tools-menu"
+      floating
+      trigger={(open, toggle) => (
+        <button className={`head-icon ${open ? "is-on" : ""}`} onClick={toggle} title={t("tools.title")} aria-label={t("tools.title")}>
+          <Icon name="wrench" size={16} />
+        </button>
+      )}
+    >
+      {(close) => <ToolsPanel target={target} close={close} />}
+    </Popover>
+  );
+}
+
+function ToolsPanel({ target, close }: { target: ToolsTarget; close: () => void }) {
+  const { t } = useTranslation();
+  const [tool, setTool] = useState<ToolId | null>(null);
+  const selection = useNotes((s) => (target.kind === "notes" && s.selectionTrack === target.track.id ? s.selection : null));
+  const noteCount = selection?.size ?? 0;
+
+  const tools: { id: ToolId; icon: IconName; name: string; hint: string; disabled?: string }[] = [
+    { id: "arp", icon: "arp", name: t("arp.tool"), hint: target.kind === "chords" ? t("arp.toolHint") : t("arp.toolHintNotes") },
+  ];
+  if (target.kind === "notes") {
+    tools.push({
+      id: "toChord",
+      icon: "sparkle",
+      name: t("piano.toChord"),
+      hint: t("piano.toChordHint"),
+      disabled: noteCount < 2 ? t("piano.toChordNeeds") : undefined,
+    });
+  }
+  const current = tools.find((x) => x.id === tool);
+
+  if (!current) {
+    return (
+      <div className="tools-list">
+        <h4>{t("tools.title")}</h4>
+        {tools.map((x) => (
+          <button key={x.id} className="tools-item" disabled={!!x.disabled} onClick={() => setTool(x.id)}>
+            <Icon name={x.icon} size={17} />
+            <span>
+              <strong>{x.name}</strong>
+              <small>{x.disabled ?? x.hint}</small>
+            </span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="tools-open">
+      <header className="tools-open-head">
+        <button className="head-icon" onClick={() => setTool(null)} title={t("tools.back")} aria-label={t("tools.back")}>
+          <Icon name="chevronLeft" size={15} />
+        </button>
+        <Icon name={current.icon} size={15} />
+        <h4>{current.name}</h4>
+      </header>
+      {current.id === "arp" && <ArpPanel target={target} close={close} />}
+      {current.id === "toChord" && target.kind === "notes" && selection && <NotesToChordPanel track={target.track} keys={selection} close={close} />}
+    </div>
+  );
+}

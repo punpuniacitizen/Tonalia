@@ -3,10 +3,10 @@
 //! ```text
 //! Song
 //! ├─ home_key, bpm, looping, preview…
-//! ├─ tracks: [Track]                 pistas de melodía/bajo (la de acordes es aparte)
+//! ├─ tracks: [Track]                 pistas de notas (melodía, bajo…) o de acordes (la principal es aparte)
 //! └─ sections: [Section]             árbol de secciones, en orden temporal
 //!    └─ content: Sections { children }          subsecciones, o bien
-//!                Leaf { chords: [ChordEntry],   acordes uno tras otro, sin huecos
+//!                Leaf { chords: [ChordEntry],   acordes uno tras otro (cada uno puede dejar un silencio antes)
 //!                       clips:  [Clip] }        notas de cada pista, relativas a la sección
 //! ```
 //! Las posiciones de secciones y acordes no se guardan: se deducen sumando duraciones
@@ -18,7 +18,7 @@ use crate::chord::Chord;
 use crate::pitch::PitchClass;
 use crate::scale::Key;
 use crate::time::{BAR, Ticks};
-use crate::voicing::PreviewSettings;
+use crate::voicing::{Arpeggio, PreviewSettings};
 
 pub type TrackId = u32;
 pub type SectionId = u32;
@@ -62,6 +62,76 @@ pub struct ChordEntry {
     pub chord: Chord,
     pub length: Ticks,
     pub voicing: Vec<Note>,
+    /// Silencio antes del acorde (en ticks): el hueco que queda tras el anterior.
+    #[serde(default)]
+    pub gap: Ticks,
+    /// Si se toca arpegiado. El voicing guarda las notas del acorde; el arpegio se aplica
+    /// al reproducir (ver [`ChordEntry::played`]), así se puede cambiar o quitar sin perder nada.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arp: Option<Arpeggio>,
+    /// Arpegio de este acorde en las otras pistas de acordes (las que no lo tienen lo tocan en bloque).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub layers: Vec<ChordLayer>,
+}
+
+/// Cómo toca un acorde una pista de acordes que no es la principal.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct ChordLayer {
+    pub track: TrackId,
+    pub arp: Arpeggio,
+}
+
+impl ChordEntry {
+    pub fn new(chord: Chord, length: Ticks, voicing: Vec<Note>) -> Self {
+        Self { chord, length, voicing, gap: 0, arp: None, layers: Vec::new() }
+    }
+
+    /// Arpegio en una pista de acordes (`None` = la principal).
+    pub fn arp_for(&self, track: Option<TrackId>) -> Option<Arpeggio> {
+        match track {
+            None => self.arp,
+            Some(id) => self.layers.iter().find(|l| l.track == id).map(|l| l.arp),
+        }
+    }
+
+    pub fn set_arp_for(&mut self, track: Option<TrackId>, arp: Option<Arpeggio>) {
+        match track {
+            None => self.arp = arp,
+            Some(id) => {
+                self.layers.retain(|l| l.track != id);
+                if let Some(arp) = arp {
+                    self.layers.push(ChordLayer { track: id, arp });
+                }
+            }
+        }
+    }
+
+    /// Lo que suena en una pista de acordes: el voicing tal cual o arpegiado.
+    /// Posiciones relativas al acorde.
+    pub fn played_for(&self, track: Option<TrackId>) -> Vec<Note> {
+        match self.arp_for(track) {
+            Some(arp) => crate::voicing::arpeggiate(&self.voicing, self.length, &arp),
+            None => self.voicing.clone(),
+        }
+    }
+
+    /// Lo que suena en la pista de acordes principal.
+    pub fn played(&self) -> Vec<Note> {
+        self.played_for(None)
+    }
+}
+
+/// Qué tiene una pista: notas sueltas (piano roll) o los acordes de la canción.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub enum TrackKind {
+    #[default]
+    Notes,
+    /// Toca los acordes de la cinta con su propio instrumento y su propio arpegio en cada acorde.
+    Chords,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -78,11 +148,17 @@ pub struct Track {
     pub pan: f32,
     pub muted: bool,
     pub solo: bool,
+    #[serde(default)]
+    pub kind: TrackKind,
 }
 
 impl Track {
     pub fn new(id: TrackId, name: impl Into<String>, instrument: impl Into<String>, color: String) -> Self {
-        Self { id, name: name.into(), instrument: instrument.into(), color, volume: 0.8, pan: 0.0, muted: false, solo: false }
+        Self { id, name: name.into(), instrument: instrument.into(), color, volume: 0.8, pan: 0.0, muted: false, solo: false, kind: TrackKind::Notes }
+    }
+
+    pub fn is_chords(&self) -> bool {
+        self.kind == TrackKind::Chords
     }
 }
 
@@ -155,7 +231,7 @@ impl Section {
     pub fn length(&self) -> Ticks {
         let total = match &self.content {
             SectionContent::Sections { children } => children.iter().map(Section::length).sum(),
-            SectionContent::Leaf { chords, .. } => chords.iter().map(|c| c.length).sum(),
+            SectionContent::Leaf { chords, .. } => chords.iter().map(|c| c.gap + c.length).sum(),
         };
         if total > 0 { total } else { BAR }
     }

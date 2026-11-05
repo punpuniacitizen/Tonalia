@@ -8,6 +8,7 @@ import type { SongView } from "../../bindings/SongView";
 import { chordSymbol, exampleProgression, functionColor, romanSymbol } from "../../lib/music";
 import { reasonText } from "../../lib/reason";
 import { onDrop, pointerGesture, useDrag, type DropTarget } from "../../stores/drag";
+import { chordKey, useNotes } from "../../stores/notes";
 import { useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";
 import { sameRef, useUi } from "../../stores/ui";
@@ -17,6 +18,7 @@ import { gridStep, pxPerTick, snap, tickToX, xToTick } from "./geometry";
 import { VoiceLines } from "./VoiceLines";
 
 type Resize = { section: number; index: number; length: number };
+type GapDrag = { section: number; index: number; gap: number };
 
 /** Dónde caería un acorde soltado en el instante `tick`. */
 function dropTargetAt(view: SongView, tick: number, pxPerBar: number): DropTarget {
@@ -53,56 +55,76 @@ function usePlayingIndex(chords: ChordView[]): number {
   return index;
 }
 
+/**
+ * Acepta acordes soltados sobre `laneRef` (la cinta, o el piano roll de la pista principal):
+ * desde la rueda se insertan, desde la cinta se mueven.
+ */
+export function useChordDrop(laneRef: React.RefObject<HTMLElement | null>, enabled = true) {
+  const view = useSong((s) => s.view) as SongView;
+  const edit = useSong((s) => s.edit);
+  const select = useUi((s) => s.select);
+  const pxPerBar = useUi((s) => s.pxPerBar);
+  const payload = useDrag((s) => s.payload);
+  const dragX = useDrag((s) => s.x);
+  const dragY = useDrag((s) => s.y);
+
+  // Mientras se arrastra un acorde, calculamos dónde caería.
+  useEffect(() => {
+    const lane = laneRef.current;
+    if (!enabled || !payload || !lane) return;
+    const rect = lane.getBoundingClientRect();
+    const near = dragX >= rect.left && dragX <= rect.right && dragY >= rect.top - 60 && dragY <= rect.bottom + 40;
+    const next = near ? dropTargetAt(view, xToTick(dragX - rect.left, pxPerBar), pxPerBar) : null;
+    const prev = useDrag.getState().target;
+    if (next?.section !== prev?.section || next?.index !== prev?.index) useDrag.getState().setTarget(next);
+  }, [enabled, laneRef, payload, dragX, dragY, view, pxPerBar]);
+
+  // Al soltar: insertar (desde la rueda) o mover (dentro de la cinta).
+  useEffect(() => {
+    if (!enabled) return;
+    return onDrop(() => {
+      const { payload: p, target: tg } = useDrag.getState();
+      if (!p || !tg) return;
+      if (p.kind === "new") {
+        void edit({ type: "insertChord", section: tg.section, index: tg.index, chord: p.chord, length: null }).then(
+          (v) => v && select({ section: tg.section, index: tg.index }),
+        );
+      } else {
+        const index = p.from.section === tg.section && p.from.index < tg.index ? tg.index - 1 : tg.index;
+        void edit({ type: "moveChord", from: p.from, to: { section: tg.section, index: tg.index } }).then(
+          (v) => v && select({ section: tg.section, index }),
+        );
+      }
+    });
+  }, [enabled, edit, select]);
+}
+
 export function ChordRibbon() {
   const { t } = useTranslation();
   const view = useSong((s) => s.view) as SongView;
   const edit = useSong((s) => s.edit);
   const { pxPerBar, notation, symbols, level, gridDivisions, selected, select, showVoices } = useUi();
   const payload = useDrag((s) => s.payload);
-  const dragX = useDrag((s) => s.x);
-  const dragY = useDrag((s) => s.y);
   const target = useDrag((s) => s.target);
+  const picked = useNotes((s) => (s.chordPick?.lane === "main" ? s.chordPick.keys : null));
   const laneRef = useRef<HTMLDivElement>(null);
   const [resize, setResize] = useState<Resize | null>(null);
+  const [gapDrag, setGapDrag] = useState<GapDrag | null>(null);
   const playingIndex = usePlayingIndex(view.chords);
   const ppt = pxPerTick(pxPerBar);
 
-  // Mientras se arrastra un acorde, calculamos dónde caería.
-  useEffect(() => {
-    const lane = laneRef.current;
-    if (!payload || !lane) return;
-    const rect = lane.getBoundingClientRect();
-    const near = dragX >= rect.left && dragX <= rect.right && dragY >= rect.top - 60 && dragY <= rect.bottom + 40;
-    const next = near ? dropTargetAt(view, xToTick(dragX - rect.left, pxPerBar), pxPerBar) : null;
-    const prev = useDrag.getState().target;
-    if (next?.section !== prev?.section || next?.index !== prev?.index) useDrag.getState().setTarget(next);
-  }, [payload, dragX, dragY, view, pxPerBar]);
-
-  // Al soltar sobre la cinta: insertar (desde la rueda) o mover (dentro de la cinta).
-  useEffect(
-    () =>
-      onDrop(() => {
-        const { payload: p, target: tg } = useDrag.getState();
-        if (!p || !tg) return;
-        if (p.kind === "new") {
-          void edit({ type: "insertChord", section: tg.section, index: tg.index, chord: p.chord, length: null }).then(
-            (v) => v && select({ section: tg.section, index: tg.index }),
-          );
-        } else {
-          const index = p.from.section === tg.section && p.from.index < tg.index ? tg.index - 1 : tg.index;
-          void edit({ type: "moveChord", from: p.from, to: { section: tg.section, index: tg.index } }).then(
-            (v) => v && select({ section: tg.section, index }),
-          );
-        }
-      }),
-    [edit, select],
-  );
+  useChordDrop(laneRef);
 
   const onBlockDown = (e: React.PointerEvent, c: ChordView) => {
     if (e.button !== 0) return;
+    const toggle = e.shiftKey;
     pointerGesture(e, {
       onClick: () => {
+        // Clic elige el acorde (para «Arpegiar»); Mayús + clic suma o quita otros.
+        useNotes.getState().pickChords("main", [chordKey(c)], toggle);
         select({ section: c.section, index: c.index });
+        // Los acordes nuevos salen con el largo del último que tocaste.
+        useUi.getState().set({ newChordLength: c.length });
         void api.previewChord(c.chord, c.key.root);
       },
       onDragStart: (x, y) =>
@@ -131,13 +153,36 @@ export function ChordRibbon() {
     window.addEventListener("pointerup", up);
   };
 
-  // Durante un redimensionado, los acordes siguientes se desplazan en vivo.
+  // Borde izquierdo: arrastrarlo deja (o quita) un silencio antes del acorde.
+  const onGapDown = (e: React.PointerEvent, c: ChordView) => {
+    e.stopPropagation();
+    if (e.button !== 0) return;
+    const startX = e.clientX;
+    let gap = c.gap;
+    const move = (ev: PointerEvent) => {
+      gap = Math.max(0, snap(c.gap + (ev.clientX - startX) / ppt, gridDivisions));
+      setGapDrag({ section: c.section, index: c.index, gap });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      setGapDrag(null);
+      if (gap !== c.gap) void edit({ type: "setChordGap", at: { section: c.section, index: c.index }, gap });
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  // Durante un redimensionado (o al arrastrar un silencio), los acordes siguientes se desplazan en vivo.
   const resizedAt = resize ? view.chords.findIndex((c) => sameRef(c, resize)) : -1;
   const shift = resize && resizedAt >= 0 ? (resize.length - view.chords[resizedAt].length) * ppt : 0;
+  const gapAt = gapDrag ? view.chords.findIndex((c) => sameRef(c, gapDrag)) : -1;
+  const gapShift = gapDrag && gapAt >= 0 ? (gapDrag.gap - view.chords[gapAt].gap) * ppt : 0;
   const geometry = view.chords.map((c, i) => {
     const length = i === resizedAt && resize ? resize.length : c.length;
-    const left = tickToX(c.start, pxPerBar) + (resizedAt >= 0 && i > resizedAt ? shift : 0);
-    return { left, width: Math.max(10, length * ppt - 6) };
+    const gap = i === gapAt && gapDrag ? gapDrag.gap : c.gap;
+    const left = tickToX(c.start, pxPerBar) + (resizedAt >= 0 && i > resizedAt ? shift : 0) + (gapAt >= 0 && i >= gapAt ? gapShift : 0);
+    return { left, width: Math.max(10, length * ppt - 6), gap: gap * ppt };
   });
 
   return (
@@ -170,6 +215,7 @@ export function ChordRibbon() {
           const classes = [
             "chord-block",
             sameRef(selected, c) ? "is-selected" : "",
+            picked?.has(chordKey(c)) ? "is-picked" : "",
             i === playingIndex ? "is-playing" : "",
             isDragged ? "is-dragged" : "",
           ].join(" ");
@@ -198,10 +244,30 @@ export function ChordRibbon() {
                 {level !== "beginner" && <span className="block-secondary">{secondary}</span>}
                 {level === "beginner" && <span className="block-function">{t(`function.${c.label.function}`)}</span>}
               </div>
+              {c.arp && (
+                <span className="block-arp" title={t("rhythm.arpeggiated")}>
+                  <Icon name="arp" size={12} />
+                </span>
+              )}
+              <div className="block-gap" title={t("ribbon.gapHint")} onPointerDown={(e) => onGapDown(e, c)} />
               <div className="block-resize" title={t("ribbon.resize")} onPointerDown={(e) => onResizeDown(e, c)} />
             </div>
           );
         })}
+
+        {/* Silencios: el hueco antes de cada acorde que lo tenga. */}
+        {view.chords.map((c, i) =>
+          geometry[i].gap > 0 ? (
+            <div
+              key={`gap-${c.section}-${c.index}`}
+              className="gap-block"
+              style={{ left: geometry[i].left - geometry[i].gap, width: Math.max(4, geometry[i].gap - 6) }}
+              title={t("ribbon.gapHint")}
+            >
+              {geometry[i].gap > 64 && <span>{t("ribbon.rest")}</span>}
+            </div>
+          ) : null,
+        )}
 
         {showVoices && view.chords.length > 0 && (
           <VoiceLines chords={view.chords} geometry={geometry} height={laneRef.current?.clientHeight ?? 168} />

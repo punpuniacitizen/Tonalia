@@ -4,6 +4,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+import type { Arpeggio } from "../bindings/Arpeggio";
 import type { Chord } from "../bindings/Chord";
 import type { ChordRef } from "../bindings/ChordRef";
 import type { ChordSize } from "../bindings/ChordSize";
@@ -18,9 +19,11 @@ export type WheelSource = { kind: "mode"; scale: string } | { kind: "left" } | {
 /** Panel lateral o ventana abierta (biblioteca, entrenamiento auditivo, aprender…). */
 export type Panel = "library" | "training" | "help" | "welcome" | "learn" | null;
 /** Pestaña de la ventana de herramientas del acorde. */
-export type ChordToolsTab = "extensions" | "voices";
+export type ChordToolsTab = "extensions" | "voices" | "rhythm";
 /** Ventana de herramientas del acorde seleccionado; `anchor` = junto a qué bloque abrirla. */
 export type ChordTools = { tab: ChordToolsTab; anchor: { left: number; right: number; top: number } | null };
+/** Cómo se ve una pista de acordes: bloques con el nombre o piano roll con sus notas. */
+export type ChordLaneView = "blocks" | "piano";
 /** Qué se ve en el centro del muelle: rueda, mapa de funciones o Tonnetz. */
 export type DockView = "wheel" | "map" | "tonnetz";
 
@@ -62,6 +65,16 @@ interface UiState {
   showTensions: boolean;
   /** Mostrar las líneas de conducción de voces en la cinta. */
   showVoices: boolean;
+  /** Largo de los acordes nuevos (ticks): el último que se eligió. */
+  newChordLength: number;
+  /** Largo de las notas nuevas en el piano roll (ticks; 0 = un paso de la cuadrícula). */
+  noteLength: number;
+  /** Alto de cada fila del piano roll (zoom vertical), en píxeles. */
+  pianoRowHeight: number;
+  /** Último arpegio usado: se propone al arpegiar otro acorde. */
+  lastArp: Arpeggio;
+  /** Vista de cada pista de acordes ("main" = la principal; si falta, bloques). */
+  chordViews: Record<string, ChordLaneView>;
   selected: ChordRef | null;
   set: (patch: Partial<Omit<UiState, "set" | "select">>) => void;
   select: (ref: ChordRef | null) => void;
@@ -108,6 +121,11 @@ export const useUi = create<UiState>()(
       pivotChords: null,
       showTensions: false,
       showVoices: false,
+      newChordLength: 10368,
+      noteLength: 0,
+      pianoRowHeight: 12,
+      lastArp: { pattern: "up", step: 1296, octaves: 1, hold: false, keepBass: false },
+      chordViews: {},
       selected: null,
       set: (patch) => set(patch),
       select: (selected) => set({ selected }),

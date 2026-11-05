@@ -693,3 +693,60 @@
   color: var(--text-2);
   font-size: 11px;
 }
+
+/* Borde izquierdo del acorde: arrastrarlo deja un silencio antes. */
+.block-gap {
+  position: absolute;
+  top: 0;
+  left: -4px;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.block-gap::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  bottom: 12px;
+  width: 2px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--text-1);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.chord-block:hover .block-gap::after {
+  opacity: 0.6;
+}
+
+/* Un silencio en la cinta: hueco punteado. */
+.gap-block {
+  position: absolute;
+  bottom: 0;
+  height: 34%;
+  margin-left: 3px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  color: var(--text-2);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+.block-arp {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: var(--text-1);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* Acordes elegidos con Mayús + clic (para «Arpegiar»). */
+.chord-block.is-picked:not(.is-selected) .block-body {
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--fn) 60%, white), 0 0 0 2px color-mix(in oklab, var(--text-0) 65%, transparent);
+}

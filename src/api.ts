@@ -4,12 +4,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
+import type { Arpeggio } from "./bindings/Arpeggio";
 import type { Chord } from "./bindings/Chord";
 import type { ChordLabel } from "./bindings/ChordLabel";
 import type { ChordSize } from "./bindings/ChordSize";
 import type { DetectedView } from "./bindings/DetectedView";
 import type { EditCommand } from "./bindings/EditCommand";
 import type { Key } from "./bindings/Key";
+import type { Note } from "./bindings/Note";
 import type { Palette } from "./bindings/Palette";
 import type { PitchClass } from "./bindings/PitchClass";
 import type { SongView } from "./bindings/SongView";
@@ -37,6 +39,8 @@ export const api = {
   palette: (key: Key, size: ChordSize, previous: Chord | null) =>
     invoke<Palette>("get_palette", { key, size, previous }),
   detectChord: (pitches: number[], key: Key) => invoke<DetectedView[]>("detect_chord", { pitches, key }),
+  /** Arpegia notas sueltas: las que empiezan juntas forman un acorde. */
+  arpeggiate: (notes: Note[], arp: Arpeggio) => invoke<Note[]>("arpeggiate", { notes, arp }),
   describeChord: (chord: Chord, key: Key) => invoke<ChordLabel>("describe_chord", { chord, key }),
   tensions: (chord: Chord, key: Key) => invoke<TensionView[]>("tensions", { chord, key }),
   substitutes: (chord: Chord, key: Key, previous: Chord | null) =>

@@ -482,3 +482,11 @@
 .header[data-compact="5"] .brand-name {
   display: none;
 }
+
+/* Tarjeta flotante: por encima de todo, colocada junto a su botón desde el código. */
+.popover.is-floating {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
