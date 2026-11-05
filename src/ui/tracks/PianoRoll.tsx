@@ -193,6 +193,7 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
     }
     if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    useNotes.getState().setFocus({ kind: "notes", track: track.id });
 
     if (h) {
       // Como en FL Studio: las notas nuevas salen con el largo de la última que tocaste.
@@ -208,7 +209,8 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
         gesture.current = { kind: "move", originals, downTick: tick, downPitch: pitch, lastDp: 0 };
         preview(h.note.pitch);
       }
-    } else if (tool === "select" || e.shiftKey) {
+    } else if (tool === "select" || e.shiftKey || e.ctrlKey) {
+      // Caja de selección: con la herramienta Seleccionar, o con Mayús / Ctrl en cualquiera.
       gesture.current = { kind: "lasso", x0: x, y0: y, additive: e.shiftKey };
       if (!e.shiftKey) clearSelection();
     } else if (tool === "draw") {

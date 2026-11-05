@@ -325,7 +325,7 @@
     "pianoHint": "Show each chord's notes in a piano roll",
     "emptyHint": "This track plays the ribbon's chords: add chords from the wheel",
     "emptyMain": "Drag chords from the wheel to start",
-    "pickHint": "Click: pick · Shift + click: add or remove · drag from an empty spot to pick several · double click: extensions and voices"
+    "pickHint": "Click: pick · Shift + click: add or remove · drag to box-select several · A: all · double click: extensions and voices"
   },
   "arp": {
     "tool": "Arpeggiate",
@@ -405,7 +405,7 @@
       "chords": "Previous / next chord",
       "transpose": "Transpose notes (Shift: octave)",
       "degrees": "Move notes one scale degree",
-      "selectAll": "Select all piano roll notes",
+      "selectAll": "Select everything in the last track you touched (notes or chords)",
       "file": "Save / open / new",
       "export": "Export MIDI",
       "zoom": "Zoom the timeline",

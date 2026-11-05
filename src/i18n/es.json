@@ -325,7 +325,7 @@
     "pianoHint": "Ver las notas de cada acorde en un piano roll",
     "emptyHint": "Esta pista toca los acordes de la cinta: agrega acordes desde la rueda",
     "emptyMain": "Arrastra acordes desde la rueda para empezar",
-    "pickHint": "Clic: elegir · Mayús + clic: sumar o quitar · arrastra desde un hueco para elegir varios · doble clic: extensiones y voces"
+    "pickHint": "Clic: elegir · Mayús + clic: sumar o quitar · arrastra para elegir varios con una caja · A: todos · doble clic: extensiones y voces"
   },
   "arp": {
     "tool": "Arpegiar",
@@ -405,7 +405,7 @@
       "chords": "Acorde anterior / siguiente",
       "transpose": "Transponer notas (Mayús: octava)",
       "degrees": "Mover notas un grado de la escala",
-      "selectAll": "Seleccionar todas las notas del piano roll",
+      "selectAll": "Seleccionar todo en la última pista que tocaste (notas o acordes)",
       "file": "Guardar / abrir / nuevo",
       "export": "Exportar MIDI",
       "zoom": "Acercar / alejar la línea de tiempo",

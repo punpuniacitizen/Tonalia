@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { api } from "../../api";
 import type { Note } from "../../bindings/Note";
-import { noteKey, useNotes } from "../../stores/notes";
+import { chordKey, noteKey, useNotes } from "../../stores/notes";
 import { useProject } from "../../stores/project";
 import { useSong } from "../../stores/song";
 import { useTransport } from "../../stores/transport";
@@ -13,6 +13,7 @@ import { transposeByDegrees } from "../tracks/diatonic";
  * Atajos globales:
  * Espacio = reproducir/parar · Ctrl+Z / Ctrl+Y = deshacer/rehacer · Supr = borrar
  * ← → = acorde anterior/siguiente · W = enfocar armonía · H = ocultar el muelle · Esc = quitar selección
+ * A (o Ctrl+A) = seleccionar todo en la última pista tocada: sus notas, o sus acordes
  * Con notas seleccionadas: Supr = borrarlas · ↑ ↓ = transponer (Mayús: octava; Ctrl: un grado
  * de la escala) · Ctrl+A = todas
  */
@@ -61,10 +62,17 @@ export function useShortcuts() {
       } else if (ctrl && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))) {
         e.preventDefault();
         void redo();
-      } else if (ctrl && e.key.toLowerCase() === "a" && notesState.expandedTrack !== null) {
+      } else if (k === "a" && !e.altKey && !e.shiftKey && view) {
         e.preventDefault();
-        const notes = view?.trackNotes.find((t) => t.track === notesState.expandedTrack)?.notes ?? [];
-        notesState.select(notesState.expandedTrack, notes.map(noteKey));
+        // La última pista tocada; si no hay, el piano roll abierto o, si no, la cinta de acordes.
+        const focus =
+          notesState.focus ?? (notesState.expandedTrack !== null ? { kind: "notes" as const, track: notesState.expandedTrack } : { kind: "chords" as const, lane: "main" as const });
+        if (focus.kind === "notes") {
+          const notes = view.trackNotes.find((t) => t.track === focus.track)?.notes ?? [];
+          notesState.select(focus.track, notes.map(noteKey));
+        } else {
+          notesState.pickChords(focus.lane, view.chords.map(chordKey));
+        }
       } else if ((e.key === "Delete" || e.key === "Backspace") && selectedNotes.length && noteTrack !== null) {
         e.preventDefault();
         void edit({ type: "setTrackNotes", track: noteTrack, notes: trackNotes.filter((n) => !notesState.selection.has(noteKey(n))) });

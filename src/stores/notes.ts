@@ -15,6 +15,9 @@ export type ChordLane = "main" | number;
 /** Una nota se identifica por su posición y altura (no puede haber dos iguales a la vez). */
 export const noteKey = (n: Pick<Note, "position" | "pitch">) => `${n.position}:${n.pitch}`;
 
+/** La última pista con la que se interactuó (para «A» = seleccionar todo). */
+export type Focus = { kind: "notes"; track: number } | { kind: "chords"; lane: ChordLane };
+
 /** Un acorde de la cinta, como texto (para guardarlo en un Set). */
 export const chordKey = (c: ChordRef) => `${c.section}:${c.index}`;
 export const chordRefOf = (key: string): ChordRef => {
@@ -30,6 +33,8 @@ interface NotesState {
   selectionTrack: number | null;
   /** Acordes elegidos en una pista de acordes (para arpegiarlos). */
   chordPick: { lane: ChordLane; keys: Set<string> } | null;
+  focus: Focus | null;
+  setFocus: (focus: Focus) => void;
   toggleExpanded: (track: number) => void;
   setTool: (tool: PianoTool) => void;
   select: (track: number, keys: Iterable<string>, additive?: boolean) => void;
@@ -45,13 +50,15 @@ export const useNotes = create<NotesState>()((set, get) => ({
   selection: new Set(),
   selectionTrack: null,
   chordPick: null,
+  focus: null,
+  setFocus: (focus) => set({ focus }),
   toggleExpanded: (track) =>
     set((s) => ({ expandedTrack: s.expandedTrack === track ? null : track, selection: new Set(), selectionTrack: null })),
   setTool: (tool) => set({ tool }),
   select: (track, keys, additive = false) => {
     const base = additive && get().selectionTrack === track ? new Set(get().selection) : new Set<string>();
     for (const k of keys) base.add(k);
-    set({ selection: base, selectionTrack: track });
+    set({ selection: base, selectionTrack: track, focus: { kind: "notes", track } });
   },
   clearSelection: () => set({ selection: new Set(), selectionTrack: null }),
   pickChords: (lane, keys, toggle = false) => {
@@ -61,7 +68,7 @@ export const useNotes = create<NotesState>()((set, get) => ({
       if (toggle && base.has(k)) base.delete(k);
       else base.add(k);
     }
-    set({ chordPick: { lane, keys: base } });
+    set({ chordPick: { lane, keys: base }, focus: { kind: "chords", lane } });
   },
   clearChordPick: () => set({ chordPick: null }),
 }));

@@ -22,7 +22,7 @@ const SHORTCUTS: [string, string][] = [
   ["← →", "chords"],
   ["↑ ↓", "transpose"],
   ["Ctrl + ↑ ↓", "degrees"],
-  ["Ctrl+A", "selectAll"],
+  ["A", "selectAll"],
   ["Ctrl+S / Ctrl+O / Ctrl+N", "file"],
   ["Ctrl+E", "export"],
   ["Ctrl + rueda", "zoom"],

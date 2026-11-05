@@ -13,6 +13,7 @@ import { useSong } from "../../stores/song";
 import { currentPosition, useTransport } from "../../stores/transport";
 import { sameRef, useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
+import { startLaneLasso, type LassoBox } from "../tracks/laneLasso";
 import { ModulationMarks } from "./ModulationMarks";
 import { gridStep, pxPerTick, snap, tickToX, xToTick } from "./geometry";
 import { VoiceLines } from "./VoiceLines";
@@ -110,13 +111,15 @@ export function ChordRibbon() {
   const laneRef = useRef<HTMLDivElement>(null);
   const [resize, setResize] = useState<Resize | null>(null);
   const [gapDrag, setGapDrag] = useState<GapDrag | null>(null);
+  const [box, setBox] = useState<LassoBox>(null);
   const playingIndex = usePlayingIndex(view.chords);
   const ppt = pxPerTick(pxPerBar);
 
   useChordDrop(laneRef);
 
   const onBlockDown = (e: React.PointerEvent, c: ChordView) => {
-    if (e.button !== 0) return;
+    // Solo el cuerpo luminoso agarra el bloque; arriba de él (lo vacío) se hace la caja.
+    if (e.button !== 0 || !(e.target as Element).closest(".block-body")) return;
     const toggle = e.shiftKey;
     pointerGesture(e, {
       onClick: () => {
@@ -205,7 +208,17 @@ export function ChordRibbon() {
 
       <ModulationMarks />
 
-      <div className={`ribbon-lane ${payload ? "is-drop-zone" : ""}`} ref={laneRef} data-tip="concept.tension">
+      <div
+        className={`ribbon-lane ${payload ? "is-drop-zone" : ""}`}
+        ref={laneRef}
+        data-tip="concept.tension"
+        onPointerDown={(e) => {
+          // Desde un hueco (los bloques se arrastran para moverlos): caja para elegir acordes.
+          if (e.button !== 0 || !laneRef.current || (e.target as Element).closest(".block-body, .block-resize, .block-gap, .ribbon-empty")) return;
+          const items = view.chords.map((c, i) => ({ key: chordKey(c), left: geometry[i].left, right: geometry[i].left + geometry[i].width }));
+          startLaneLasso(e, laneRef.current, items, "main", setBox, () => useNotes.getState().clearChordPick());
+        }}
+      >
         {view.chords.length === 0 && <EmptyRibbon />}
 
         {view.chords.map((c, i) => {
@@ -274,6 +287,7 @@ export function ChordRibbon() {
         )}
 
         {payload && target && <div className="drop-indicator" style={{ left: target.x - 3 }} />}
+        {box && <div className="lane-lasso" style={{ left: box.x0, width: box.x1 - box.x0 }} />}
       </div>
     </div>
   );

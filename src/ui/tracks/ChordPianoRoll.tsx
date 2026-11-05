@@ -157,6 +157,7 @@ export function ChordPianoRoll({ lane, color, width, height }: { lane: ChordLane
     if (e.button !== 0) return;
     const { x, y } = local(e);
     e.currentTarget.setPointerCapture(e.pointerId);
+    useNotes.getState().setFocus({ kind: "chords", lane });
     lassoRef.current = { x0: x, y0: y, additive: e.shiftKey, base: e.shiftKey ? new Set(picked) : new Set(), moved: false };
   };
 

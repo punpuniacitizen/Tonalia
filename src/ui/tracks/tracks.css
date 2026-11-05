@@ -817,3 +817,15 @@
 .arp-panel .link-button {
   color: var(--accent);
 }
+
+/* Caja de selección en las filas de acordes (cinta y bloques). */
+.lane-lasso {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 5;
+  border: 1px dashed var(--accent);
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  pointer-events: none;
+}
