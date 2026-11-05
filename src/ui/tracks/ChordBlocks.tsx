@@ -11,7 +11,7 @@ import { useSong } from "../../stores/song";
 import { useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
 import { pxPerTick, tickToX } from "../timeline/geometry";
-import { laneArp, openChordTools, pickLaneChord } from "./chordLane";
+import { laneStyleIcon, openChordTools, pickLaneChord } from "./chordLane";
 
 const HEIGHT = 52;
 const EMPTY = new Set<string>();
@@ -46,7 +46,7 @@ export function ChordBlocks({ lane, width }: { lane: number; width: number }) {
           >
             <span className="chord-chip-name">
               {name}
-              {laneArp(c, lane) && <Icon name="arp" size={11} />}
+              {laneStyleIcon(c, lane) && <Icon name={laneStyleIcon(c, lane)!} size={11} />}
             </span>
           </div>
         );

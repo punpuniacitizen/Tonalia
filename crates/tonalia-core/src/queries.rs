@@ -97,7 +97,7 @@ pub fn track_notes(song: &Song, track: TrackId) -> Vec<Note> {
         let mut notes: Vec<Note> = layout(song)
             .chords
             .iter()
-            .flat_map(|c| c.entry.played_for(Some(track)).into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
+            .flat_map(|c| c.entry.played_for(Some(track), &song.strum_patterns).into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
             .collect();
         notes.sort_by_key(|n| (n.position, n.pitch));
         return notes;
@@ -125,7 +125,7 @@ pub fn chord_track_notes(song: &Song) -> Vec<Note> {
     layout(song)
         .chords
         .iter()
-        .flat_map(|c| c.entry.played().into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
+        .flat_map(|c| c.entry.played(&song.strum_patterns).into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
         .collect()
 }
 

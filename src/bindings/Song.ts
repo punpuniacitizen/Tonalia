@@ -4,10 +4,15 @@ import type { Key } from "./Key";
 import type { LoopRegion } from "./LoopRegion";
 import type { PreviewSettings } from "./PreviewSettings";
 import type { Section } from "./Section";
+import type { StrumPattern } from "./StrumPattern";
 import type { Track } from "./Track";
 
 export type Song = { version: number, bpm: number, homeKey: Key, sections: Array<Section>, tracks: Array<Track>, chordTrack: ChordTrackSettings, looping: boolean, loopRegion: LoopRegion | null, preview: PreviewSettings, 
 /**
- * Próximo identificador libre para secciones y pistas.
+ * Patrones de rasgueo hechos a mano para esta canción.
+ */
+strumPatterns?: Array<StrumPattern>, 
+/**
+ * Próximo identificador libre para secciones, pistas y patrones.
  */
 nextId: number, };

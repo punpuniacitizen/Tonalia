@@ -9,6 +9,7 @@ import type { Chord } from "../bindings/Chord";
 import type { ChordRef } from "../bindings/ChordRef";
 import type { ChordSize } from "../bindings/ChordSize";
 import type { Notation } from "../bindings/Notation";
+import type { Rhythm } from "../bindings/Rhythm";
 import type { TourKind } from "../learn/tours";
 
 export type Level = "beginner" | "intermediate" | "advanced";
@@ -73,6 +74,8 @@ interface UiState {
   pianoRowHeight: number;
   /** Último arpegio usado: se propone al arpegiar otro acorde. */
   lastArp: Arpeggio;
+  /** Último patrón de ritmo usado. */
+  lastRhythm: Rhythm;
   /** Vista de cada pista de acordes ("main" = la principal; si falta, bloques). */
   chordViews: Record<string, ChordLaneView>;
   selected: ChordRef | null;
@@ -126,6 +129,7 @@ export const useUi = create<UiState>()(
       pianoRowHeight: 12,
       lastArp: { pattern: "up", step: 1296, octaves: 1, hold: false, keepBass: false },
       chordViews: {},
+      lastRhythm: { pattern: "pulse", step: 2592, short: false, strum: null },
       selected: null,
       set: (patch) => set(patch),
       select: (selected) => set({ selected }),

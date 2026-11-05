@@ -100,6 +100,14 @@ export function PianoRoll({ track, width, height }: { track: Track; width: numbe
     });
   }, [canvasWidth, height, topPitch, pxPerBar, regions, notes, sel, track.color, notation, level, lasso, hoverPitch, gridDivisions, rh]);
 
+  // Si cambian las notas (bajo automático, deshacer…) y ninguna queda a la vista, ir hacia ellas.
+  useEffect(() => {
+    if (!committed.length) return;
+    const visible = committed.some((n) => n.pitch <= topPitch && n.pitch > topPitch - rows);
+    if (!visible) setTopPitch(defaultTopPitch(committed, track.instrument));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [committed]);
+
   // Teclado: resalta las notas del acorde en el instante de interés y lo que suena.
   useEffect(() => {
     const c = keysRef.current;

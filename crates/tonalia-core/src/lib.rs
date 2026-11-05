@@ -11,11 +11,13 @@
 //! - [`detect`]: reconocer un acorde a partir de notas sueltas.
 //! - [`harmony`]: función tonal, tensión y puntuación de transiciones.
 //! - [`voicing`]: cómo se reparten las notas de un acorde.
+//! - [`rhythm`], [`strum`], [`bass`]: patrones de acompañamiento, rasgueos a medida y bajo automático.
 //! - [`palette`]: acordes disponibles para una tonalidad (diatónicos, prestados, vecinos).
 //! - [`model`], [`commands`], [`history`], [`queries`], [`analysis`]: la canción y su edición.
 //! - [`midi_export`]: exportación a archivo MIDI estándar.
 
 pub mod analysis;
+pub mod bass;
 pub mod chord;
 pub mod commands;
 pub mod detect;
@@ -29,7 +31,9 @@ pub mod palette;
 pub mod pitch;
 pub mod queries;
 pub mod reharm;
+pub mod rhythm;
 pub mod scale;
+pub mod strum;
 pub mod time;
 pub mod voicing;
 

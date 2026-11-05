@@ -5,6 +5,7 @@ import type { ChordLabel } from "./ChordLabel";
 import type { ChordLayer } from "./ChordLayer";
 import type { Key } from "./Key";
 import type { Note } from "./Note";
+import type { Rhythm } from "./Rhythm";
 import type { Transition } from "./Transition";
 
 export type ChordView = { section: number, index: number, start: number, length: number, chord: Chord, label: ChordLabel, 
@@ -23,8 +24,8 @@ played: Array<Note>,
 /**
  * Silencio antes del acorde.
  */
-gap: number, arp: Arpeggio | null, 
+gap: number, arp: Arpeggio | null, rhythm: Rhythm | null, 
 /**
- * Arpegios en las otras pistas de acordes.
+ * Arpegios y ritmos en las otras pistas de acordes.
  */
 layers: Array<ChordLayer>, key: Key, };

@@ -17,7 +17,7 @@ import { useChordDrop } from "../timeline/ChordRibbon";
 import { pxPerTick, tickToX, xToTick } from "../timeline/geometry";
 import { drawKeyboard, drawPianoRoll, pitchToY, yToPitch } from "./drawPianoRoll";
 import { harmonyRegions, regionAt } from "./harmony";
-import { laneArp, laneChordNotes, laneInstrument, openChordTools, pickLaneChord } from "./chordLane";
+import { laneChordNotes, laneInstrument, laneStyleIcon, openChordTools, pickLaneChord } from "./chordLane";
 import { api } from "../../api";
 import { KEYS_WIDTH, MAX_ROW, MIN_ROW } from "./PianoRoll";
 
@@ -214,7 +214,7 @@ export function ChordPianoRoll({ lane, color, width, height }: { lane: ChordLane
           const b = boxes[i];
           if (!b) return null;
           const name = symbols === "names" ? chordSymbol(c.label, notation) : romanSymbol(c.label);
-          const arp = laneArp(c, lane);
+          const style = laneStyleIcon(c, lane);
           return (
             <div
               key={`${c.section}-${c.index}`}
@@ -230,7 +230,7 @@ export function ChordPianoRoll({ lane, color, width, height }: { lane: ChordLane
             >
               <span className="chord-box-label">
                 {name}
-                {arp && <Icon name="arp" size={11} />}
+                {style && <Icon name={style} size={11} />}
               </span>
             </div>
           );

@@ -18,6 +18,8 @@ use crate::chord::Chord;
 use crate::pitch::PitchClass;
 use crate::scale::Key;
 use crate::time::{BAR, Ticks};
+use crate::rhythm::Rhythm;
+use crate::strum::StrumPattern;
 use crate::voicing::{Arpeggio, PreviewSettings};
 
 pub type TrackId = u32;
@@ -69,57 +71,96 @@ pub struct ChordEntry {
     /// al reproducir (ver [`ChordEntry::played`]), así se puede cambiar o quitar sin perder nada.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub arp: Option<Arpeggio>,
-    /// Arpegio de este acorde en las otras pistas de acordes (las que no lo tienen lo tocan en bloque).
+    /// Si se toca con un patrón de ritmo (excluye al arpegio).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rhythm: Option<Rhythm>,
+    /// Cómo lo tocan las otras pistas de acordes (las que no figuran lo tocan en bloque).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub layers: Vec<ChordLayer>,
 }
 
-/// Cómo toca un acorde una pista de acordes que no es la principal.
+/// Cómo toca un acorde una pista de acordes que no es la principal: arpegiado o con ritmo.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct ChordLayer {
     pub track: TrackId,
-    pub arp: Arpeggio,
+    #[serde(default)]
+    pub arp: Option<Arpeggio>,
+    #[serde(default)]
+    pub rhythm: Option<Rhythm>,
 }
 
 impl ChordEntry {
     pub fn new(chord: Chord, length: Ticks, voicing: Vec<Note>) -> Self {
-        Self { chord, length, voicing, gap: 0, arp: None, layers: Vec::new() }
+        Self { chord, length, voicing, gap: 0, arp: None, rhythm: None, layers: Vec::new() }
     }
 
     /// Arpegio en una pista de acordes (`None` = la principal).
     pub fn arp_for(&self, track: Option<TrackId>) -> Option<Arpeggio> {
         match track {
             None => self.arp,
-            Some(id) => self.layers.iter().find(|l| l.track == id).map(|l| l.arp),
+            Some(id) => self.layers.iter().find(|l| l.track == id).and_then(|l| l.arp),
         }
     }
 
-    pub fn set_arp_for(&mut self, track: Option<TrackId>, arp: Option<Arpeggio>) {
+    /// Patrón de ritmo en una pista de acordes (`None` = la principal).
+    pub fn rhythm_for(&self, track: Option<TrackId>) -> Option<Rhythm> {
         match track {
-            None => self.arp = arp,
+            None => self.rhythm,
+            Some(id) => self.layers.iter().find(|l| l.track == id).and_then(|l| l.rhythm),
+        }
+    }
+
+    /// Cambia cómo toca el acorde una pista. Arpegio y ritmo se excluyen: poner uno quita el otro.
+    fn set_style_for(&mut self, track: Option<TrackId>, arp: Option<Option<Arpeggio>>, rhythm: Option<Option<Rhythm>>) {
+        let (mut a, mut r) = (self.arp_for(track), self.rhythm_for(track));
+        if let Some(v) = arp {
+            a = v;
+            if a.is_some() {
+                r = None;
+            }
+        }
+        if let Some(v) = rhythm {
+            r = v;
+            if r.is_some() {
+                a = None;
+            }
+        }
+        match track {
+            None => (self.arp, self.rhythm) = (a, r),
             Some(id) => {
                 self.layers.retain(|l| l.track != id);
-                if let Some(arp) = arp {
-                    self.layers.push(ChordLayer { track: id, arp });
+                if a.is_some() || r.is_some() {
+                    self.layers.push(ChordLayer { track: id, arp: a, rhythm: r });
                 }
             }
         }
     }
 
-    /// Lo que suena en una pista de acordes: el voicing tal cual o arpegiado.
-    /// Posiciones relativas al acorde.
-    pub fn played_for(&self, track: Option<TrackId>) -> Vec<Note> {
-        match self.arp_for(track) {
-            Some(arp) => crate::voicing::arpeggiate(&self.voicing, self.length, &arp),
-            None => self.voicing.clone(),
+    pub fn set_arp_for(&mut self, track: Option<TrackId>, arp: Option<Arpeggio>) {
+        self.set_style_for(track, Some(arp), None);
+    }
+
+    pub fn set_rhythm_for(&mut self, track: Option<TrackId>, rhythm: Option<Rhythm>) {
+        self.set_style_for(track, None, Some(rhythm));
+    }
+
+    /// Lo que suena en una pista de acordes: el voicing en bloque, arpegiado o con ritmo.
+    /// Posiciones relativas al acorde. `strums`: los patrones de rasgueo de la canción.
+    pub fn played_for(&self, track: Option<TrackId>, strums: &[StrumPattern]) -> Vec<Note> {
+        if let Some(arp) = self.arp_for(track) {
+            return crate::voicing::arpeggiate(&self.voicing, self.length, &arp);
         }
+        if let Some(rhythm) = self.rhythm_for(track) {
+            return crate::rhythm::apply_rhythm(&self.voicing, self.length, &rhythm, strums);
+        }
+        self.voicing.clone()
     }
 
     /// Lo que suena en la pista de acordes principal.
-    pub fn played(&self) -> Vec<Note> {
-        self.played_for(None)
+    pub fn played(&self, strums: &[StrumPattern]) -> Vec<Note> {
+        self.played_for(None, strums)
     }
 }
 
@@ -258,7 +299,10 @@ pub struct Song {
     pub looping: bool,
     pub loop_region: Option<LoopRegion>,
     pub preview: PreviewSettings,
-    /// Próximo identificador libre para secciones y pistas.
+    /// Patrones de rasgueo hechos a mano para esta canción.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub strum_patterns: Vec<StrumPattern>,
+    /// Próximo identificador libre para secciones, pistas y patrones.
     pub next_id: u32,
 }
 
@@ -281,6 +325,7 @@ impl Song {
             looping: true,
             loop_region: None,
             preview: PreviewSettings::default(),
+            strum_patterns: Vec::new(),
             next_id: 1,
         };
         let id = song.alloc_id();

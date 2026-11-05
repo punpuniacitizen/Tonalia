@@ -244,9 +244,9 @@ export function ChordRibbon() {
                 {level !== "beginner" && <span className="block-secondary">{secondary}</span>}
                 {level === "beginner" && <span className="block-function">{t(`function.${c.label.function}`)}</span>}
               </div>
-              {c.arp && (
-                <span className="block-arp" title={t("rhythm.arpeggiated")}>
-                  <Icon name="arp" size={12} />
+              {(c.arp || c.rhythm) && (
+                <span className="block-arp" title={c.arp ? t("rhythm.arpeggiated") : t("pattern.withRhythm")}>
+                  <Icon name={c.arp ? "arp" : "drum"} size={12} />
                 </span>
               )}
               <div className="block-gap" title={t("ribbon.gapHint")} onPointerDown={(e) => onGapDown(e, c)} />

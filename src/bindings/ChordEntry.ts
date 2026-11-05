@@ -3,6 +3,7 @@ import type { Arpeggio } from "./Arpeggio";
 import type { Chord } from "./Chord";
 import type { ChordLayer } from "./ChordLayer";
 import type { Note } from "./Note";
+import type { Rhythm } from "./Rhythm";
 
 /**
  * Un acorde en la pista de acordes: qué acorde, cuánto dura y cómo suena (voicing).
@@ -19,6 +20,10 @@ gap: number,
  */
 arp?: Arpeggio | null, 
 /**
- * Arpegio de este acorde en las otras pistas de acordes (las que no lo tienen lo tocan en bloque).
+ * Si se toca con un patrón de ritmo (excluye al arpegio).
+ */
+rhythm?: Rhythm | null, 
+/**
+ * Cómo lo tocan las otras pistas de acordes (las que no figuran lo tocan en bloque).
  */
 layers?: Array<ChordLayer>, };

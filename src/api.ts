@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
 import type { Arpeggio } from "./bindings/Arpeggio";
+import type { BassStyle } from "./bindings/BassStyle";
 import type { Chord } from "./bindings/Chord";
 import type { ChordLabel } from "./bindings/ChordLabel";
 import type { ChordSize } from "./bindings/ChordSize";
@@ -14,6 +15,8 @@ import type { Key } from "./bindings/Key";
 import type { Note } from "./bindings/Note";
 import type { Palette } from "./bindings/Palette";
 import type { PitchClass } from "./bindings/PitchClass";
+import type { Rhythm } from "./bindings/Rhythm";
+import type { StrumPattern } from "./bindings/StrumPattern";
 import type { SongView } from "./bindings/SongView";
 import type { SubstituteView } from "./bindings/SubstituteView";
 import type { TensionView } from "./bindings/TensionView";
@@ -41,6 +44,11 @@ export const api = {
   detectChord: (pitches: number[], key: Key) => invoke<DetectedView[]>("detect_chord", { pitches, key }),
   /** Arpegia notas sueltas: las que empiezan juntas forman un acorde. */
   arpeggiate: (notes: Note[], arp: Arpeggio) => invoke<Note[]>("arpeggiate", { notes, arp }),
+  /** Un voicing tocado con un patrón de ritmo (posiciones relativas al acorde). */
+  rhythmNotes: (voicing: Note[], length: number, rhythm: Rhythm, strums: StrumPattern[] = []) =>
+    invoke<Note[]>("rhythm_notes", { voicing, length, rhythm, strums }),
+  /** Línea de bajo que sigue los acordes de la canción (posiciones absolutas). */
+  bassLine: (style: BassStyle) => invoke<Note[]>("bass_line", { style }),
   describeChord: (chord: Chord, key: Key) => invoke<ChordLabel>("describe_chord", { chord, key }),
   tensions: (chord: Chord, key: Key) => invoke<TensionView[]>("tensions", { chord, key }),
   substitutes: (chord: Chord, key: Key, previous: Chord | null) =>

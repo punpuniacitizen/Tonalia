@@ -98,6 +98,8 @@ pub fn run() {
             commands::get_palette,
             commands::detect_chord,
             commands::arpeggiate,
+            commands::rhythm_notes,
+            commands::bass_line,
             commands::substitutes,
             commands::describe_chord,
             commands::tensions,

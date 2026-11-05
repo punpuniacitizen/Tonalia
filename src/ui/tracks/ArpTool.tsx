@@ -5,25 +5,20 @@
 // En una pista de acordes el arpegio no borra nada: se guarda en cada acorde y se puede
 // cambiar o quitar. En una pista de notas reemplaza las notas (se deshace con Ctrl+Z).
 
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { api } from "../../api";
 import type { ArpPattern } from "../../bindings/ArpPattern";
 import type { Arpeggio } from "../../bindings/Arpeggio";
-import type { ChordView } from "../../bindings/ChordView";
-import type { Note } from "../../bindings/Note";
-import type { SongView } from "../../bindings/SongView";
-import type { Track } from "../../bindings/Track";
 import { TICKS_PER_BAR } from "../../lib/music";
-import { chordKey, noteKey, useNotes, type ChordLane } from "../../stores/notes";
+import { noteKey, useNotes } from "../../stores/notes";
 import { useSong } from "../../stores/song";
 import { useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
-import { laneArp, laneInstrument, laneTrack, playNotes } from "./chordLane";
+import { laneArp, laneTrack, playNotes } from "./chordLane";
+import { sortNotes, useToolScope, type ToolsTarget } from "./toolScope";
 
-export type ArpTarget = { kind: "chords"; lane: ChordLane } | { kind: "notes"; track: Track };
 
 const SPEEDS: { ticks: number; label: string; triplet?: boolean }[] = [
   { ticks: TICKS_PER_BAR / 4, label: "1/4" },
@@ -33,33 +28,16 @@ const SPEEDS: { ticks: number; label: string; triplet?: boolean }[] = [
   { ticks: TICKS_PER_BAR / 24, label: "1/16", triplet: true },
 ];
 
-const sortNotes = (notes: Note[]) => [...notes].sort((a, b) => a.position - b.position || a.pitch - b.pitch);
 
 /** Panel de «Arpegiar» (se abre desde el menú de herramientas). */
-export function ArpPanel({ target, close }: { target: ArpTarget; close: () => void }) {
+export function ArpPanel({ target, close }: { target: ToolsTarget; close: () => void }) {
   const { t } = useTranslation();
-  const view = useSong((s) => s.view) as SongView;
   const edit = useSong((s) => s.edit);
   const settings = useUi((s) => s.lastArp);
   const set = useUi((s) => s.set);
-  const chordPick = useNotes((s) => s.chordPick);
-  const selection = useNotes((s) => s.selection);
-  const selectionTrack = useNotes((s) => s.selectionTrack);
   const select = useNotes((s) => s.select);
 
-  // Qué hay elegido (acordes o notas) y qué hay en total.
-  const allChords = view.chords;
-  const pickedChords = target.kind === "chords" && chordPick?.lane === target.lane ? allChords.filter((c) => chordPick.keys.has(chordKey(c))) : [];
-  const allNotes = target.kind === "notes" ? (view.trackNotes.find((n) => n.track === target.track.id)?.notes ?? []) : [];
-  const pickedNotes = target.kind === "notes" && selectionTrack === target.track.id ? allNotes.filter((n) => selection.has(noteKey(n))) : [];
-  const pickedCount = target.kind === "chords" ? pickedChords.length : pickedNotes.length;
-  // Se decide al abrir: lo elegido si hay algo, si no todo.
-  const [scope, setScope] = useState<"picked" | "all">(pickedCount > 0 ? "picked" : "all");
-  const usePicked = scope === "picked" && pickedCount > 0;
-  const chords: ChordView[] = usePicked ? pickedChords : allChords;
-  const notes: Note[] = usePicked ? pickedNotes : allNotes;
-  const empty = target.kind === "chords" ? chords.length === 0 : notes.length === 0;
-  const instrument = target.kind === "chords" ? laneInstrument(view, target.lane) : target.track.instrument;
+  const { view, chords, notes, allNotes, empty, instrument, scopeBar } = useToolScope(target);
 
   const change = (patch: Partial<Arpeggio>) => set({ lastArp: { ...settings, ...patch } });
 
@@ -94,29 +72,10 @@ export function ArpPanel({ target, close }: { target: ArpTarget; close: () => vo
   };
 
   const anyArp = target.kind === "chords" && chords.some((c) => laneArp(c, target.lane));
-  const scopeOptions =
-    target.kind === "chords"
-      ? [
-          { value: "picked" as const, label: t("arp.picked", { count: pickedChords.length }), title: t("arp.pickedChordsHint") },
-          { value: "all" as const, label: t("arp.allChords", { count: allChords.length }) },
-        ]
-      : [
-          { value: "picked" as const, label: t("arp.picked", { count: pickedNotes.length }), title: t("arp.pickedNotesHint") },
-          { value: "all" as const, label: t("arp.allNotes", { count: allNotes.length }) },
-        ];
-
   return (
     <div className="arp-panel">
-      <div className="arp-scope">
-        <Segmented<"picked" | "all">
-          label={t("arp.scope")}
-          value={usePicked ? "picked" : "all"}
-          onChange={(v) => (v === "picked" && pickedCount === 0 ? undefined : setScope(v))}
-          options={scopeOptions}
-        />
-      </div>
+      {scopeBar}
       {target.kind === "notes" && <p className="arp-note">{t("arp.notesHint")}</p>}
-      {pickedCount === 0 && <p className="arp-note">{target.kind === "chords" ? t("arp.pickChordsHint") : t("arp.pickNotesHint")}</p>}
 
       <div className="arp-row">
         <span>{t("arp.pattern")}</span>

@@ -6,16 +6,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { Track } from "../../bindings/Track";
-import { useNotes, type ChordLane } from "../../stores/notes";
+import { useNotes } from "../../stores/notes";
 import { Icon, type IconName } from "../common/Icon";
 import { Popover } from "../common/Popover";
 import { ArpPanel } from "./ArpTool";
 import { NotesToChordPanel } from "./NotesToChordPanel";
+import { BassPanel, QuantizePanel, ScaleSnapPanel } from "./NoteTools";
+import { RhythmPatternPanel } from "./RhythmTool";
+import type { ToolsTarget } from "./toolScope";
 
-export type ToolsTarget = { kind: "chords"; lane: ChordLane } | { kind: "notes"; track: Track };
 
-type ToolId = "arp" | "toChord";
+type ToolId = "arp" | "rhythm" | "quantize" | "snap" | "bass" | "toChord";
 
 export function ToolsMenu({ target }: { target: ToolsTarget }) {
   const { t } = useTranslation();
@@ -43,7 +44,15 @@ function ToolsPanel({ target, close }: { target: ToolsTarget; close: () => void 
   const tools: { id: ToolId; icon: IconName; name: string; hint: string; disabled?: string }[] = [
     { id: "arp", icon: "arp", name: t("arp.tool"), hint: target.kind === "chords" ? t("arp.toolHint") : t("arp.toolHintNotes") },
   ];
+  if (target.kind === "chords") {
+    tools.push({ id: "rhythm", icon: "drum", name: t("tools.rhythm"), hint: t("tools.rhythmHint") });
+  }
   if (target.kind === "notes") {
+    tools.push(
+      { id: "quantize", icon: "magnet", name: t("tools.quantize"), hint: t("tools.quantizeHint") },
+      { id: "snap", icon: "target", name: t("tools.snap"), hint: t("tools.snapHint") },
+      { id: "bass", icon: "bassClef", name: t("tools.bass"), hint: t("tools.bassHint") },
+    );
     tools.push({
       id: "toChord",
       icon: "sparkle",
@@ -81,6 +90,10 @@ function ToolsPanel({ target, close }: { target: ToolsTarget; close: () => void 
         <h4>{current.name}</h4>
       </header>
       {current.id === "arp" && <ArpPanel target={target} close={close} />}
+      {current.id === "rhythm" && target.kind === "chords" && <RhythmPatternPanel lane={target.lane} close={close} />}
+      {current.id === "quantize" && target.kind === "notes" && <QuantizePanel track={target.track} close={close} />}
+      {current.id === "snap" && target.kind === "notes" && <ScaleSnapPanel track={target.track} close={close} />}
+      {current.id === "bass" && target.kind === "notes" && <BassPanel track={target.track} close={close} />}
       {current.id === "toChord" && target.kind === "notes" && selection && <NotesToChordPanel track={target.track} keys={selection} close={close} />}
     </div>
   );

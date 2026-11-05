@@ -3,6 +3,7 @@
 
 import { api } from "../../api";
 import type { Arpeggio } from "../../bindings/Arpeggio";
+import type { Rhythm } from "../../bindings/Rhythm";
 import type { ChordView } from "../../bindings/ChordView";
 import type { Note } from "../../bindings/Note";
 import type { SongView } from "../../bindings/SongView";
@@ -14,6 +15,17 @@ import { useUi, type ChordLaneView } from "../../stores/ui";
 export function laneArp(c: ChordView, lane: ChordLane): Arpeggio | null {
   if (lane === "main") return c.arp ?? null;
   return c.layers.find((l) => l.track === lane)?.arp ?? null;
+}
+
+/** Patrón de ritmo de un acorde en una pista de acordes (null = sin ritmo). */
+export function laneRhythm(c: ChordView, lane: ChordLane): Rhythm | null {
+  if (lane === "main") return c.rhythm ?? null;
+  return c.layers.find((l) => l.track === lane)?.rhythm ?? null;
+}
+
+/** Ícono de cómo se toca el acorde en la pista (arpegio o ritmo), o null en bloque. */
+export function laneStyleIcon(c: ChordView, lane: ChordLane): "arp" | "drum" | null {
+  return laneArp(c, lane) ? "arp" : laneRhythm(c, lane) ? "drum" : null;
 }
 
 /** Lo que toca una pista de acordes en un acorde (posiciones absolutas). */

@@ -644,3 +644,176 @@
   width: 24px;
   height: 24px;
 }
+
+/* Patrones (ritmo, estilos de bajo): tarjetas con nombre y una línea de ayuda. */
+.pattern-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.pattern-chip {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--bg-2);
+  color: var(--text-1);
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.pattern-chip strong {
+  font-size: 12px;
+}
+
+.pattern-chip small {
+  color: var(--text-2);
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+.pattern-chip:hover {
+  border-color: var(--line-strong);
+  color: var(--text-0);
+}
+
+.pattern-chip.is-active {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 18%, var(--bg-2));
+  color: var(--text-0);
+}
+
+.arp-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+/* ---------- Editor de patrones de rasgueo ---------- */
+.strum-editor {
+  display: grid;
+  gap: 10px;
+  width: 470px;
+}
+
+.strum-name {
+  padding: 6px 10px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+
+.strum-name:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Tres filas (etiquetas, golpes, acentos) con una columna por paso. */
+.strum-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--steps), 1fr);
+  gap: 3px;
+  user-select: none;
+}
+
+.strum-label {
+  color: var(--text-3);
+  font-size: 10px;
+  text-align: center;
+}
+
+.strum-label.is-beat {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.strum-cell {
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-size: 17px;
+  font-weight: 700;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+
+.strum-cell.is-beat {
+  border-color: var(--line-strong);
+}
+
+.strum-cell:hover {
+  border-color: var(--accent);
+}
+
+.strum-cell.is-down {
+  background: color-mix(in oklab, var(--accent) 38%, var(--bg-2));
+}
+
+.strum-cell.is-up {
+  background: color-mix(in oklab, var(--accent-2) 30%, var(--bg-2));
+}
+
+.strum-cell.is-mute {
+  color: var(--text-2);
+  background: var(--bg-3);
+}
+
+.strum-cell.is-now {
+  box-shadow: 0 0 0 2px var(--text-0), 0 0 12px color-mix(in oklab, var(--accent) 70%, transparent);
+}
+
+.strum-accent {
+  justify-self: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+}
+
+.strum-accent.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.strum-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+}
+
+.strum-settings label {
+  display: grid;
+  gap: 4px;
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.strum-settings input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.strum-settings .arp-row {
+  grid-column: 1 / -1;
+}
+
+.strum-edit {
+  justify-self: start;
+  margin-top: 2px;
+}
+
+.arp-spacer {
+  flex: 1;
+}
+
+.strum-editor .link-button,
+.arp-panel .link-button {
+  color: var(--accent);
+}

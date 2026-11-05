@@ -279,6 +279,25 @@ pub fn substitutes(chord: Chord, key: Key, previous: Option<Chord>) -> Vec<Subst
     substitutes_labeled(&chord, &key, previous.as_ref())
 }
 
+/// Cómo sonaría un voicing con un patrón de ritmo (posiciones relativas al acorde).
+/// `strums`: los patrones de rasgueo a usar (los de la canción, o el que se está editando).
+#[tauri::command]
+pub fn rhythm_notes(
+    voicing: Vec<Note>,
+    length: tonalia_core::Ticks,
+    rhythm: tonalia_core::rhythm::Rhythm,
+    strums: Vec<tonalia_core::strum::StrumPattern>,
+) -> Vec<Note> {
+    tonalia_core::rhythm::apply_rhythm(&voicing, length, &rhythm, &strums)
+}
+
+/// Línea de bajo que sigue los acordes de la canción abierta.
+#[tauri::command]
+pub fn bass_line(state: State<AppState>, style: tonalia_core::bass::BassStyle) -> Vec<Note> {
+    let doc = state.doc();
+    tonalia_core::bass::bass_line(doc.song(), style)
+}
+
 /// Arpegia notas de un piano roll: las que empiezan juntas forman un acorde.
 #[tauri::command]
 pub fn arpeggiate(notes: Vec<Note>, arp: Arpeggio) -> Vec<Note> {

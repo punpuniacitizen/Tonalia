@@ -146,7 +146,8 @@ pub struct ChordView {
     /// Silencio antes del acorde.
     pub gap: Ticks,
     pub arp: Option<Arpeggio>,
-    /// Arpegios en las otras pistas de acordes.
+    pub rhythm: Option<crate::rhythm::Rhythm>,
+    /// Arpegios y ritmos en las otras pistas de acordes.
     pub layers: Vec<ChordLayer>,
     pub key: Key,
 }
@@ -204,9 +205,10 @@ pub fn song_view(song: &Song, can_undo: bool, can_redo: bool) -> SongView {
             label: describe(chord, &c.key),
             transition: score(previous, chord, &c.key),
             voicing: c.entry.voicing.iter().map(|n| Note { position: n.position + c.start, ..n.clone() }).collect(),
-            played: c.entry.played().into_iter().map(|n| Note { position: n.position + c.start, ..n }).collect(),
+            played: c.entry.played(&song.strum_patterns).into_iter().map(|n| Note { position: n.position + c.start, ..n }).collect(),
             gap: c.entry.gap,
             arp: c.entry.arp,
+            rhythm: c.entry.rhythm,
             layers: c.entry.layers.clone(),
             key: c.key.clone(),
         });

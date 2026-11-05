@@ -56,6 +56,20 @@ pub enum EditCommand {
         chords: Vec<ChordRef>,
         arp: Option<Arpeggio>,
     },
+    /// Toca uno o varios acordes con un patrón de ritmo (o en bloque, con `None`) en una
+    /// pista de acordes. Quita el arpegio que tuvieran.
+    SetRhythm {
+        #[serde(default)]
+        track: Option<TrackId>,
+        chords: Vec<ChordRef>,
+        rhythm: Option<crate::rhythm::Rhythm>,
+    },
+    /// Patrón de rasgueo nuevo (se le asigna un id; queda último en la lista).
+    AddStrumPattern { pattern: crate::strum::StrumPattern },
+    /// Cambia un patrón de rasgueo: todos los acordes que lo usan suenan con el nuevo.
+    UpdateStrumPattern { pattern: crate::strum::StrumPattern },
+    /// Borra un patrón; los acordes que lo usaban quedan en bloque.
+    RemoveStrumPattern { id: crate::strum::StrumId },
     /// Recalcula todos los voicings para que las voces se muevan lo mínimo.
     SmoothVoicings,
     /// Vuelve todos los voicings a la posición cerrada por defecto.
@@ -113,6 +127,8 @@ pub enum EditError {
     ChordNotFound { section: SectionId, index: usize },
     #[error("no existe la pista {0}")]
     TrackNotFound(TrackId),
+    #[error("no existe el patrón de rasgueo {0}")]
+    StrumNotFound(u32),
     #[error("no se puede borrar la última sección")]
     CannotRemoveLastSection,
     #[error("las secciones deben ser hermanas y contiguas")]
@@ -125,6 +141,14 @@ fn leaf_mut(song: &mut Song, id: SectionId) -> Result<(&mut Vec<ChordEntry>, &mu
     match &mut song.section_mut(id).ok_or(EditError::SectionNotFound(id))?.content {
         SectionContent::Leaf { chords, clips } => Ok((chords, clips)),
         SectionContent::Sections { .. } => Err(EditError::NotALeaf(id)),
+    }
+}
+
+/// `track` debe ser una pista de acordes (`None` = la principal).
+fn check_chord_track(song: &Song, track: Option<TrackId>) -> Result<(), EditError> {
+    match track {
+        Some(id) if !song.track(id).is_some_and(|t| t.is_chords()) => Err(EditError::TrackNotFound(id)),
+        _ => Ok(()),
     }
 }
 
@@ -216,13 +240,44 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
             chord_mut(song, *at)?.gap = (*gap).max(0);
         }
         SetArpeggio { track, chords, arp } => {
-            if let Some(id) = track
-                && !song.track(*id).is_some_and(|t| t.is_chords())
-            {
-                return Err(EditError::TrackNotFound(*id));
-            }
+            check_chord_track(song, *track)?;
             for at in chords {
                 chord_mut(song, *at)?.set_arp_for(*track, arp.map(Arpeggio::sanitized));
+            }
+        }
+        AddStrumPattern { pattern } => {
+            let id = song.alloc_id();
+            song.strum_patterns.push(crate::strum::StrumPattern { id, ..pattern.clone().sanitized() });
+        }
+        UpdateStrumPattern { pattern } => {
+            let slot = song.strum_patterns.iter_mut().find(|p| p.id == pattern.id).ok_or(EditError::StrumNotFound(pattern.id))?;
+            *slot = pattern.clone().sanitized();
+        }
+        RemoveStrumPattern { id } => {
+            let before = song.strum_patterns.len();
+            song.strum_patterns.retain(|p| p.id != *id);
+            if song.strum_patterns.len() == before {
+                return Err(EditError::StrumNotFound(*id));
+            }
+            let uses = |r: &Option<crate::rhythm::Rhythm>| r.is_some_and(|r| r.strum == Some(*id));
+            song.for_each_leaf_mut(|chords, _| {
+                for c in chords {
+                    if uses(&c.rhythm) {
+                        c.rhythm = None;
+                    }
+                    for l in &mut c.layers {
+                        if uses(&l.rhythm) {
+                            l.rhythm = None;
+                        }
+                    }
+                    c.layers.retain(|l| l.arp.is_some() || l.rhythm.is_some());
+                }
+            });
+        }
+        SetRhythm { track, chords, rhythm } => {
+            check_chord_track(song, *track)?;
+            for at in chords {
+                chord_mut(song, *at)?.set_rhythm_for(*track, rhythm.map(crate::rhythm::Rhythm::sanitized));
             }
         }
         SmoothVoicings | ResetVoicings => {
@@ -527,6 +582,53 @@ mod tests {
         assert!(apply(&mut song, &EditCommand::SetArpeggio { track: Some(melody), chords: vec![at], arp: Some(arp) }).is_err());
         apply(&mut song, &EditCommand::RemoveTrack { track: pad }).unwrap();
         assert!(crate::queries::layout(&song).chords[0].entry.layers.is_empty());
+    }
+
+    #[test]
+    fn patron_de_rasgueo_compartido() {
+        use crate::rhythm::{Rhythm, RhythmPattern};
+        use crate::strum::{Stroke, StrumPattern};
+        let mut song = Song::default();
+        insert(&mut song, 0);
+        insert(&mut song, 7);
+        let d = Stroke::Down;
+        let r = Stroke::Rest;
+        let pattern = StrumPattern { id: 0, name: " Estrofa ".into(), steps: 8, strokes: vec![d, r, r, r, d, r, r, r], accents: vec![], spread: 40, up_strings: 0, humanize: 0.0 };
+        apply(&mut song, &EditCommand::AddStrumPattern { pattern }).unwrap();
+        let mut saved = song.strum_patterns[0].clone();
+        assert_eq!((saved.name.as_str(), saved.accents.len()), ("Estrofa", 8));
+        let chords: Vec<ChordRef> = layout(&song).chords.iter().map(|c| ChordRef { section: c.section, index: c.index }).collect();
+        let rhythm = Rhythm { pattern: RhythmPattern::Strum, step: BAR / 8, short: false, strum: Some(saved.id) };
+        apply(&mut song, &EditCommand::SetRhythm { track: None, chords, rhythm: Some(rhythm) }).unwrap();
+        // Dos golpes por compás, tres cuerdas, dos acordes.
+        assert_eq!(crate::queries::chord_track_notes(&song).len(), 12);
+        // Cambiar el patrón cambia todos los acordes que lo usan.
+        saved.strokes = vec![d; 8];
+        apply(&mut song, &EditCommand::UpdateStrumPattern { pattern: saved.clone() }).unwrap();
+        assert_eq!(crate::queries::chord_track_notes(&song).len(), 48);
+        // Al borrarlo, esos acordes vuelven al bloque.
+        apply(&mut song, &EditCommand::RemoveStrumPattern { id: saved.id }).unwrap();
+        assert!(layout(&song).chords.iter().all(|c| c.entry.rhythm.is_none()));
+        assert!(apply(&mut song, &EditCommand::RemoveStrumPattern { id: saved.id }).is_err());
+    }
+
+    #[test]
+    fn ritmo_y_arpegio_se_excluyen() {
+        use crate::rhythm::{Rhythm, RhythmPattern};
+        use crate::voicing::{ArpPattern, Arpeggio};
+        let mut song = Song::default();
+        insert(&mut song, 0);
+        let at = ChordRef { section: song.sections[0].id, index: 0 };
+        let arp = Arpeggio { pattern: ArpPattern::Up, step: BAR / 8, octaves: 1, hold: false, keep_bass: false };
+        let rhythm = Rhythm { pattern: RhythmPattern::Pulse, step: BAR / 4, short: false, strum: None };
+        apply(&mut song, &EditCommand::SetArpeggio { track: None, chords: vec![at], arp: Some(arp) }).unwrap();
+        apply(&mut song, &EditCommand::SetRhythm { track: None, chords: vec![at], rhythm: Some(rhythm) }).unwrap();
+        let entry = layout(&song).chords[0].entry.clone();
+        assert_eq!((entry.arp, entry.rhythm), (None, Some(rhythm)));
+        // Cuatro negras de un acorde de tres notas.
+        assert_eq!(crate::queries::chord_track_notes(&song).len(), 12);
+        apply(&mut song, &EditCommand::SetArpeggio { track: None, chords: vec![at], arp: Some(arp) }).unwrap();
+        assert_eq!(layout(&song).chords[0].entry.rhythm, None);
     }
 
     #[test]
