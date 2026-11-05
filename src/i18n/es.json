@@ -224,12 +224,32 @@
     "back": "Volver a las herramientas",
     "rhythm": "Patrones de ritmo",
     "rhythmHint": "Toca los acordes con un ritmo: pulsos, contratiempos, rasgueo…",
+    "transpose": "Transponer por grados",
+    "transposeHint": "Sube o baja las notas dentro de la escala, o les suma una segunda voz",
     "quantize": "Cuantizar",
     "quantizeHint": "Acomoda las notas a la cuadrícula",
+    "humanize": "Humanizar",
+    "humanizeHint": "Pequeñas variaciones de tiempo, fuerza y largo para que suene tocado a mano",
     "snap": "Ajustar a la escala",
     "snapHint": "Lleva las notas que no encajan con la armonía a la más cercana que sí",
     "bass": "Bajo automático",
     "bassHint": "Escribe en esta pista una línea de bajo que sigue los acordes"
+  },
+  "transpose": {
+    "interval": "Intervalo",
+    "i2": "2ª",
+    "i3": "3ª",
+    "i4": "4ª",
+    "i5": "5ª",
+    "i6": "6ª",
+    "i7": "7ª",
+    "i8": "Octava",
+    "direction": "Hacia",
+    "up": "Arriba",
+    "down": "Abajo",
+    "addVoice": "Agregar como segunda voz",
+    "addVoiceHint": "Conserva las notas y suma otra a esa distancia, siempre dentro de la escala: terceras o sextas paralelas en un clic.",
+    "hint": "Cuenta notas de la escala que rige en cada lugar: en Do mayor, una 3ª sobre Do es Mi y sobre Re es Fa. Atajo: Ctrl + ↑ ↓ mueve un grado."
   },
   "quantize": {
     "grid": "Cuadrícula",
@@ -239,6 +259,17 @@
     "changes_one": "Se va a mover 1 nota.",
     "changes_other": "Se van a mover {{count}} notas.",
     "none": "Ya están todas en la cuadrícula."
+  },
+  "humanize": {
+    "timing": "Tiempo",
+    "timingHint": "Corre cada nota un poquito antes o después (al 100 %, hasta una semifusa)",
+    "velocity": "Fuerza",
+    "velocityHint": "Cada nota suena un poco más fuerte o más suave",
+    "length": "Largo",
+    "lengthHint": "Cada nota dura un poco más o un poco menos",
+    "hint": "Escucha antes de aplicar; si no te gusta cómo cayó, tira el dado para otra variación.",
+    "reroll": "Otra variación",
+    "rerollHint": "Probar otra combinación al azar con los mismos ajustes"
   },
   "snap": {
     "target": "Llevar a",
@@ -373,6 +404,7 @@
       "delete": "Borrar acorde o notas seleccionadas",
       "chords": "Acorde anterior / siguiente",
       "transpose": "Transponer notas (Mayús: octava)",
+      "degrees": "Mover notas un grado de la escala",
       "selectAll": "Seleccionar todas las notas del piano roll",
       "file": "Guardar / abrir / nuevo",
       "export": "Exportar MIDI",

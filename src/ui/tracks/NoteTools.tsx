@@ -1,4 +1,5 @@
-// Herramientas para pistas de notas: Cuantizar, Ajustar a la escala y Bajo automático.
+// Herramientas para pistas de notas: Transponer por grados, Cuantizar, Humanizar, Ajustar a
+// la escala y Bajo automático.
 // Todas reemplazan notas de la pista (se deshacen con Ctrl+Z).
 
 import { useState } from "react";
@@ -18,6 +19,7 @@ import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
 import { gridStep } from "../timeline/geometry";
 import { playNotes } from "./chordLane";
+import { transposeByDegrees } from "./diatonic";
 import { harmonyRegions, regionAt } from "./harmony";
 import { dedupeNotes, useToolScope } from "./toolScope";
 
@@ -61,6 +63,75 @@ function Actions({ empty, disabled, onApply, onListen }: { empty: boolean; disab
         </button>
       </div>
     </>
+  );
+}
+
+// ---------- Transponer por grados ----------
+
+const INTERVALS = [2, 3, 4, 5, 6, 7, 8];
+
+export function TransposePanel({ track, close }: { track: Track; close: () => void }) {
+  const { t } = useTranslation();
+  const { view, notes, allNotes, empty, scopeBar } = useToolScope({ kind: "notes", track });
+  const replace = useReplaceNotes(track);
+  const [size, setSize] = useState(3);
+  const [dir, setDir] = useState<"up" | "down">("up");
+  const [addVoice, setAddVoice] = useState(false);
+
+  const sign = dir === "up" ? 1 : -1;
+  // La octava es exacta (12 semitonos); el resto cuenta notas de la escala.
+  const moved =
+    size === 8
+      ? notes.map((n) => ({ ...n, pitch: Math.min(127, Math.max(0, n.pitch + 12 * sign)) }))
+      : transposeByDegrees(view, notes, (size - 1) * sign);
+
+  const listen = () => {
+    const all = addVoice ? [...notes, ...moved] : moved;
+    if (!all.length) return;
+    const start = Math.min(...all.map((n) => n.position));
+    playNotes(view, all.filter((n) => n.position < start + 2 * TICKS_PER_BAR), start, track.instrument);
+  };
+
+  return (
+    <div className="arp-panel">
+      {scopeBar}
+      <div className="arp-row">
+        <span>{t("transpose.interval")}</span>
+        <div className="grid-chips">
+          {INTERVALS.map((i) => (
+            <button key={i} className={`grid-chip ${size === i ? "is-active" : ""}`} onClick={() => setSize(i)}>
+              {t(`transpose.i${i}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="arp-row">
+        <span>{t("transpose.direction")}</span>
+        <Segmented<"up" | "down">
+          label={t("transpose.direction")}
+          value={dir}
+          onChange={setDir}
+          options={[
+            { value: "up", label: t("transpose.up") },
+            { value: "down", label: t("transpose.down") },
+          ]}
+        />
+      </div>
+      <div className="arp-row arp-checks">
+        <label title={t("transpose.addVoiceHint")}>
+          <input type="checkbox" checked={addVoice} onChange={(e) => setAddVoice(e.target.checked)} /> {t("transpose.addVoice")}
+        </label>
+      </div>
+      <p className="arp-note">{addVoice ? t("transpose.addVoiceHint") : t("transpose.hint")}</p>
+      <Actions
+        empty={empty}
+        onListen={listen}
+        onApply={() => {
+          void replace(allNotes, addVoice ? [] : notes, moved);
+          close();
+        }}
+      />
+    </div>
   );
 }
 
@@ -122,6 +193,87 @@ export function QuantizePanel({ track, close }: { track: Track; close: () => voi
           close();
         }}
       />
+    </div>
+  );
+}
+
+// ---------- Humanizar ----------
+
+/** Números al azar a partir de una semilla: «Escuchar» y «Aplicar» dan lo mismo. */
+function random(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Lo máximo que se corre una nota con «Tiempo» al 100 % (una semifusa). */
+const MAX_SHIFT = TICKS_PER_BAR / 64;
+
+export function HumanizePanel({ track, close }: { track: Track; close: () => void }) {
+  const { t } = useTranslation();
+  const { view, notes, allNotes, empty, scopeBar } = useToolScope({ kind: "notes", track });
+  const replace = useReplaceNotes(track);
+  const [timing, setTiming] = useState(40);
+  const [force, setForce] = useState(40);
+  const [length, setLength] = useState(0);
+  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
+
+  const next = random(seed);
+  const spread = () => next() * 2 - 1;
+  const humanized = notes.map((n) => {
+    const shift = Math.round(spread() * MAX_SHIFT * (timing / 100));
+    const velocity = Math.min(1, Math.max(0.05, n.velocity + spread() * 0.15 * (force / 100)));
+    const len = Math.max(MIN_LENGTH, Math.round(n.length * (1 + spread() * 0.15 * (length / 100))));
+    return { ...n, position: Math.max(0, n.position + shift), velocity, length: len };
+  });
+
+  const listen = () => {
+    if (!humanized.length) return;
+    const start = Math.min(...humanized.map((n) => n.position));
+    playNotes(view, humanized.filter((n) => n.position < start + 2 * TICKS_PER_BAR), start, track.instrument);
+  };
+
+  const slider = (label: string, hint: string, value: number, set: (v: number) => void) => (
+    <label className="arp-row" title={hint}>
+      <span>
+        {label}: {value}%
+      </span>
+      <input type="range" min={0} max={100} step={10} value={value} onChange={(e) => set(Number(e.target.value))} />
+    </label>
+  );
+
+  return (
+    <div className="arp-panel">
+      {scopeBar}
+      {slider(t("humanize.timing"), t("humanize.timingHint"), timing, setTiming)}
+      {slider(t("humanize.velocity"), t("humanize.velocityHint"), force, setForce)}
+      {slider(t("humanize.length"), t("humanize.lengthHint"), length, setLength)}
+      <p className="arp-note">{t("humanize.hint")}</p>
+      <div className="arp-actions">
+        <button className="ghost-button small" onClick={() => setSeed(Math.floor(Math.random() * 1e9))} disabled={empty} title={t("humanize.rerollHint")}>
+          <Icon name="dice" size={13} /> {t("humanize.reroll")}
+        </button>
+        <span className="arp-spacer" />
+        <button className="ghost-button small" onClick={listen} disabled={empty}>
+          <Icon name="play" size={12} filled /> {t("rhythm.listen")}
+        </button>
+        <button
+          className="primary-button small"
+          onClick={() => {
+            void replace(allNotes, notes, humanized);
+            close();
+          }}
+          disabled={empty || (timing === 0 && force === 0 && length === 0)}
+        >
+          {t("arp.apply")}
+        </button>
+      </div>
+      {empty && <p className="arp-note">{t("arp.nothing")}</p>}
     </div>
   );
 }

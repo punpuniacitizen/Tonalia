@@ -11,12 +11,12 @@ import { Icon, type IconName } from "../common/Icon";
 import { Popover } from "../common/Popover";
 import { ArpPanel } from "./ArpTool";
 import { NotesToChordPanel } from "./NotesToChordPanel";
-import { BassPanel, QuantizePanel, ScaleSnapPanel } from "./NoteTools";
+import { BassPanel, HumanizePanel, QuantizePanel, ScaleSnapPanel, TransposePanel } from "./NoteTools";
 import { RhythmPatternPanel } from "./RhythmTool";
 import type { ToolsTarget } from "./toolScope";
 
 
-type ToolId = "arp" | "rhythm" | "quantize" | "snap" | "bass" | "toChord";
+type ToolId = "arp" | "rhythm" | "transpose" | "quantize" | "humanize" | "snap" | "bass" | "toChord";
 
 export function ToolsMenu({ target }: { target: ToolsTarget }) {
   const { t } = useTranslation();
@@ -49,7 +49,9 @@ function ToolsPanel({ target, close }: { target: ToolsTarget; close: () => void 
   }
   if (target.kind === "notes") {
     tools.push(
+      { id: "transpose", icon: "updown", name: t("tools.transpose"), hint: t("tools.transposeHint") },
       { id: "quantize", icon: "magnet", name: t("tools.quantize"), hint: t("tools.quantizeHint") },
+      { id: "humanize", icon: "dice", name: t("tools.humanize"), hint: t("tools.humanizeHint") },
       { id: "snap", icon: "target", name: t("tools.snap"), hint: t("tools.snapHint") },
       { id: "bass", icon: "bassClef", name: t("tools.bass"), hint: t("tools.bassHint") },
     );
@@ -91,7 +93,9 @@ function ToolsPanel({ target, close }: { target: ToolsTarget; close: () => void 
       </header>
       {current.id === "arp" && <ArpPanel target={target} close={close} />}
       {current.id === "rhythm" && target.kind === "chords" && <RhythmPatternPanel lane={target.lane} close={close} />}
+      {current.id === "transpose" && target.kind === "notes" && <TransposePanel track={target.track} close={close} />}
       {current.id === "quantize" && target.kind === "notes" && <QuantizePanel track={target.track} close={close} />}
+      {current.id === "humanize" && target.kind === "notes" && <HumanizePanel track={target.track} close={close} />}
       {current.id === "snap" && target.kind === "notes" && <ScaleSnapPanel track={target.track} close={close} />}
       {current.id === "bass" && target.kind === "notes" && <BassPanel track={target.track} close={close} />}
       {current.id === "toChord" && target.kind === "notes" && selection && <NotesToChordPanel track={target.track} keys={selection} close={close} />}

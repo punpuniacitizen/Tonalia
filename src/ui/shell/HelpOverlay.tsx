@@ -21,6 +21,7 @@ const SHORTCUTS: [string, string][] = [
   ["Supr", "delete"],
   ["← →", "chords"],
   ["↑ ↓", "transpose"],
+  ["Ctrl + ↑ ↓", "degrees"],
   ["Ctrl+A", "selectAll"],
   ["Ctrl+S / Ctrl+O / Ctrl+N", "file"],
   ["Ctrl+E", "export"],

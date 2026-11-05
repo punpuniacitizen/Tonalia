@@ -7,12 +7,14 @@ import { useProject } from "../../stores/project";
 import { useSong } from "../../stores/song";
 import { useTransport } from "../../stores/transport";
 import { sameRef, useUi } from "../../stores/ui";
+import { transposeByDegrees } from "../tracks/diatonic";
 
 /**
  * Atajos globales:
  * Espacio = reproducir/parar · Ctrl+Z / Ctrl+Y = deshacer/rehacer · Supr = borrar
  * ← → = acorde anterior/siguiente · W = enfocar armonía · H = ocultar el muelle · Esc = quitar selección
- * Con notas seleccionadas: Supr = borrarlas · ↑ ↓ = transponer (Mayús: octava) · Ctrl+A = todas
+ * Con notas seleccionadas: Supr = borrarlas · ↑ ↓ = transponer (Mayús: octava; Ctrl: un grado
+ * de la escala) · Ctrl+A = todas
  */
 export function useShortcuts() {
   useEffect(() => {
@@ -67,10 +69,13 @@ export function useShortcuts() {
         e.preventDefault();
         void edit({ type: "setTrackNotes", track: noteTrack, notes: trackNotes.filter((n) => !notesState.selection.has(noteKey(n))) });
         notesState.clearSelection();
-      } else if ((e.key === "ArrowUp" || e.key === "ArrowDown") && selectedNotes.length && noteTrack !== null) {
+      } else if ((e.key === "ArrowUp" || e.key === "ArrowDown") && view && selectedNotes.length && noteTrack !== null) {
         e.preventDefault();
-        const dp = (e.key === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 12 : 1);
-        const moved = selectedNotes.map((n) => ({ ...n, pitch: Math.min(127, Math.max(0, n.pitch + dp)) }));
+        const dir = e.key === "ArrowUp" ? 1 : -1;
+        const moved =
+          ctrl && !e.shiftKey
+            ? transposeByDegrees(view, selectedNotes, dir)
+            : selectedNotes.map((n) => ({ ...n, pitch: Math.min(127, Math.max(0, n.pitch + dir * (e.shiftKey ? 12 : 1))) }));
         const rest = trackNotes.filter((n) => !notesState.selection.has(noteKey(n)));
         void edit({ type: "setTrackNotes", track: noteTrack, notes: [...rest, ...moved] });
         notesState.select(noteTrack, moved.map(noteKey));

@@ -224,12 +224,32 @@
     "back": "Back to the tools",
     "rhythm": "Rhythm patterns",
     "rhythmHint": "Play the chords with a rhythm: pulses, offbeats, strumming…",
+    "transpose": "Transpose by degrees",
+    "transposeHint": "Moves notes up or down within the scale, or adds a second voice",
     "quantize": "Quantize",
     "quantizeHint": "Snaps the notes to the grid",
+    "humanize": "Humanize",
+    "humanizeHint": "Small variations in timing, strength and length so it sounds hand-played",
     "snap": "Snap to scale",
     "snapHint": "Moves notes that clash with the harmony to the nearest one that fits",
     "bass": "Auto bass",
     "bassHint": "Writes a bass line that follows the chords into this track"
+  },
+  "transpose": {
+    "interval": "Interval",
+    "i2": "2nd",
+    "i3": "3rd",
+    "i4": "4th",
+    "i5": "5th",
+    "i6": "6th",
+    "i7": "7th",
+    "i8": "Octave",
+    "direction": "Direction",
+    "up": "Up",
+    "down": "Down",
+    "addVoice": "Add as a second voice",
+    "addVoiceHint": "Keeps the notes and adds another one at that distance, always within the scale: parallel thirds or sixths in one click.",
+    "hint": "Counts notes of the scale in effect at each spot: in C major, a 3rd above C is E and above D is F. Shortcut: Ctrl + ↑ ↓ moves one degree."
   },
   "quantize": {
     "grid": "Grid",
@@ -239,6 +259,17 @@
     "changes_one": "1 note will move.",
     "changes_other": "{{count}} notes will move.",
     "none": "They are all on the grid already."
+  },
+  "humanize": {
+    "timing": "Timing",
+    "timingHint": "Moves each note slightly early or late (at 100%, up to a 64th note)",
+    "velocity": "Strength",
+    "velocityHint": "Each note sounds a bit louder or softer",
+    "length": "Length",
+    "lengthHint": "Each note lasts a bit longer or shorter",
+    "hint": "Listen before applying; if you don't like how it fell, roll the dice for another variation.",
+    "reroll": "Another variation",
+    "rerollHint": "Try another random combination with the same settings"
   },
   "snap": {
     "target": "Move to",
@@ -373,6 +404,7 @@
       "delete": "Delete selected chord or notes",
       "chords": "Previous / next chord",
       "transpose": "Transpose notes (Shift: octave)",
+      "degrees": "Move notes one scale degree",
       "selectAll": "Select all piano roll notes",
       "file": "Save / open / new",
       "export": "Export MIDI",
