@@ -226,10 +226,18 @@
     "rhythmHint": "Toca los acordes con un ritmo: pulsos, contratiempos, rasgueo…",
     "transpose": "Transponer por grados",
     "transposeHint": "Sube o baja las notas dentro de la escala, o les suma una segunda voz",
+    "convert": "Convertir a notas",
+    "convertHint": "Escribe lo que toca esta pista (arpegios, ritmos, rasgueos) como notas para retocarlas a mano",
     "quantize": "Cuantizar",
     "quantizeHint": "Acomoda las notas a la cuadrícula",
     "humanize": "Humanizar",
     "humanizeHint": "Pequeñas variaciones de tiempo, fuerza y largo para que suene tocado a mano",
+    "repeat": "Repetir",
+    "repeatHint": "Copia las notas una o varias veces seguidas (atajo: Ctrl + D)",
+    "octave": "Octava de la pista",
+    "octaveHint": "Sube o baja todo lo que toca esta pista, sin tocar los voicings",
+    "articulation": "Legato / Staccato",
+    "articulationHint": "Estira cada nota hasta la siguiente, o las acorta",
     "snap": "Ajustar a la escala",
     "snapHint": "Lleva las notas que no encajan con la armonía a la más cercana que sí",
     "bass": "Bajo automático",
@@ -251,6 +259,17 @@
     "addVoiceHint": "Conserva las notas y suma otra a esa distancia, siempre dentro de la escala: terceras o sextas paralelas en un clic.",
     "hint": "Cuenta notas de la escala que rige en cada lugar: en Do mayor, una 3ª sobre Do es Mi y sobre Re es Fa. Atajo: Ctrl + ↑ ↓ mueve un grado."
   },
+  "convert": {
+    "to": "Llevar a",
+    "newTrack": "Una pista nueva",
+    "notesSuffix": "notas",
+    "mute": "Silenciar esta pista de acordes",
+    "muteHint": "Para que no suene doble: la pista de acordes queda en silencio (M) y suenan las notas",
+    "partialHint": "Solo algunos acordes: la pista de acordes sigue sonando; silencia esos acordes a mano si suena doble.",
+    "hint_one": "Se escribe 1 nota en una pista de piano roll que puedes editar libremente.",
+    "hint_other": "Se escriben {{count}} notas en una pista de piano roll que puedes editar libremente.",
+    "apply": "Convertir"
+  },
   "quantize": {
     "grid": "Cuadrícula",
     "strength": "Fuerza",
@@ -270,6 +289,28 @@
     "hint": "Escucha antes de aplicar; si no te gusta cómo cayó, tira el dado para otra variación.",
     "reroll": "Otra variación",
     "rerollHint": "Probar otra combinación al azar con los mismos ajustes"
+  },
+  "repeat": {
+    "times": "Veces",
+    "every": "Cada",
+    "auto": "Lo que ocupan",
+    "hint": "Las copias van una detrás de otra, empezando justo después; las originales no cambian."
+  },
+  "octave": {
+    "none": "Original",
+    "hint": "Se aplica al momento y suena el primer acorde. Útil para que el colchón suene grave y el piano agudo con los mismos acordes.",
+    "badgeHint": "Esta pista suena corrida de octava (caja de herramientas → Octava de la pista)"
+  },
+  "articulation": {
+    "mode": "Articulación",
+    "legato": "Legato",
+    "legatoHint": "Cada nota suena hasta que empieza la siguiente, sin huecos (las de un acorde, juntas). La última no cambia.",
+    "staccato": "Staccato",
+    "staccatoHint": "Cada nota se acorta y queda separada de la siguiente.",
+    "keep": "Dejar de su largo",
+    "changes_one": "Cambia el largo de 1 nota.",
+    "changes_other": "Cambia el largo de {{count}} notas.",
+    "none": "Ya están así."
   },
   "snap": {
     "target": "Llevar a",
@@ -405,6 +446,7 @@
       "chords": "Acorde anterior / siguiente",
       "transpose": "Transponer notas (Mayús: octava)",
       "degrees": "Mover notas un grado de la escala",
+      "duplicate": "Repetir las notas seleccionadas justo después",
       "selectAll": "Seleccionar todo en la última pista que tocaste (notas o acordes)",
       "file": "Guardar / abrir / nuevo",
       "export": "Exportar MIDI",

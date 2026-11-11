@@ -191,11 +191,14 @@ pub struct Track {
     pub solo: bool,
     #[serde(default)]
     pub kind: TrackKind,
+    /// En las pistas de acordes: octavas que se corre lo que toca (-3 a 3).
+    #[serde(default)]
+    pub octave: i8,
 }
 
 impl Track {
     pub fn new(id: TrackId, name: impl Into<String>, instrument: impl Into<String>, color: String) -> Self {
-        Self { id, name: name.into(), instrument: instrument.into(), color, volume: 0.8, pan: 0.0, muted: false, solo: false, kind: TrackKind::Notes }
+        Self { id, name: name.into(), instrument: instrument.into(), color, volume: 0.8, pan: 0.0, muted: false, solo: false, kind: TrackKind::Notes, octave: 0 }
     }
 
     pub fn is_chords(&self) -> bool {
@@ -214,12 +217,29 @@ pub struct ChordTrackSettings {
     pub pan: f32,
     pub muted: bool,
     pub solo: bool,
+    /// Octavas que se corre todo lo que toca (sin tocar los voicings): -3 a 3.
+    #[serde(default)]
+    pub octave: i8,
 }
 
 impl Default for ChordTrackSettings {
     fn default() -> Self {
-        Self { instrument: "piano".into(), volume: 0.7, pan: 0.0, muted: false, solo: false }
+        Self { instrument: "piano".into(), volume: 0.7, pan: 0.0, muted: false, solo: false, octave: 0 }
     }
+}
+
+/// Corre unas notas `octave` octavas (las que se saldrían del rango MIDI se quedan donde estaban).
+pub fn shift_octave(notes: Vec<Note>, octave: i8) -> Vec<Note> {
+    if octave == 0 {
+        return notes;
+    }
+    notes
+        .into_iter()
+        .map(|n| {
+            let p = n.pitch as i32 + 12 * octave as i32;
+            Note { pitch: if (0..=127).contains(&p) { p as u8 } else { n.pitch }, ..n }
+        })
+        .collect()
 }
 
 /// Las notas de una pista dentro de una sección (posiciones relativas a la sección).

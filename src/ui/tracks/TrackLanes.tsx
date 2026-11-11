@@ -16,6 +16,7 @@ import { PianoRoll, MAX_ROW, MIN_ROW } from "./PianoRoll";
 import "./tracks.css";
 import { PanKnob } from "./PanKnob";
 import { ToolsMenu } from "./ToolsMenu";
+import { OctaveBadge } from "./OctaveTool";
 import { ChordBlocks } from "./ChordBlocks";
 import { ChordPianoRoll } from "./ChordPianoRoll";
 import { setLaneView, useLaneView } from "./chordLane";
@@ -207,6 +208,7 @@ function ChordTrackLane({ track, width }: { track: Track; width: number }) {
             </span>
             <span className="lane-dot" />
             <span className="lane-name">{track.name}</span>
+            <OctaveBadge lane={track.id} />
           </button>
           <LaneMixer {...track} update={update} />
           <ChordLaneTools lane={track.id} />

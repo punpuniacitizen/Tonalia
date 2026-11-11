@@ -93,6 +93,13 @@ pub enum EditCommand {
         solo: Option<bool>,
     },
     UpdateChordTrack { instrument: Option<String>, volume: Option<f32>, pan: Option<f32>, muted: Option<bool>, solo: Option<bool> },
+    /// Corre una octava (o varias) todo lo que toca una pista de acordes, sin tocar los
+    /// voicings (`track: None` = la principal). De -3 a 3.
+    SetLaneOctave {
+        #[serde(default)]
+        track: Option<TrackId>,
+        octave: i8,
+    },
     /// Reemplaza todas las notas de una pista. Las posiciones son absolutas; cada nota
     /// se guarda en la sección donde empieza.
     SetTrackNotes { track: TrackId, notes: Vec<Note> },
@@ -337,6 +344,14 @@ pub fn apply(song: &mut Song, cmd: &EditCommand) -> Result<(), EditError> {
             }
             if let Some(v) = solo {
                 t.solo = *v;
+            }
+        }
+        SetLaneOctave { track, octave } => {
+            check_chord_track(song, *track)?;
+            let octave = (*octave).clamp(-3, 3);
+            match track {
+                None => song.chord_track.octave = octave,
+                Some(id) => song.track_mut(*id).ok_or(EditError::TrackNotFound(*id))?.octave = octave,
             }
         }
         UpdateChordTrack { instrument, volume, pan, muted, solo } => {
@@ -610,6 +625,44 @@ mod tests {
         apply(&mut song, &EditCommand::RemoveStrumPattern { id: saved.id }).unwrap();
         assert!(layout(&song).chords.iter().all(|c| c.entry.rhythm.is_none()));
         assert!(apply(&mut song, &EditCommand::RemoveStrumPattern { id: saved.id }).is_err());
+    }
+
+    #[test]
+    fn octava_de_la_pista() {
+        let mut song = Song::default();
+        insert(&mut song, 0);
+        let before = crate::queries::chord_track_notes(&song);
+        apply(&mut song, &EditCommand::SetLaneOctave { track: None, octave: -1 }).unwrap();
+        let after = crate::queries::chord_track_notes(&song);
+        assert!(after.iter().zip(&before).all(|(a, b)| a.pitch + 12 == b.pitch));
+        // El voicing no cambia y el límite es ±3.
+        assert_eq!(layout(&song).chords[0].entry.voicing.len(), before.len());
+        apply(&mut song, &EditCommand::SetLaneOctave { track: None, octave: 9 }).unwrap();
+        assert_eq!(song.chord_track.octave, 3);
+        // En una pista de notas no se puede.
+        let melody = song.tracks[0].id;
+        assert!(apply(&mut song, &EditCommand::SetLaneOctave { track: Some(melody), octave: 1 }).is_err());
+    }
+
+    #[test]
+    fn convertir_a_notas_en_un_paso() {
+        // Lo que manda «Convertir a notas»: pista nueva (con el próximo id), sus notas y silenciar los acordes.
+        let mut song = Song::default();
+        insert(&mut song, 0);
+        let track = song.next_id;
+        let notes = crate::queries::chord_track_notes(&song);
+        let batch = EditCommand::Batch {
+            commands: vec![
+                EditCommand::AddTrack { name: "Acordes (notas)".into(), instrument: "piano".into(), kind: TrackKind::Notes },
+                EditCommand::UpdateTrack { track, name: None, instrument: None, volume: Some(0.7), pan: Some(-0.3), muted: None, solo: None },
+                EditCommand::SetTrackNotes { track, notes: notes.clone() },
+                EditCommand::UpdateChordTrack { instrument: None, volume: None, pan: None, muted: Some(true), solo: None },
+            ],
+        };
+        apply(&mut song, &batch).unwrap();
+        assert_eq!(track_notes(&song, track), notes);
+        assert_eq!(song.track(track).unwrap().pan, -0.3);
+        assert!(song.chord_track.muted);
     }
 
     #[test]

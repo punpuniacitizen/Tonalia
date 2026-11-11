@@ -4,4 +4,8 @@ export type ChordTrackSettings = { instrument: string, volume: number,
 /**
  * Paneo: -1 = izquierda, 0 = centro, 1 = derecha.
  */
-pan: number, muted: boolean, solo: boolean, };
+pan: number, muted: boolean, solo: boolean, 
+/**
+ * Octavas que se corre todo lo que toca (sin tocar los voicings): -3 a 3.
+ */
+octave: number, };

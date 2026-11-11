@@ -7,6 +7,7 @@ import { nextSectionName, SectionEditor } from "./SectionEditor";
 import { INSTRUMENTS } from "../../lib/instruments";
 import { ChordLaneTools, PIANO_HEIGHT, TrackLanes } from "../tracks/TrackLanes";
 import { ChordPianoRoll } from "../tracks/ChordPianoRoll";
+import { OctaveBadge } from "../tracks/OctaveTool";
 import { useLaneView } from "../tracks/chordLane";
 import { useNotes } from "../../stores/notes";
 import { useSong } from "../../stores/song";
@@ -189,6 +190,7 @@ function ChordTrackHead() {
       <div className="lane-head-sticky">
         <span className="lane-dot" style={{ background: "var(--accent)", boxShadow: "0 0 10px var(--accent)" }} />
         <span className="lane-name">{t("tracks.chords")}</span>
+        <OctaveBadge lane="main" />
         <select value={ct.instrument} onChange={(e) => update({ instrument: e.target.value })} title={t("tracks.instrument")}>
           {INSTRUMENTS.map((i) => (
             <option key={i} value={i}>

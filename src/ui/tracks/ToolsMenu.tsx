@@ -11,12 +11,14 @@ import { Icon, type IconName } from "../common/Icon";
 import { Popover } from "../common/Popover";
 import { ArpPanel } from "./ArpTool";
 import { NotesToChordPanel } from "./NotesToChordPanel";
-import { BassPanel, HumanizePanel, QuantizePanel, ScaleSnapPanel, TransposePanel } from "./NoteTools";
+import { ArticulationPanel, BassPanel, HumanizePanel, QuantizePanel, RepeatPanel, ScaleSnapPanel, TransposePanel } from "./NoteTools";
+import { OctavePanel } from "./OctaveTool";
 import { RhythmPatternPanel } from "./RhythmTool";
+import { ConvertPanel } from "./ConvertTool";
 import type { ToolsTarget } from "./toolScope";
 
 
-type ToolId = "arp" | "rhythm" | "transpose" | "quantize" | "humanize" | "snap" | "bass" | "toChord";
+type ToolId = "arp" | "rhythm" | "octave" | "repeat" | "convert" | "transpose" | "quantize" | "humanize" | "articulation" | "snap" | "bass" | "toChord";
 
 export function ToolsMenu({ target }: { target: ToolsTarget }) {
   const { t } = useTranslation();
@@ -45,13 +47,19 @@ function ToolsPanel({ target, close }: { target: ToolsTarget; close: () => void 
     { id: "arp", icon: "arp", name: t("arp.tool"), hint: target.kind === "chords" ? t("arp.toolHint") : t("arp.toolHintNotes") },
   ];
   if (target.kind === "chords") {
-    tools.push({ id: "rhythm", icon: "drum", name: t("tools.rhythm"), hint: t("tools.rhythmHint") });
+    tools.push(
+      { id: "rhythm", icon: "drum", name: t("tools.rhythm"), hint: t("tools.rhythmHint") },
+      { id: "octave", icon: "updown", name: t("tools.octave"), hint: t("tools.octaveHint") },
+      { id: "convert", icon: "notes", name: t("tools.convert"), hint: t("tools.convertHint") },
+    );
   }
   if (target.kind === "notes") {
     tools.push(
       { id: "transpose", icon: "updown", name: t("tools.transpose"), hint: t("tools.transposeHint") },
       { id: "quantize", icon: "magnet", name: t("tools.quantize"), hint: t("tools.quantizeHint") },
       { id: "humanize", icon: "dice", name: t("tools.humanize"), hint: t("tools.humanizeHint") },
+      { id: "repeat", icon: "repeat", name: t("tools.repeat"), hint: t("tools.repeatHint") },
+      { id: "articulation", icon: "legato", name: t("tools.articulation"), hint: t("tools.articulationHint") },
       { id: "snap", icon: "target", name: t("tools.snap"), hint: t("tools.snapHint") },
       { id: "bass", icon: "bassClef", name: t("tools.bass"), hint: t("tools.bassHint") },
     );
@@ -93,9 +101,13 @@ function ToolsPanel({ target, close }: { target: ToolsTarget; close: () => void 
       </header>
       {current.id === "arp" && <ArpPanel target={target} close={close} />}
       {current.id === "rhythm" && target.kind === "chords" && <RhythmPatternPanel lane={target.lane} close={close} />}
+      {current.id === "convert" && target.kind === "chords" && <ConvertPanel lane={target.lane} close={close} />}
+      {current.id === "octave" && target.kind === "chords" && <OctavePanel lane={target.lane} />}
+      {current.id === "repeat" && target.kind === "notes" && <RepeatPanel track={target.track} close={close} />}
       {current.id === "transpose" && target.kind === "notes" && <TransposePanel track={target.track} close={close} />}
       {current.id === "quantize" && target.kind === "notes" && <QuantizePanel track={target.track} close={close} />}
       {current.id === "humanize" && target.kind === "notes" && <HumanizePanel track={target.track} close={close} />}
+      {current.id === "articulation" && target.kind === "notes" && <ArticulationPanel track={target.track} close={close} />}
       {current.id === "snap" && target.kind === "notes" && <ScaleSnapPanel track={target.track} close={close} />}
       {current.id === "bass" && target.kind === "notes" && <BassPanel track={target.track} close={close} />}
       {current.id === "toChord" && target.kind === "notes" && selection && <NotesToChordPanel track={target.track} keys={selection} close={close} />}

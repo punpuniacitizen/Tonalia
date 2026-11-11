@@ -226,10 +226,18 @@
     "rhythmHint": "Play the chords with a rhythm: pulses, offbeats, strumming…",
     "transpose": "Transpose by degrees",
     "transposeHint": "Moves notes up or down within the scale, or adds a second voice",
+    "convert": "Convert to notes",
+    "convertHint": "Writes what this track plays (arpeggios, rhythms, strums) as notes you can edit by hand",
     "quantize": "Quantize",
     "quantizeHint": "Snaps the notes to the grid",
     "humanize": "Humanize",
     "humanizeHint": "Small variations in timing, strength and length so it sounds hand-played",
+    "repeat": "Repeat",
+    "repeatHint": "Copies the notes once or several times in a row (shortcut: Ctrl + D)",
+    "octave": "Track octave",
+    "octaveHint": "Moves everything this track plays up or down, without touching the voicings",
+    "articulation": "Legato / Staccato",
+    "articulationHint": "Stretches each note to the next one, or shortens them",
     "snap": "Snap to scale",
     "snapHint": "Moves notes that clash with the harmony to the nearest one that fits",
     "bass": "Auto bass",
@@ -251,6 +259,17 @@
     "addVoiceHint": "Keeps the notes and adds another one at that distance, always within the scale: parallel thirds or sixths in one click.",
     "hint": "Counts notes of the scale in effect at each spot: in C major, a 3rd above C is E and above D is F. Shortcut: Ctrl + ↑ ↓ moves one degree."
   },
+  "convert": {
+    "to": "Send to",
+    "newTrack": "A new track",
+    "notesSuffix": "notes",
+    "mute": "Mute this chord track",
+    "muteHint": "So it doesn't sound twice: the chord track is muted (M) and the notes play",
+    "partialHint": "Only some chords: the chord track keeps playing; mute those chords by hand if it sounds doubled.",
+    "hint_one": "1 note is written into a piano roll track you can edit freely.",
+    "hint_other": "{{count}} notes are written into a piano roll track you can edit freely.",
+    "apply": "Convert"
+  },
   "quantize": {
     "grid": "Grid",
     "strength": "Strength",
@@ -270,6 +289,28 @@
     "hint": "Listen before applying; if you don't like how it fell, roll the dice for another variation.",
     "reroll": "Another variation",
     "rerollHint": "Try another random combination with the same settings"
+  },
+  "repeat": {
+    "times": "Times",
+    "every": "Every",
+    "auto": "Their length",
+    "hint": "Copies go one after another, starting right after; the originals don't change."
+  },
+  "octave": {
+    "none": "Original",
+    "hint": "Applies right away and plays the first chord. Handy for a low pad and a high piano on the same chords.",
+    "badgeHint": "This track plays shifted by octaves (toolbox → Track octave)"
+  },
+  "articulation": {
+    "mode": "Articulation",
+    "legato": "Legato",
+    "legatoHint": "Each note rings until the next one starts, with no gaps (chord notes together). The last one stays.",
+    "staccato": "Staccato",
+    "staccatoHint": "Each note gets shorter and detached from the next.",
+    "keep": "Keep of its length",
+    "changes_one": "Changes the length of 1 note.",
+    "changes_other": "Changes the length of {{count}} notes.",
+    "none": "They are like that already."
   },
   "snap": {
     "target": "Move to",
@@ -405,6 +446,7 @@
       "chords": "Previous / next chord",
       "transpose": "Transpose notes (Shift: octave)",
       "degrees": "Move notes one scale degree",
+      "duplicate": "Repeat the selected notes right after",
       "selectAll": "Select everything in the last track you touched (notes or chords)",
       "file": "Save / open / new",
       "export": "Export MIDI",

@@ -5,4 +5,8 @@ export type Track = { id: number, name: string, instrument: string, color: strin
 /**
  * Paneo: -1 = izquierda, 0 = centro, 1 = derecha.
  */
-pan: number, muted: boolean, solo: boolean, kind: TrackKind, };
+pan: number, muted: boolean, solo: boolean, kind: TrackKind, 
+/**
+ * En las pistas de acordes: octavas que se corre lo que toca (-3 a 3).
+ */
+octave: number, };

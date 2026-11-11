@@ -14,7 +14,7 @@ import { type ChordLane } from "../../stores/notes";
 import { useSong } from "../../stores/song";
 import { useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
-import { laneRhythm, laneTrack, playNotes } from "./chordLane";
+import { laneRhythm, laneTrack, playNotes, shiftToLane } from "./chordLane";
 import { StrumEditor } from "./StrumEditor";
 import { patternFromPreset, STRUM_PRESETS } from "./strumPresets";
 import { useToolScope } from "./toolScope";
@@ -52,7 +52,7 @@ export function RhythmPatternPanel({ lane, close }: { lane: ChordLane; close: ()
 
   const change = (patch: Partial<Rhythm>) => set({ lastRhythm: { ...settings, ...patch } });
   const first = chords[0];
-  const firstVoicing = first ? first.voicing.map((n) => ({ ...n, position: n.position - first.start })) : null;
+  const firstVoicing = first ? shiftToLane(view, lane, first.voicing).map((n) => ({ ...n, position: n.position - first.start })) : null;
 
   /** El primer acorde elegido tal como sonaría. */
   const listen = async () => {

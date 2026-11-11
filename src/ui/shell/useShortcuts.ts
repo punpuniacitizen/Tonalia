@@ -8,12 +8,14 @@ import { useSong } from "../../stores/song";
 import { useTransport } from "../../stores/transport";
 import { sameRef, useUi } from "../../stores/ui";
 import { transposeByDegrees } from "../tracks/diatonic";
+import { autoSpan, repeatNotes } from "../tracks/NoteTools";
 
 /**
  * Atajos globales:
  * Espacio = reproducir/parar · Ctrl+Z / Ctrl+Y = deshacer/rehacer · Supr = borrar
  * ← → = acorde anterior/siguiente · W = enfocar armonía · H = ocultar el muelle · Esc = quitar selección
  * A (o Ctrl+A) = seleccionar todo en la última pista tocada: sus notas, o sus acordes
+ * Ctrl+D = repetir las notas seleccionadas justo después
  * Con notas seleccionadas: Supr = borrarlas · ↑ ↓ = transponer (Mayús: octava; Ctrl: un grado
  * de la escala) · Ctrl+A = todas
  */
@@ -73,6 +75,12 @@ export function useShortcuts() {
         } else {
           notesState.pickChords(focus.lane, view.chords.map(chordKey));
         }
+      } else if (ctrl && k === "d" && selectedNotes.length && noteTrack !== null) {
+        e.preventDefault();
+        const copies = repeatNotes(selectedNotes, 1, autoSpan(selectedNotes));
+        const keys = new Set(copies.map(noteKey));
+        void edit({ type: "setTrackNotes", track: noteTrack, notes: [...trackNotes.filter((n) => !keys.has(noteKey(n))), ...copies] });
+        notesState.select(noteTrack, copies.map(noteKey));
       } else if ((e.key === "Delete" || e.key === "Backspace") && selectedNotes.length && noteTrack !== null) {
         e.preventDefault();
         void edit({ type: "setTrackNotes", track: noteTrack, notes: trackNotes.filter((n) => !notesState.selection.has(noteKey(n))) });

@@ -35,6 +35,18 @@ export function laneChordNotes(view: SongView, lane: ChordLane, c: ChordView): N
   return all.filter((n) => n.position >= c.start && n.position < c.start + c.length);
 }
 
+/** Octavas que se corre lo que toca una pista de acordes. */
+export function laneOctave(view: SongView, lane: ChordLane): number {
+  if (lane === "main") return view.song.chordTrack.octave ?? 0;
+  return view.song.tracks.find((t) => t.id === lane)?.octave ?? 0;
+}
+
+/** Un voicing corrido a la octava de la pista (para escuchar como sonará). */
+export function shiftToLane(view: SongView, lane: ChordLane, notes: Note[]): Note[] {
+  const o = laneOctave(view, lane) * 12;
+  return o ? notes.map((n) => ({ ...n, pitch: n.pitch + o >= 0 && n.pitch + o <= 127 ? n.pitch + o : n.pitch })) : notes;
+}
+
 export function laneInstrument(view: SongView, lane: ChordLane): string {
   if (lane === "main") return view.song.chordTrack.instrument;
   return view.song.tracks.find((t) => t.id === lane)?.instrument ?? "piano";

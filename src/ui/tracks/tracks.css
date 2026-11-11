@@ -829,3 +829,27 @@
   background: color-mix(in oklab, var(--accent) 12%, transparent);
   pointer-events: none;
 }
+
+.convert-dest {
+  padding: 5px 8px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-size: 12px;
+}
+
+/* Octava de la pista */
+.octave-chips .grid-chip {
+  min-width: 52px;
+}
+
+.octave-badge {
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--text-1);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}

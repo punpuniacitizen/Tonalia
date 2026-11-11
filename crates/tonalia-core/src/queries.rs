@@ -93,11 +93,11 @@ pub fn key_at(song: &Song, t: Ticks) -> Key {
 /// Todas las notas de una pista con posiciones absolutas, ordenadas. En una pista de acordes,
 /// lo que toca de cada acorde de la cinta.
 pub fn track_notes(song: &Song, track: TrackId) -> Vec<Note> {
-    if song.track(track).is_some_and(|t| t.is_chords()) {
+    if let Some(octave) = song.track(track).filter(|t| t.is_chords()).map(|t| t.octave) {
         let mut notes: Vec<Note> = layout(song)
             .chords
             .iter()
-            .flat_map(|c| c.entry.played_for(Some(track), &song.strum_patterns).into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
+            .flat_map(|c| crate::model::shift_octave(c.entry.played_for(Some(track), &song.strum_patterns), octave).into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
             .collect();
         notes.sort_by_key(|n| (n.position, n.pitch));
         return notes;
@@ -125,7 +125,11 @@ pub fn chord_track_notes(song: &Song) -> Vec<Note> {
     layout(song)
         .chords
         .iter()
-        .flat_map(|c| c.entry.played(&song.strum_patterns).into_iter().map(move |n| Note { position: n.position + c.start, ..n }))
+        .flat_map(|c| {
+            crate::model::shift_octave(c.entry.played(&song.strum_patterns), song.chord_track.octave)
+                .into_iter()
+                .map(move |n| Note { position: n.position + c.start, ..n })
+        })
         .collect()
 }
 

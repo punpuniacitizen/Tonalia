@@ -16,7 +16,7 @@ import { useSong } from "../../stores/song";
 import { useUi } from "../../stores/ui";
 import { Icon } from "../common/Icon";
 import { Segmented } from "../common/Segmented";
-import { laneArp, laneTrack, playNotes } from "./chordLane";
+import { laneArp, laneTrack, playNotes, shiftToLane } from "./chordLane";
 import { sortNotes, useToolScope, type ToolsTarget } from "./toolScope";
 
 
@@ -47,7 +47,7 @@ export function ArpPanel({ target, close }: { target: ToolsTarget; close: () => 
     if (target.kind === "chords") {
       const c = chords[0];
       // El arpegio usa las alturas del voicing y dura todo el acorde, como al reproducir.
-      const block = c.voicing.map((n) => ({ ...n, position: c.start, length: c.length }));
+      const block = shiftToLane(view, target.lane, c.voicing).map((n) => ({ ...n, position: c.start, length: c.length }));
       playNotes(view, await api.arpeggiate(block, settings), c.start, instrument);
     } else {
       const result = await api.arpeggiate(notes, settings);

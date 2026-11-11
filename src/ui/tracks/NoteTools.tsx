@@ -1,5 +1,5 @@
-// Herramientas para pistas de notas: Transponer por grados, Cuantizar, Humanizar, Ajustar a
-// la escala y Bajo automático.
+// Herramientas para pistas de notas: Transponer por grados, Cuantizar, Humanizar, Legato /
+// Staccato, Ajustar a la escala y Bajo automático.
 // Todas reemplazan notas de la pista (se deshacen con Ctrl+Z).
 
 import { useState } from "react";
@@ -10,6 +10,7 @@ import type { BassStyle } from "../../bindings/BassStyle";
 import type { Note } from "../../bindings/Note";
 import type { SongView } from "../../bindings/SongView";
 import type { Track } from "../../bindings/Track";
+import { formatLength } from "../../lib/duration";
 import { TICKS_PER_BAR } from "../../lib/music";
 import { keyPitchClasses } from "../../lib/pitch";
 import { noteKey, useNotes } from "../../stores/notes";
@@ -274,6 +275,147 @@ export function HumanizePanel({ track, close }: { track: Track; close: () => voi
         </button>
       </div>
       {empty && <p className="arp-note">{t("arp.nothing")}</p>}
+    </div>
+  );
+}
+
+// ---------- Legato / Staccato ----------
+
+type Articulation = "legato" | "staccato";
+const STACCATO = [25, 50, 75];
+
+/** Cada nota hasta que empieza la siguiente (las que empiezan juntas, un acorde, van juntas). */
+export function legato(notes: Note[]): Note[] {
+  const starts = [...new Set(notes.map((n) => n.position))].sort((a, b) => a - b);
+  return notes.map((n) => {
+    const next = starts.find((s) => s > n.position);
+    return next === undefined ? n : { ...n, length: next - n.position };
+  });
+}
+
+export function ArticulationPanel({ track, close }: { track: Track; close: () => void }) {
+  const { t } = useTranslation();
+  const { view, notes, allNotes, empty, scopeBar } = useToolScope({ kind: "notes", track });
+  const replace = useReplaceNotes(track);
+  const [mode, setMode] = useState<Articulation>("legato");
+  const [percent, setPercent] = useState(50);
+
+  const result =
+    mode === "legato" ? legato(notes) : notes.map((n) => ({ ...n, length: Math.max(MIN_LENGTH, Math.round((n.length * percent) / 100)) }));
+  const changed = result.filter((r, i) => r.length !== notes[i].length).length;
+
+  const listen = () => {
+    if (!result.length) return;
+    const start = Math.min(...result.map((n) => n.position));
+    playNotes(view, result.filter((n) => n.position < start + 2 * TICKS_PER_BAR), start, track.instrument);
+  };
+
+  return (
+    <div className="arp-panel">
+      {scopeBar}
+      <Segmented<Articulation>
+        label={t("articulation.mode")}
+        value={mode}
+        onChange={setMode}
+        options={[
+          { value: "legato", label: t("articulation.legato"), title: t("articulation.legatoHint") },
+          { value: "staccato", label: t("articulation.staccato"), title: t("articulation.staccatoHint") },
+        ]}
+      />
+      {mode === "staccato" && (
+        <div className="arp-row">
+          <span>{t("articulation.keep")}</span>
+          <div className="grid-chips">
+            {STACCATO.map((p) => (
+              <button key={p} className={`grid-chip ${percent === p ? "is-active" : ""}`} onClick={() => setPercent(p)}>
+                {p}%
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <p className="arp-note">{mode === "legato" ? t("articulation.legatoHint") : t("articulation.staccatoHint")}</p>
+      {!empty && <p className="arp-note">{changed > 0 ? t("articulation.changes", { count: changed }) : t("articulation.none")}</p>}
+      <Actions
+        empty={empty}
+        disabled={changed === 0}
+        onListen={listen}
+        onApply={() => {
+          void replace(allNotes, notes, result);
+          close();
+        }}
+      />
+    </div>
+  );
+}
+
+// ---------- Repetir ----------
+
+/** Lo que ocupa la selección, redondeado hacia arriba al tiempo (negra). */
+export function autoSpan(notes: Note[]): number {
+  const start = Math.min(...notes.map((n) => n.position));
+  const end = Math.max(...notes.map((n) => n.position + n.length));
+  const beat = TICKS_PER_BAR / 4;
+  return Math.max(beat, Math.ceil((end - start) / beat) * beat);
+}
+
+/** `times` copias seguidas de las notas, cada una `span` más adelante. */
+export function repeatNotes(notes: Note[], times: number, span: number): Note[] {
+  return Array.from({ length: times }, (_, k) => notes.map((n) => ({ ...n, position: n.position + (k + 1) * span }))).flat();
+}
+
+const TIMES = [1, 2, 3, 4, 7];
+type Spacing = "auto" | 1 | 2 | 4;
+
+export function RepeatPanel({ track, close }: { track: Track; close: () => void }) {
+  const { t } = useTranslation();
+  const { view, notes, allNotes, empty, scopeBar } = useToolScope({ kind: "notes", track });
+  const replace = useReplaceNotes(track);
+  const [times, setTimes] = useState(1);
+  const [spacing, setSpacing] = useState<Spacing>("auto");
+  const span = empty ? TICKS_PER_BAR : spacing === "auto" ? autoSpan(notes) : spacing * TICKS_PER_BAR;
+  const copies = empty ? [] : repeatNotes(notes, times, span);
+  const len = (ticks: number) => formatLength(ticks, t("rhythm.bar"), t("rhythm.bars"));
+
+  const listen = () => {
+    const all = [...notes, ...copies];
+    if (!all.length) return;
+    const start = Math.min(...all.map((n) => n.position));
+    playNotes(view, all.filter((n) => n.position < start + 4 * TICKS_PER_BAR), start, track.instrument);
+  };
+
+  return (
+    <div className="arp-panel">
+      {scopeBar}
+      <div className="arp-row">
+        <span>{t("repeat.times")}</span>
+        <div className="grid-chips">
+          {TIMES.map((n) => (
+            <button key={n} className={`grid-chip ${times === n ? "is-active" : ""}`} onClick={() => setTimes(n)}>
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="arp-row">
+        <span>{t("repeat.every")}</span>
+        <div className="grid-chips">
+          {(["auto", 1, 2, 4] as Spacing[]).map((s) => (
+            <button key={String(s)} className={`grid-chip ${spacing === s ? "is-active" : ""}`} onClick={() => setSpacing(s)}>
+              {s === "auto" ? `${t("repeat.auto")}${empty ? "" : ` (${len(autoSpan(notes))})`}` : len(s * TICKS_PER_BAR)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className="arp-note">{t("repeat.hint")}</p>
+      <Actions
+        empty={empty}
+        onListen={listen}
+        onApply={() => {
+          void replace(allNotes, [], copies);
+          close();
+        }}
+      />
     </div>
   );
 }
