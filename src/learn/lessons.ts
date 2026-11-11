@@ -4,8 +4,9 @@
 
 import { chordsSequence, melodySequence, type SequenceNote } from "../api";
 import type { TipVisual } from "../tips/tips";
+import { demoSound } from "./toolDemos";
 
-export type LessonGroup = "basics" | "harmony" | "rhythm" | "beyond";
+export type LessonGroup = "basics" | "harmony" | "rhythm" | "beyond" | "tools";
 
 type Text = {
   title: string;
@@ -586,9 +587,345 @@ export const LESSONS: Lesson[] = [
       inApp: "The 'Tonnetz' view in the dock: hover a triangle to hear it, click to add it or drag it to the ribbon.",
     },
   },
+  {
+    id: "tool-toolbox",
+    group: "tools",
+    visual: { kind: "tool", tool: "toolbox" },
+    sound: () => demoSound("toolbox"),
+    es: {
+      "title": "La caja de herramientas",
+      "kicker": "Antes de empezar",
+      "body": [
+        "Cada pista tiene una llave inglesa en su cabecera: ahí están las herramientas. No son modos del clic (como Dibujar o Seleccionar): actúan sobre lo que elegiste.",
+        "Elige primero: clic en una nota o un acorde, Mayús + clic para sumar, arrastrar para hacer una caja, o la tecla A para elegir todo en la última pista que tocaste. Si no eliges nada, la herramienta se aplica a toda la pista."
+      ],
+      "takeaway": "Elige, abre la llave inglesa, ajusta y toca «Aplicar». Todo se deshace con Ctrl + Z.",
+      "inApp": "La llave inglesa en la cabecera de cada pista. Arriba de cada herramienta puedes cambiar entre «Elegidos» y «Todos»."
+    },
+    en: {
+      "title": "The toolbox",
+      "kicker": "Before you start",
+      "body": [
+        "Every track has a wrench in its header: that's where the tools are. They aren't click modes (like Draw or Select): they act on what you picked.",
+        "Pick first: click a note or a chord, Shift + click to add, drag to draw a box, or press A to pick everything in the last track you touched. If nothing is picked, the tool applies to the whole track."
+      ],
+      "takeaway": "Pick, open the wrench, adjust and press «Apply». Everything undoes with Ctrl + Z.",
+      "inApp": "The wrench in each track header. At the top of each tool you can switch between «Picked» and «All»."
+    },
+  },
+  {
+    id: "tool-arp",
+    group: "tools",
+    visual: { kind: "tool", tool: "arp" },
+    sound: () => demoSound("arp"),
+    es: {
+      "title": "Arpegiar",
+      "kicker": "El acorde, nota por nota",
+      "body": [
+        "Toca las notas del acorde una tras otra en vez de todas juntas: subiendo, bajando, sube-y-baja o al azar, a la velocidad que elijas y en una o más octavas.",
+        "En una pista de acordes el arpegio se guarda en el acorde: si después le agregas una 7.ª o cambias una nota de octava, el arpegio la incluye solo. En una pista de notas, las notas que empiezan juntas se toman como un acorde y se reescriben."
+      ],
+      "takeaway": "Arpegiar le da movimiento a un acorde quieto sin cambiar la armonía.",
+      "inApp": "Llave inglesa → Arpegiar. «Pedal» deja sonar cada nota y «Bajo sostenido» mantiene la más grave."
+    },
+    en: {
+      "title": "Arpeggiate",
+      "kicker": "The chord, note by note",
+      "body": [
+        "Plays the chord's notes one after another instead of together: up, down, up-and-down or random, at the speed you choose and over one or more octaves.",
+        "On a chord track the arpeggio is stored in the chord: if you later add a 7th or move a note an octave, the arpeggio follows. On a notes track, notes that start together count as a chord and get rewritten."
+      ],
+      "takeaway": "Arpeggiating adds motion to a still chord without changing the harmony.",
+      "inApp": "Wrench → Arpeggiate. «Pedal» lets each note ring and «Hold bass» keeps the lowest one."
+    },
+  },
+  {
+    id: "tool-rhythm",
+    group: "tools",
+    visual: { kind: "tool", tool: "rhythm" },
+    sound: () => demoSound("rhythm"),
+    es: {
+      "title": "Patrones de ritmo y rasgueos",
+      "kicker": "El acompañamiento",
+      "body": [
+        "En vez de sostener el acorde, lo toca con un ritmo: pulsos, contratiempos, charleston, tresillo, bajo y acorde, Alberti o rasgueo de guitarra.",
+        "Para el rasgueo puedes crear tus propios patrones: una grilla de un compás donde cada casilla es abajo, arriba o apagado, con acentos. Se guardan con nombre en la canción («Estrofa», «Estribillo»), y al cambiar uno cambian todos los acordes que lo usan."
+      ],
+      "takeaway": "El mismo acorde suena a balada, a pop o a reggae según el ritmo.",
+      "inApp": "En una pista de acordes: llave inglesa → Patrones de ritmo. En «Rasgueo», «＋ Nuevo» abre el editor; suena mejor con la guitarra."
+    },
+    en: {
+      "title": "Rhythm patterns and strums",
+      "kicker": "The accompaniment",
+      "body": [
+        "Instead of holding the chord, it plays it with a rhythm: pulses, offbeats, charleston, tresillo, bass and chord, Alberti or guitar strumming.",
+        "For strumming you can make your own patterns: a one-bar grid where each cell is down, up or muted, with accents. They're saved by name in the song («Verse», «Chorus»), and changing one changes every chord that uses it."
+      ],
+      "takeaway": "The same chord sounds like a ballad, pop or reggae depending on the rhythm.",
+      "inApp": "On a chord track: wrench → Rhythm patterns. In «Strum», «＋ New» opens the editor; it sounds best on guitar."
+    },
+  },
+  {
+    id: "tool-transpose",
+    group: "tools",
+    visual: { kind: "tool", tool: "transpose" },
+    sound: () => demoSound("transpose"),
+    es: {
+      "title": "Transponer por grados",
+      "kicker": "Mover sin salirse de la escala",
+      "body": [
+        "Subir un semitono saca a las notas de la tonalidad; subir un grado las mueve a la nota siguiente de la escala. En Do mayor, Mi sube a Fa y Si sube a Do.",
+        "Con «Agregar como segunda voz» se conservan las notas y se suma otra a esa distancia: terceras o sextas paralelas, como en tantos dúos y coros."
+      ],
+      "takeaway": "Grados en vez de semitonos: la segunda voz siempre queda en la escala.",
+      "inApp": "Llave inglesa → Transponer por grados. Atajos: ↑ ↓ semitono, Mayús + ↑ ↓ octava, Ctrl + ↑ ↓ un grado."
+    },
+    en: {
+      "title": "Transpose by degrees",
+      "kicker": "Moving without leaving the scale",
+      "body": [
+        "Going up a half step takes notes out of the key; going up a degree moves them to the next scale note. In C major, E goes up to F and B goes up to C.",
+        "With «Add as a second voice» the notes stay and another is added at that distance: parallel thirds or sixths, as in so many duets and choirs."
+      ],
+      "takeaway": "Degrees instead of half steps: the second voice always stays in the scale.",
+      "inApp": "Wrench → Transpose by degrees. Shortcuts: ↑ ↓ half step, Shift + ↑ ↓ octave, Ctrl + ↑ ↓ one degree."
+    },
+  },
+  {
+    id: "tool-quantize",
+    group: "tools",
+    visual: { kind: "tool", tool: "quantize" },
+    sound: () => demoSound("quantize"),
+    es: {
+      "title": "Cuantizar",
+      "kicker": "Poner en tiempo",
+      "body": [
+        "Corre cada nota a la línea más cercana de la cuadrícula que elijas (negras, corcheas, semicorcheas o tresillos). Ideal después de tocar algo a mano.",
+        "La «fuerza» decide cuánto se acercan: al 100 % caen justo en la cuadrícula; con menos, se ordenan pero conservan algo de soltura."
+      ],
+      "takeaway": "Cuantizar corrige el tiempo; la fuerza decide cuánta vida le queda.",
+      "inApp": "En una pista de notas: llave inglesa → Cuantizar."
+    },
+    en: {
+      "title": "Quantize",
+      "kicker": "Putting it in time",
+      "body": [
+        "Moves each note to the nearest line of the grid you choose (quarters, eighths, sixteenths or triplets). Perfect after playing something by hand.",
+        "«Strength» sets how close they get: at 100% they land exactly on the grid; with less, they tidy up but keep some looseness."
+      ],
+      "takeaway": "Quantizing fixes the timing; strength decides how much life is left.",
+      "inApp": "On a notes track: wrench → Quantize."
+    },
+  },
+  {
+    id: "tool-humanize",
+    group: "tools",
+    visual: { kind: "tool", tool: "humanize" },
+    sound: () => demoSound("humanize"),
+    es: {
+      "title": "Humanizar",
+      "kicker": "Lo contrario de cuantizar",
+      "body": [
+        "Nadie toca exactamente en la cuadrícula ni con la misma fuerza: esas pequeñas diferencias son las que hacen que algo suene vivo.",
+        "Humanizar corre cada nota un poquito antes o después y cambia un poco su fuerza (y si quieres, su largo). Si no te gusta cómo quedó, el dado prueba otra variación."
+      ],
+      "takeaway": "Un poco de imperfección hace que una parte programada suene tocada.",
+      "inApp": "En una pista de notas: llave inglesa → Humanizar. Escucha antes de aplicar."
+    },
+    en: {
+      "title": "Humanize",
+      "kicker": "The opposite of quantizing",
+      "body": [
+        "Nobody plays exactly on the grid or with the same strength: those small differences are what make music sound alive.",
+        "Humanize moves each note slightly early or late and changes its strength a little (and, if you want, its length). If you don't like the result, the dice tries another variation."
+      ],
+      "takeaway": "A bit of imperfection makes a programmed part sound played.",
+      "inApp": "On a notes track: wrench → Humanize. Listen before applying."
+    },
+  },
+  {
+    id: "tool-articulation",
+    group: "tools",
+    visual: { kind: "tool", tool: "articulation" },
+    sound: () => demoSound("articulation"),
+    es: {
+      "title": "Legato y staccato",
+      "kicker": "Ligado o separado",
+      "body": [
+        "Legato: cada nota suena hasta que empieza la siguiente, sin huecos; la melodía canta. Staccato: cada nota se acorta y queda separada; la melodía salta.",
+        "Las notas que empiezan juntas (un acorde) se tratan juntas."
+      ],
+      "takeaway": "Las mismas notas cambian de carácter según cuánto duran.",
+      "inApp": "En una pista de notas: llave inglesa → Legato / Staccato."
+    },
+    en: {
+      "title": "Legato and staccato",
+      "kicker": "Connected or detached",
+      "body": [
+        "Legato: each note rings until the next one starts, with no gaps; the melody sings. Staccato: each note gets shorter and detached; the melody bounces.",
+        "Notes that start together (a chord) are handled together."
+      ],
+      "takeaway": "The same notes change character depending on how long they last.",
+      "inApp": "On a notes track: wrench → Legato / Staccato."
+    },
+  },
+  {
+    id: "tool-repeat",
+    group: "tools",
+    visual: { kind: "tool", tool: "repeat" },
+    sound: () => demoSound("repeat"),
+    es: {
+      "title": "Repetir",
+      "kicker": "Copiar sin copiar y pegar",
+      "body": [
+        "Copia las notas elegidas una o varias veces seguidas, justo después o cada 1, 2 o 4 compases. Sirve para repetir un riff, un patrón de bajo o una frase."
+      ],
+      "takeaway": "Escribe la idea una vez y repítela las veces que haga falta.",
+      "inApp": "En una pista de notas: llave inglesa → Repetir, o Ctrl + D para repetir una vez."
+    },
+    en: {
+      "title": "Repeat",
+      "kicker": "Copying without copy and paste",
+      "body": [
+        "Copies the picked notes once or several times in a row, right after or every 1, 2 or 4 bars. Handy for repeating a riff, a bass pattern or a phrase."
+      ],
+      "takeaway": "Write the idea once and repeat it as many times as you need.",
+      "inApp": "On a notes track: wrench → Repeat, or Ctrl + D to repeat once."
+    },
+  },
+  {
+    id: "tool-snap",
+    group: "tools",
+    visual: { kind: "tool", tool: "snap" },
+    sound: () => demoSound("snap"),
+    es: {
+      "title": "Ajustar a la escala",
+      "kicker": "Sin notas que choquen",
+      "body": [
+        "Lleva las notas que no encajan a la más cercana que sí: a la escala de la tonalidad que rige en ese lugar, o al acorde que suena en ese momento.",
+        "En el piano roll las notas fuera de la escala se ven en rojo: esta herramienta las corrige todas de una."
+      ],
+      "takeaway": "Útil para limpiar una melodía tocada a mano o probar ideas sin desafinar.",
+      "inApp": "En una pista de notas: llave inglesa → Ajustar a la escala."
+    },
+    en: {
+      "title": "Snap to scale",
+      "kicker": "No clashing notes",
+      "body": [
+        "Moves notes that don't fit to the nearest one that does: to the scale of the key in effect at that spot, or to the chord playing at that moment.",
+        "In the piano roll, out-of-scale notes show in red: this tool fixes them all at once."
+      ],
+      "takeaway": "Handy for cleaning up a hand-played melody or trying ideas without clashing.",
+      "inApp": "On a notes track: wrench → Snap to scale."
+    },
+  },
+  {
+    id: "tool-bass",
+    group: "tools",
+    visual: { kind: "tool", tool: "bass" },
+    sound: () => demoSound("bass"),
+    es: {
+      "title": "Bajo automático",
+      "kicker": "La base, sola",
+      "body": [
+        "Escribe una línea de bajo que sigue los acordes: solo la fundamental, fundamental y quinta, octavas, o bajo caminante, que recorre el acorde en negras y llega al siguiente por semitono.",
+        "Respeta los silencios entre acordes y elige la octava de cada fundamental para que la línea no salte de un extremo al otro."
+      ],
+      "takeaway": "Un punto de partida para el bajo que después puedes retocar a mano.",
+      "inApp": "En una pista de notas (mejor la de «Bajo»): llave inglesa → Bajo automático."
+    },
+    en: {
+      "title": "Auto bass",
+      "kicker": "The groundwork, by itself",
+      "body": [
+        "Writes a bass line that follows the chords: just the root, root and fifth, octaves, or walking bass, which walks the chord in quarter notes and reaches the next one by a half step.",
+        "It respects rests between chords and picks each root's octave so the line doesn't jump from one end to the other."
+      ],
+      "takeaway": "A starting point for the bass that you can then touch up by hand.",
+      "inApp": "On a notes track (ideally «Bass»): wrench → Auto bass."
+    },
+  },
+  {
+    id: "tool-octave",
+    group: "tools",
+    visual: { kind: "tool", tool: "octave" },
+    sound: () => demoSound("octave"),
+    es: {
+      "title": "Octava de la pista",
+      "kicker": "Mismo acorde, otro registro",
+      "body": [
+        "Sube o baja una o más octavas todo lo que toca una pista de acordes, sin cambiar los voicings.",
+        "Así puedes tener varias pistas con los mismos acordes en registros distintos: un colchón grave, un piano en el medio y una cajita musical aguda."
+      ],
+      "takeaway": "Repartir el registro hace que cada instrumento se escuche claro.",
+      "inApp": "En una pista de acordes: llave inglesa → Octava de la pista. Junto al nombre aparece, por ejemplo, «−1 8va»."
+    },
+    en: {
+      "title": "Track octave",
+      "kicker": "Same chord, different register",
+      "body": [
+        "Moves everything a chord track plays up or down one or more octaves, without changing the voicings.",
+        "That way several tracks can play the same chords in different registers: a low pad, a piano in the middle and a high music box."
+      ],
+      "takeaway": "Spreading the register makes each instrument sound clear.",
+      "inApp": "On a chord track: wrench → Track octave. A mark such as «−1 8va» shows next to the name."
+    },
+  },
+  {
+    id: "tool-convert",
+    group: "tools",
+    visual: { kind: "tool", tool: "convert" },
+    sound: () => demoSound("convert"),
+    es: {
+      "title": "Convertir a notas",
+      "kicker": "De generado a escrito",
+      "body": [
+        "Lo que toca una pista de acordes (en bloque, arpegiado, con ritmo o rasgueo) se calcula solo, así que no se puede tocar nota por nota. Convertir lo escribe como notas en una pista de piano roll.",
+        "Después puedes borrar una nota del rasgueo, alargar la última del arpegio o cambiar la fuerza de un golpe. Puede silenciar la pista de acordes para que no suene doble."
+      ],
+      "takeaway": "Convierte cuando quieras retocar a mano lo que generó una herramienta.",
+      "inApp": "En una pista de acordes: llave inglesa → Convertir a notas."
+    },
+    en: {
+      "title": "Convert to notes",
+      "kicker": "From generated to written",
+      "body": [
+        "What a chord track plays (block, arpeggiated, with a rhythm or a strum) is calculated on the fly, so you can't edit it note by note. Converting writes it as notes in a piano roll track.",
+        "Then you can delete a note from the strum, lengthen the arpeggio's last note or change the strength of a hit. It can mute the chord track so it doesn't sound twice."
+      ],
+      "takeaway": "Convert when you want to touch up by hand what a tool generated.",
+      "inApp": "On a chord track: wrench → Convert to notes."
+    },
+  },
+  {
+    id: "tool-toChord",
+    group: "tools",
+    visual: { kind: "tool", tool: "toChord" },
+    sound: () => demoSound("toChord"),
+    es: {
+      "title": "Acorde desde notas",
+      "kicker": "¿Qué acorde estoy tocando?",
+      "body": [
+        "Elige dos o más notas en el piano roll y Tonalia te dice qué acorde forman, con su función en la tonalidad (y si está invertido).",
+        "Con «Fijar» reemplaza el acorde que suena ahí en la cinta; con «Añadir» lo suma como acorde nuevo."
+      ],
+      "takeaway": "Del piano a la armonía: toca o dibuja notas y descubre el acorde.",
+      "inApp": "En una pista de notas: elige notas y llave inglesa → Acorde desde notas."
+    },
+    en: {
+      "title": "Chord from notes",
+      "kicker": "What chord am I playing?",
+      "body": [
+        "Pick two or more notes in the piano roll and Tonalia tells you which chord they form, with its function in the key (and whether it's inverted).",
+        "«Set» replaces the chord playing there on the ribbon; «Add» adds it as a new chord."
+      ],
+      "takeaway": "From the keyboard to harmony: play or draw notes and discover the chord.",
+      "inApp": "On a notes track: pick notes and wrench → Chord from notes."
+    },
+  },
 ];
 
-export const LESSON_GROUPS: LessonGroup[] = ["basics", "harmony", "rhythm", "beyond"];
+export const LESSON_GROUPS: LessonGroup[] = ["basics", "harmony", "rhythm", "beyond", "tools"];
 
 /** Lo que entra en el tutorial básico: fundamentos y armonía (lo «más allá» queda para Aprender). */
 export const TUTORIAL_LESSONS = LESSONS.filter((l) => l.group === "basics" || l.group === "harmony");

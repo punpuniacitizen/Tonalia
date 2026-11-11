@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 
 import { BRIGHTNESS, CHARACTERISTIC, type TipVisual } from "../../tips/tips";
 import { scaleOffsets, scaleSteps } from "../../lib/music";
+import { ToolDemoView } from "./ToolDemoView";
 
 const FN = { tonic: "var(--fn-tonic)", subdominant: "var(--fn-subdominant)", dominant: "var(--fn-dominant)" } as const;
 
@@ -45,6 +46,8 @@ export function TipVisualView({ visual, lang }: { visual: TipVisual; lang: "es" 
       return <Modulation lang={lang} />;
     case "worldScales":
       return <WorldScales lang={lang} />;
+    case "tool":
+      return <ToolDemoView tool={visual.tool} lang={lang} />;
   }
 }
 

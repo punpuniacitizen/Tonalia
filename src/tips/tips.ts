@@ -22,7 +22,8 @@ export type TipVisual =
   | { kind: "diatonic" }
   | { kind: "subdivision" }
   | { kind: "modulation" }
-  | { kind: "worldScales" };
+  | { kind: "worldScales" }
+  | { kind: "tool"; tool: string };
 
 type Text = { title: string; kicker: string; mood: string[]; body: string; useWhen: string[]; examples?: string };
 
