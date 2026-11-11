@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useNotes } from "../../stores/notes";
+import { useUi } from "../../stores/ui";
 import { Icon, type IconName } from "../common/Icon";
 import { Popover } from "../common/Popover";
 import { ArpPanel } from "./ArpTool";
@@ -72,17 +73,19 @@ function ToolsPanel({ target, close }: { target: ToolsTarget; close: () => void 
     });
   }
   const current = tools.find((x) => x.id === tool);
+  // En nivel avanzado, lista compacta: solo el nombre (la descripción queda en el tooltip).
+  const compact = useUi.getState().level === "advanced";
 
   if (!current) {
     return (
-      <div className="tools-list">
+      <div className={`tools-list ${compact ? "is-compact" : ""}`}>
         <h4>{t("tools.title")}</h4>
         {tools.map((x) => (
-          <button key={x.id} className="tools-item" disabled={!!x.disabled} onClick={() => setTool(x.id)}>
-            <Icon name={x.icon} size={17} />
+          <button key={x.id} className="tools-item" disabled={!!x.disabled} onClick={() => setTool(x.id)} title={compact ? (x.disabled ?? x.hint) : undefined}>
+            <Icon name={x.icon} size={compact ? 15 : 17} />
             <span>
               <strong>{x.name}</strong>
-              <small>{x.disabled ?? x.hint}</small>
+              {!compact && <small>{x.disabled ?? x.hint}</small>}
             </span>
           </button>
         ))}

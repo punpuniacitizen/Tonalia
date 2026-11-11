@@ -853,3 +853,18 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Nivel avanzado: herramientas en lista compacta, sin descripciones. */
+.tools-list.is-compact {
+  width: 220px;
+  gap: 3px;
+}
+
+.tools-list.is-compact .tools-item {
+  align-items: center;
+  padding: 6px 10px;
+}
+
+.tools-list.is-compact .tools-item svg {
+  margin-top: 0;
+}
